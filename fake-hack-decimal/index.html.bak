@@ -1,0 +1,39 @@
+<html>
+	<head>
+		<style>
+		@font-face { font-family: Consolas; src: url('CONSOLA.TTF'); }
+		p {
+			font-family: Consolas
+		}
+		</style>
+	</head>
+	<body style="background-color:black;">
+			<p id="text" style="color:#15C60D;">></p>
+			<script>
+function addText(what) {
+document.getElementById("text").innerHTML=document.getElementById("text").innerHTML+what
+};
+function clearText() {
+document.getElementById("text").innerHTML=""
+};
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+};
+function myLoop() {
+  setTimeout(function() {
+	for (let o = 0; o < 50; o++) {
+			for (let i = 0; i < 5; i++) {
+			addText(getRandomInt(10000000000,99999999999));
+			};
+			addText("\n");
+	};
+  myLoop();
+  }, 10)
+}
+
+myLoop();
+			</script>
+	</body> 
+</html>

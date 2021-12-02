@@ -1,0 +1,43 @@
+<html>
+	<head>
+		<style>
+		@font-face { font-family: Consolas; src: url('CONSOLA.TTF'); }
+		p {
+			font-family: Consolas
+		}
+		</style>
+	</head>
+	<body style="background-color:black;">
+			<p id="text" style="color:#15C60D;">></p>
+			<script>
+function addText(what) {
+document.getElementById("text").innerHTML=document.getElementById("text").innerHTML+what
+};
+function clearText() {
+document.getElementById("text").innerHTML=">"
+};
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+};
+function decimalToBinary(decimal) {
+return Number(decimal).toString(2)
+};
+function myLoop() {
+  setTimeout(function() {
+  	clearText();
+	for (let o = 0; o < 50; o++) { //up amount
+			for (let i = 0; i < 3; i++) { //side amount
+			addText(decimalToBinary(getRandomInt(1000000000000000,9999999999999999)));
+			};
+			addText("\n");
+	};
+  myLoop();
+  }, 10)
+}
+
+myLoop();
+			</script>
+	</body> 
+</html>

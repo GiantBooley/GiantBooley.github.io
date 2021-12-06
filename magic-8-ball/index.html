@@ -1,26 +1,8 @@
 <!DOCTYPE html>
 <body>
-<h2 id="response">press ask</h2>
+<h6 id="response">press ask</h6>
 <script>
-var random = 1;
-function getRandomInt(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max);
-  return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
-};
-function clickButton() {
-random = getRandomInt(1,5);
-if (random==1) {
-document.getElementById("response").innerHTML="yes"
-} else if (random==2) {
-document.getElementById("response").innerHTML="no"
-} else if (random==3) {
-document.getElementById("response").innerHTML="maybe"
-} else if (random==4) {
-document.getElementById("response").innerHTML="so"
-} else if (random==5) {
-document.getElementById("response").innerHTML="i dont know"
-};
+alert("bob")
 </script>
   <button type="button" onclick="clickButton()">ask</button>
 </body>

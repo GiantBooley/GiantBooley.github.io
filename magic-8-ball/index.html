@@ -2,24 +2,13 @@
 <html>
 <head>
   <script>
+    var item = 1
+    var responses = ["yes","no","you can count on it","ask again","maybe","its not certain"]
     
-    var random = 1;
-  
     function clickButton() {
-    random = Math.floor(Math.random() * 5);
-    if (random==1) {
-    document.getElementById("response").innerHTML="yes";
-    } else if (random==2) {
-    document.getElementById("response").innerHTML="no";
-    } else if (random==3) {
-    document.getElementById("response").innerHTML="maybe";
-    } else if (random==4) {
-    document.getElementById("response").innerHTML="so";
-    } else if (random==5) {
-    document.getElementById("response").innerHTML="i dont know";
-    }
+    var item = responses[Math.floor(Math.random()*responses.length)];
+    document.getElementById("response").innerHTML=item;
     };
-  
   </script>
 </head>
 <body>

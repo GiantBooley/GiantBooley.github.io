@@ -67,7 +67,7 @@
 			<button type="button" onclick="toggleTopBar()">Toggle top bar</button><br>
 			<label>Set background color:</label>
 			<input type="text" id="debugSetBackgroundColorInput">
-			<button type="button" onclick="debugSetBackgroundColor()">Set background color</button>
+			<button type="button" onclick="document.body.style.backgroundColor=document.getElementById(\"debugSetBackgroundColorInput\").value;">Set background color</button>
 			<button type="button" onclick="debugDefaultBackgroundColor()">Default background color</button>
 			<hr>
 		</div>

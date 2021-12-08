@@ -15,7 +15,11 @@
 			};
 			// dice
 			
-			
+			// coin
+			const coinFLipTypes = ["heads","tails"];
+			function coinFlip() {
+				document.getElementbyId("coinOutput").innerHTML=coinFlipType[Math.floor(Math.random()*coinFlipType.length)];
+			}
 		</script>
 	</head>
 	<body>
@@ -31,6 +35,12 @@
 			<h1>Roll a die</h3>
 			<button type="button" onclick="diceRoll()">roll die</button>
 			<b id="diceOutput"></b>
+		</div>
+		
+		<div id="coin">
+			<h1>Flip a coin</h1>
+			<button type="button" onclick="coinFlip">flip coin</button>
+			<b id="coinOutput"></b>
 		</div>
 	</body>
 </html>

@@ -18,7 +18,7 @@
 			// coin
 			const coinFLipTypes = ["heads","tails"];
 			function coinFlip() {
-				document.getElementbyId("coinOutput").innerHTML=coinFlipType[Math.floor(Math.random()*coinFlipTypes.length)];
+				document.getElementById("coinOutput").innerHTML=coinFlipType[Math.floor(Math.random()*coinFlipTypes.length)];
 			};
 			// coin
 		</script>
@@ -39,7 +39,7 @@
 		</div>
 		
 		<div id="coin">
-			<h1>Flip a kcoin</h1>
+			<h1>Flip a coin</h1>
 			<button type="button" onclick="coinFlip()">flip coin</button>
 			<b id="coinOutput"></b>
 		</div>

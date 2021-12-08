@@ -2,22 +2,31 @@
 <html>
   <head>
     <script>
-      
+      // eightBall
       const eightBallResponses = ["It is certain.","It is decidedly so.","Without a doubt.","Yes definitely.","You may rely on it.","As i see it, yes.","Most likely.","Outlook good.","Yes.","Signs point to yes.","Reply hazy, try again.","Ask again later.","Better not tell you now.","Cannot predict now.","Concentrate and ask again.","Don\'t count on it.","My reply is no.","My sources say no.","Outlook not so good.","Very doubtful."];
       function eightBallButtonClick() {
         if (eightBallInput.length>0) {
     document.getElementById("eightBallOutput").innerHTML=eightBallResponses[Math.floor(Math.random()*eightBallResponses.length)];
-      }
-      };
-      
+      }};
+      // eightBall
+			// dice
+			function diceRoll() {
+				document.getElementById("diceOutput")
     </script>
   </head>
   <body>
+    
     <div id="eightBall">
       <h1>Magic 8 bajll</h1>
       <input type="text" id=eightBallInput>
       <button type="button" onclick="eightBallButtonClick()">shake magic 8 ball</button>
-      <b id="eightBallOutput">bob</b>
+      <strong id="eightBallOutput"></strong>
+    </div>
+      
+    <div id="dice">
+			<h1>roll a die</h3>
+			<button type="button" onclick="diceRoll()">roll die</button>
+			<strong id="Output">hol</strong>
     </div>
   </body>
 </html>

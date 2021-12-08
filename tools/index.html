@@ -20,8 +20,8 @@
 					x.style.display = "none";
 				}
 			};
-			function debugChangeBackgroundColor() {
-				document.body.style.backgroundColor=document.getElementById("debugChangeBackgroundColorInput").value;
+			function debugSetBackgroundColor() {
+				document.body.style.backgroundColor=document.getElementById("debugSetBackgroundColorInput").value;
 			};
 			// debug
 			
@@ -62,9 +62,9 @@
 		<div id="debug" style="display:none">
 			<h2>Debug</h2>
 			<button type="button" onclick="toggleTopBar()">Toggle top bar</button><br>
-			<label>Background color
-			<input type="text" id="debugChangeBackgroundColorInput">
-			<button type="button" onclick="debugChangeBackgroundColor()">Change background color
+			<label>Set background color:
+			<input type="text" id="debugSetBackgroundColorInput">
+				<button type="button" onclick="debugSetBackgroundColor()">Set background color</button>
 		<hr>
 		</div>
 		

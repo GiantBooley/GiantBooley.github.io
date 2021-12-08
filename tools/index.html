@@ -11,7 +11,7 @@
 				} else {
 					x.style.display = "none";
 				}
-			}
+			};
 			// debug
 			
 			// eightBall
@@ -42,8 +42,9 @@
 	<body style="background-color:cornsilk">
 		
 		<hr id="topBar">			
-		<div id="debug">
+		<div id="debug" style="display:none">
 			<h2>debug</h2>
+			<button type="button" onclick="toggleTopBar()">toggle top bar</button>
 		<hr>
 		</div>
 		
@@ -115,7 +116,7 @@
 		</div>
 		<hr>
 		<div id="rng">
-			<h2>Random number generatord</h2>
+			<h2>Random number generator</h2>
 			<input type="number" id="rngInput1" name="rngInput1">
 			<label for="rngInput1">v min v</label>
 		</div>

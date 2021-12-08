@@ -13,7 +13,7 @@
 			
 			// dice
 			function diceRoll() {
-				document.getElementById("diceOutput").innerHTML=Math.floor(Math.random()*6)
+				document.getElementById("diceOutput").innerHTML=Math.floor(Math.random()*5)+1
 			};
 			// dice
 			
@@ -32,7 +32,7 @@
 		<div id="dice">
 			<h1>roll a die</h3>
 			<button type="button" onclick="diceRoll()">roll die</button>
-			<b id="diceOutput">hol</b>
+			<b id="diceOutput"></b>
 		</div>
 	</body>
 </html>

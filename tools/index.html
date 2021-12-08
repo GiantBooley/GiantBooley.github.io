@@ -23,6 +23,9 @@
 			function debugSetBackgroundColor() {
 				document.body.style.backgroundColor=document.getElementById("debugSetBackgroundColorInput").value;
 			};
+			function debugDefaultBackgroundColor() {
+				document.body.style.backgroundColor="cornsilk";
+			};
 			// debug
 			
 			// eightBall
@@ -62,10 +65,11 @@
 		<div id="debug" style="display:none">
 			<h2>Debug</h2>
 			<button type="button" onclick="toggleTopBar()">Toggle top bar</button><br>
-			<label>Set background color:
+			<label>Set background color:</label>
 			<input type="text" id="debugSetBackgroundColorInput">cornsilk</input>
 			<button type="button" onclick="debugSetBackgroundColor()">Set background color</button>
-		<hr>
+			<button type="button" onclick="debugDefaultBackgroundColor()">Default background color</button>
+			<hr>
 		</div>
 		
 		<div id="eightBall">

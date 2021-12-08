@@ -1,9 +1,19 @@
 <!DOCTYPE html>
 <html>
-	<title>Tgools</title>
+	<title>Tools</title>
 	<head>
 		<script>
-			// debug toggle
+			// debug
+			function toggleTopBar() {
+				 let x = document.getElementById("topBar");
+				if (x.style.display === "none") {
+					x.style.display = "block";
+				} else {
+					x.style.display = "none";
+				}
+			}
+			// debug
+			
 			// eightBall
 			const eightBallResponses = ["It is certain.","It is decidedly so.","Without a doubt.","Yes definitely.","You may rely on it.","As i see it, yes.","Most likely.","Outlook good.","Yes.","Signs point to yes.","Reply hazy, try again.","Ask again later.","Better not tell you now.","Cannot predict now.","Concentrate and ask again.","Don\'t count on it.","My reply is no.","My sources say no.","Outlook not so good.","Very doubtful."];
 			function eightBallButtonClick() {
@@ -31,9 +41,12 @@
 	</head>
 	<body style="background-color:cornsilk">
 		
+		<hr id="topBar">			
 		<div id="debug">
-		</div>
+			<h2>debug</h2>
 		<hr>
+		</div>
+		
 		<div id="eightBall">
 			<h2>Magic 8 ball</h2>
 			<input type="text" id="eightBallInput">

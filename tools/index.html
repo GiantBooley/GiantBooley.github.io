@@ -20,9 +20,9 @@
 					x.style.display = "none";
 				}
 			};
-			function debugChangeBackground() {
-				
-			}
+			function debugChangeBackgroundColor() {
+				document.body.style.backgroundColor=document.getElementById("debugChangeBackgroundColorInput").value;
+			};
 			// debug
 			
 			// eightBall
@@ -48,29 +48,36 @@
 				document.getElementById("coinOutput").innerHTML=coinFlipTypes[Math.floor(Math.random()*coinFlipTypes.length)];
 			};
 			// coin
+			
+			// rng
+			function rngGenerate() {
+				document.getElementById("rngOutput").innerHTML=Math.floor((Math.random()*document.getElementById("rngInput2"))+document.getElementById("rngInput1").value);
+			}
+			// rng
 		</script>
 	</head>
 	<body style="background-color:cornsilk">
 		
 		<hr id="topBar">			
 		<div id="debug" style="display:none">
-			<h2>debug</h2>
-			<button type="button" onclick="toggleTopBar()">toggle top bar</button><br>
-			<input type="text" id="debugChangeBackgroundInput">
-			<button type="button"
+			<h2>Debug</h2>
+			<button type="button" onclick="toggleTopBar()">Toggle top bar</button><br>
+			<label>Background color
+			<input type="text" id="debugChangeBackgroundColorInput">
+			<button type="button" onclick="debugChangeBackgroundColor()">Change background color
 		<hr>
 		</div>
 		
 		<div id="eightBall">
 			<h2>Magic 8 ball</h2>
 			<input type="text" id="eightBallInput">
-			<button type="button" onclick="eightBallButtonClick()">shake magic 8 ball</button>
+			<button type="button" onclick="eightBallButtonClick()">Shake magic 8 ball</button>
 			<b id="eightBallOutput"></b>
 		</div>
 		<hr>
 		<div id="dice">
 			<h2>Roll a die</h2>
-			<label for="diceSides">select amount of sides:</label>
+			<label for="diceSides">select Amount of sides:</label>
 			<select id="diceSides">
 				<option value=6>6 (hexahedron)</option>
 				<option value=7>7 (heptahedron)</option>
@@ -118,13 +125,13 @@
 				<option value=49>49</option>
 				<option value=50>50</option>
 			</select>
-			<button type="button" onclick="diceRoll()">roll die</button>
+			<button type="button" onclick="diceRoll()">Roll die</button>
 			<b id="diceOutput"></b>
 		</div>
 		<hr>
 		<div id="coin">
 			<h2>Flip a coin</h2>
-			<button type="button" onclick="coinFlip()">flip coin</button>
+			<button type="button" onclick="coinFlip()">Flip coin</button>
 			<b id="coinOutput"></b>
 		</div>
 		<hr>
@@ -134,7 +141,7 @@
 			<input type="number" id="rngInput1">
 			<label>max:</label>
 			<input type="number" id="rngInput2">
-			<button type="button" onclick="rngGenerate">
+			<button type="button" onclick="rngGenerate">Generte number</button>
 			<b id="rngOutput"></b>
 		</div>
 		<hr>

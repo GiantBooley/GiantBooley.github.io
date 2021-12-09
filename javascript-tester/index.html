@@ -20,7 +20,7 @@
 				letterNum=0;
 				text=document.getElementById("javascript").value;
 				
-				for (let i = 0;i < document.getElementById("javascript").textLength;i++) {
+				for (let i = 0;i < document.getElementById("javascript").value.length;i++) {
 					if (text.charAt(letterNum)=="[") {
 						squareLeft++
 					} else if (text.charAt(letterNum)=="]") {

@@ -13,9 +13,11 @@
 				if (centered == 0) {
 					centered = 1;
 					document.body.style.textAlign="center";
+					document.getElementById("toggleCentered").innerHTML="centered";
 				} else {
 					centered = 0;
 					document.body.style.textAlign="";
+					document.getElementById("toggleCentered").innerHTML="left aligned";
 				}
 			};
 			// eightBall

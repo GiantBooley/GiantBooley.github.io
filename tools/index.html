@@ -1,91 +1,23 @@
 <!DOCTYPE html>
 <html>
-
-	<div id="debugConsole" style="display:none">
-		<p id="debugConsoleOutput">>> type</p>
-		<textarea id="debugConsoleTextarea" rows="5" cols="180"></textarea><br>
-		<button type="button" onclick="debugConsoleRunCommand()">Run command</button><br>
-		<button type="button" onclick="debugConsoleLastCommand()">↑</button><br>
-		<button type="button" onclick="debugConsoleNextCommand()">↓</button><br>
-	</div>
-	
 	<title>Tools</title>
 	<head>
 		<script>
-		
-			// console
-			var debugConsoleHistoryPosition = 0;
-			var debugConsoleHistory = [];
-			var debugConsoleTextarea = document.getElementById("debugConsoleTextarea");
-			var debugConsoleOutput = document.getElementById("debugConsoleOutput");
-			function debugConsoleGetResponseFromTextarea() {
-				return debugConsoleTextarea.value;
-			};
-			function debugConsoleAddToOutput(textToAdd) {
-				debugConsoleOutput.innerHTML=debugConsoleOutput.innerHTML+"\n>> "+textToAdd;
-			};
-			function debugConsoleRunCommand() {
-				location="javascript:(()=>{"+debugConsoleTextarea.value+"})();";
-				debugConsoleHistory.splice(0, 0, debugConsoleTextarea.value);
-				debugConsoleAddToOutput(debugConsoleGetResponseFromTextarea());
-				debugConsoleTextarea.value="";
-				debugConsoleHistoryPosition=0;
-			};
-			funtion debugConsoleLastCommand() {
-				if (debugConsoleHistoryPosition > debugConsoleHistory.length) {
-					debugConsoleHistoryPosition++;
-					debugConsoleTextarea=debugConsoleHistory[debugConsoleHistoryPosition];
-				}
-			};
-			funtion debugConsoleNextCommand() {
-				if (debugConsoleHistoryPosition > 0) {
-					debugConsoleHistoryPosition -= 1
-					debugConsoleTextarea=debugConsoleHistory[debugConsoleHistoryPosition];
-				}
-			};
-			// console
-			
-			function loop() {
-				if (document.getElementById("debugCheckbox").checked == true) {
-					document.getElementById("debug").style.display = "block";
-				} else {
-					document.getElementById("debug").style.display = "none";
-				};
-				if (document.getElementById("debugPageCentered").checked == true) {
-					document.body.style.textAlign = "center";
-				} else {
-					document.body.style.textAlign = "";
-				};
-				if (document.getElementById("debugConsoleCheckbox").checked == true) {
-					document.getElementById("debugConsole").style.display = "block";
-				} else {
-					document.getElementById("debugConsole").style.display = "none";
-				};
-			};
-			
 			function getRandomInt(min, max) {
-  min = Math.ceil(min);
-  max = Math.floor(max)+1;
-  return Math.floor(Math.random() * (max - min) + min);
-};
-
-			// debug
-			function debugSetBackgroundColor() {
-			document.body.style.backgroundColor=document.getElementById("debugSetBackgroundColorInput").value;
+				min = Math.ceil(min);
+				max = Math.floor(max)+1;
+				return Math.floor(Math.random() * (max - min) + min);
 			};
-			function debugToggle() {
-				let x = document.getElementById("debug").style.display = "none";
-				if (x.style.display === "none") {
-					x.style.display = "block";
+			var centered = 0
+			funtion toggleCentered() {
+				if (centered == 0) {
+					centered = 1;
+					document.body.style.textAlign="center";
 				} else {
-					x.style.display = "none";
+					centered = 0;
+					document.body.style.textAlign="";
 				}
 			};
-			function debugDefaultBackgroundColor() {
-			document.body.style.backgroundColor="cornsilk";
-			};
-			// debug
-			
 			// eightBall
 			const eightBallResponses = ["It is certain.","It is decidedly so.","Without a doubt.","Yes definitely.","You may rely on it.","As i see it, yes.","Most likely.","Outlook good.","Yes.","Signs point to yes.","Reply hazy, try again.","Ask again later.","Better not tell you now.","Cannot predict now.","Concentrate and ask again.","Don\'t count on it.","My reply is no.","My sources say no.","Outlook not so good.","Very doubtful."];
 			function eightBallButtonClick() {
@@ -117,12 +49,11 @@
 			}
 			};
 			// rng
-			setInterval(() => {loop()}, 100);
 		</script>
 	</head>
 	<body style="background-color:cornsilk;">
 		<h1>Tools</h1>
-		<input type="checkbox" id="debugCheckbox">Show debug</input>
+		<button type="button" onclick="toggleCentered">Left aligned</input>
 		<hr>			
 		<div id="debug" style="display:none">
 			<h2>Debug</h2>

@@ -2,6 +2,12 @@
 <html>
 	<title>Tools</title>
 	<head>
+		<style>
+			.nonResizableTextarea {
+				resize: none;
+			}
+			
+		</style>
 		<script>
 			function getRandomInt(min, max) {
 				min = Math.ceil(min);
@@ -50,7 +56,7 @@
 			
 			// plantgen
 			const plantGenPrefixes = ["brain","wrinkle","crunch","puff","slime","tangle","crumble","moist","squish","spore"];
-			const plantGenSuffixes = ["bulb","shroom","stalk","vine","weed","berry","fungus","puff"];
+			const plantGenSuffixes = ["bulb","shroom","stalk","vine","weed","berry","fungus","puff","gill"];
 			function plantGenGenerate() {
 				document.getElementById("plantGenOutput").innerHTML=plantGenPrefixes[getRandomInt(0,plantGenPrefixes.length-1)]+plantGenSuffixes[getRandomInt(0,plantGenSuffixes.length-1)];
 			};
@@ -150,5 +156,11 @@
 			<b id="plantGenOutput"></b>
 		</div>
 		<hr>
+		<div id="escape">
+			<h2>Escape text</h2>
+			<label>type the text here:</label>
+			<textarea id="escapeInput" rows="30" cols="30"></textarea>
+			<textarea>
+		</div>
 	</body>
 </html>

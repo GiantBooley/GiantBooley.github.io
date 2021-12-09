@@ -1,42 +1,97 @@
 <!DOCTYPE html>
 <html>
+
+	<div id="debugConsole" style="display:block">
+		<p id="debugConsoleOutput">>></p>
+		<textarea id="debugConsoleTextarea" rows="5" cols="180"></textarea><br>
+		<button type="button" onclick="">^</button>
+	</div>
+	
 	<title>Tools</title>
 	<head>
 		<script>
+		
+			// console
+			var debugConsole = document.getElementById("debugConsoleTextarea");
+			var debugConsoleOutput = document.getElementById("debugConsoleOutput");
+			var debugConsoleLastCommand = "";
+			function addToDebugConsoleOutput(textToAdd) {
+			
+			};
+			// console
+			
+			function loop() {
+				if (document.getElementById("debugCheckbox").checked == true) {
+				document.getElementById("debug").style.display = "block";
+				} else {
+				document.getElementById("debug").style.display = "none";
+				};
+				if (document.getElementById("debugPageCentered").checked == true) {
+				document.body.style.textAlign = "center";
+				} else {
+				document.body.style.textAlign = "";
+				};
+				document.getElementById("honnle").innerHTML="asdasdasdasdasdasd   ."+aray;
+			};
+			function debugSetBackgroundColor() {
+			document.body.style.backgroundColor=document.getElementById("debugSetBackgroundColorInput").value;
+			};
+			
+			function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max)+1;
+  return Math.floor(Math.random() * (max - min) + min);
+};
+
 			// debug
 			function debugToggle() {
-				let x = document.getElementById("debug");
+				let x = document.getElementById("debug").style.display = "none";
 				if (x.style.display === "none") {
 					x.style.display = "block";
 				} else {
 					x.style.display = "none";
 				}
 			};
+			function debugDefaultBackgroundColor() {
+			document.body.style.backgroundColor="cornsilk";
+			};
 			// debug
 			
 			// eightBall
 			const eightBallResponses = ["It is certain.","It is decidedly so.","Without a doubt.","Yes definitely.","You may rely on it.","As i see it, yes.","Most likely.","Outlook good.","Yes.","Signs point to yes.","Reply hazy, try again.","Ask again later.","Better not tell you now.","Cannot predict now.","Concentrate and ask again.","Don\'t count on it.","My reply is no.","My sources say no.","Outlook not so good.","Very doubtful."];
 			function eightBallButtonClick() {
-				if ( document.getElementById("eightBallInput").value == "mikeslush") {
-					debugToggle();
-				} else {
-					document.getElementById("eightBallOutput").innerHTML=eightBallResponses[Math.floor(Math.random()*eightBallResponses.length)];
+				if ( document.getElementById("eightBallInput").textLength > 0) {
+				document.getElementById("eightBallOutput").innerHTML=eightBallResponses[Math.floor(Math.random()*eightBallResponses.length)];
 				}
-				};
+			};
 			// eightBall
 			
 			// dice
+			function diceRoll() {
+			document.getElementById("diceOutput").innerHTML=getRandomInt(1,document.getElementById("diceSides").value);
+			};
 			// dice
 			
 			// coin
 			const coinFlipTypes = ["heads","tails"];
+			function coinFlip() {
+			document.getElementById("coinOutput").innerHTML=coinFlipTypes[Math.floor(Math.random()*coinFlipTypes.length)];
+			};
 			// coin
 			
 			// rng
+			function rngGenerate() {
+			if (document.getElementById("rngInput2").valueAsNumber > document.getElementById("rngInput1").valueAsNumber) {
+			document.getElementById("rngOutput").innerHTML=getRandomInt(document.getElementById("rngInput1").valueAsNumber,document.getElementById("rngInput2").valueAsNumber)
+			} else {
+			document.getElementById("rngOutput").innerHTML="Error"
+			}
+			};
 			// rng
+			setInterval(() => {loop()}, 100);
 		</script>
 	</head>
-	<body style="background-color:cornsilk">
+	<body style="background-color:cornsilk;">
 		<h1>Tools</h1>
 		<input type="checkbox" id="debugCheckbox">Show debug</input>
 		<hr>			
@@ -44,8 +99,9 @@
 			<h2>Debug</h2>
 			<label>Set background color:</label>
 			<input type="text" id="debugSetBackgroundColorInput">
-			<button type="button" onclick="document.body.style.backgroundColor=document.getElementById(\"debugSetBackgroundColorInput\").value;">Set background color</button>
-			<button type="button" onclick="document.body.style.backgroundColor=\"cornsilk\";">Default background color</button>
+			<button type="button" onclick="debugSetBackgroundColor();">Set background color</button>
+			<button type="button" onclick="debugDefaultBackgroundColor();">Default background color</button><br>
+			<input type="checkbox" id="debugPageCentered">Page centered</input><br>
 			<hr>
 		</div>
 		
@@ -106,13 +162,13 @@
 				<option value=49>49</option>
 				<option value=50>50</option>
 			</select>
-			<button type="button" onclick="document.getElementById(\"diceOutput\").innerHTML=Math.floor(Math.random()*document.getElementById(\"diceSides\").value)+1;">Roll die</button>
+			<button type="button" onclick="diceRoll();">Roll die</button>
 			<b id="diceOutput"></b>
 		</div>
 		<hr>
 		<div id="coin">
 			<h2>Flip a coin</h2>
-			<button type="button" onclick="document.getElementById(\"coinOutput\").innerHTML=coinFlipTypes[Math.floor(Math.random()*coinFlipTypes.length)];">Flip coin</button>
+			<button type="button" onclick="coinFlip();">Flip coin</button>
 			<b id="coinOutput"></b>
 		</div>
 		<hr>
@@ -122,7 +178,7 @@
 			<input type="number" id="rngInput1">
 			<label>max:</label>
 			<input type="number" id="rngInput2">
-			<button type="button" onclick="document.getElementById(\"rngOutput\").innerHTML=Math.floor((Math.random()*document.getElementById(\"rngInput2\").value)+document.getElementById(\"rngInput1\").value);">Generate number</button>
+			<button type="button" onclick="rngGenerate();">Generate number</button>
 			<b id="rngOutput"></b>
 		</div>
 		<hr>

@@ -13,38 +13,44 @@
 			const eightBallResponses = ["It is certain.","It is decidedly so.","Without a doubt.","Yes definitely.","You may rely on it.","As i see it, yes.","Most likely.","Outlook good.","Yes.","Signs point to yes.","Reply hazy, try again.","Ask again later.","Better not tell you now.","Cannot predict now.","Concentrate and ask again.","Don\'t count on it.","My reply is no.","My sources say no.","Outlook not so good.","Very doubtful."];
 			function eightBallButtonClick() {
 				if ( document.getElementById("eightBallInput").textLength > 0) {
-				document.getElementById("eightBallOutput").innerHTML=eightBallResponses[Math.floor(Math.random()*eightBallResponses.length)];
+				document.getElementById("eightBallOutput").innerHTML=eightBallResponses[getRandomInt(0,eightBallResponses.length)];
 				}
 			};
 			// eightBall
 			
 			// dice
 			function diceRoll() {
-			document.getElementById("diceOutput").innerHTML=getRandomInt(1,document.getElementById("diceSides").value);
+				document.getElementById("diceOutput").innerHTML=getRandomInt(1,document.getElementById("diceSides").value);
 			};
 			// dice
 			
 			// coin
 			const coinFlipTypes = ["heads","tails"];
 			function coinFlip() {
-			document.getElementById("coinOutput").innerHTML=coinFlipTypes[Math.floor(Math.random()*coinFlipTypes.length)];
+				document.getElementById("coinOutput").innerHTML=coinFlipTypes[Math.round(Math.random())];
 			};
 			// coin
 			
 			// rng
 			function rngGenerate() {
 			if (document.getElementById("rngInput2").valueAsNumber > document.getElementById("rngInput1").valueAsNumber) {
-			document.getElementById("rngOutput").innerHTML=getRandomInt(document.getElementById("rngInput1").valueAsNumber,document.getElementById("rngInput2").valueAsNumber)
+				document.getElementById("rngOutput").innerHTML=getRandomInt(document.getElementById("rngInput1").valueAsNumber,document.getElementById("rngInput2").valueAsNumber)
 			} else {
-			document.getElementById("rngOutput").innerHTML="Error"
+				document.getElementById("rngOutput").innerHTML="Error"
 			}
 			};
 			// rng
+			
+			// dreidel
+			const dreidelSpinTypes = ["Nun","Shin","Hay","Gimel"]
+			function dreidelSpin() {
+				document.getElementById("dreidelOutput").innerHTML=dreidelSpinTypes[getRandomInt(1,4)];
+			};
+			// dreidel
 		</script>
 	</head>
 	<body style="background-color:cornsilk;">
 		<h1>Tools</h1>
-		<button type="button" onclick="toggleCentered();">Left aligned</button>
 		<hr>
 		<div id="eightBall">
 			<h2>Magic 8 ball</h2>
@@ -121,6 +127,11 @@
 			<input type="number" id="rngInput2">
 			<button type="button" onclick="rngGenerate();">Generate number</button>
 			<b id="rngOutput"></b>
+		</div>
+		<hr>
+		<div id="dreidel">
+			<button type="button" onclick="dreidelSpin();">Spin dreidel</button>
+			<b id="dreidelOutput"></b>
 		</div>
 		<hr>
 	</body>

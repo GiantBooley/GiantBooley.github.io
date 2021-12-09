@@ -47,6 +47,15 @@
 				document.getElementById("dreidelOutput").innerHTML=dreidelSpinTypes[getRandomInt(0,3)];
 			};
 			// dreidel
+			
+			// plantgen
+			const plantGenPrefixes = ["brain","wrinkle","crunch","puff"];
+			const plantGenSuffixes = ["bulb","shroom","stalk","vine","weed"]
+			function plantGenGenerate() {
+				document.getElementById("plantGenOutput").innerHTML=plantGenPrefixes[getRandomInt(0,Prefixes.length-1)]+plantGenSuffixes[getRandomInt(0,plantGenSuffixes.length-1)];
+			};
+			// plantgen
+			
 		</script>
 	</head>
 	<body style="background-color:cornsilk;">
@@ -133,6 +142,12 @@
 			<h2>Spin a dreidel</h2>
 			<button type="button" onclick="dreidelSpin();">Spin dreidel</button>
 			<b id="dreidelOutput"></b>
+		</div>
+		<hr>
+		<div id="plantGen">
+			<h2>Plant generator</h2>
+			<button type="button" onclick="plantGenGenerate();">Generate</button>
+			<b id="plantGenOutput"></b>
 		</div>
 		<hr>
 	</body>

@@ -44,7 +44,7 @@
 			// dreidel
 			const dreidelSpinTypes = ["Nun","Shin","Hay","Gimel"]
 			function dreidelSpin() {
-				document.getElementById("dreidelOutput").innerHTML=dreidelSpinTypes[getRandomInt(1,4)];
+				document.getElementById("dreidelOutput").innerHTML=dreidelSpinTypes[getRandomInt(0,3)];
 			};
 			// dreidel
 		</script>
@@ -130,6 +130,7 @@
 		</div>
 		<hr>
 		<div id="dreidel">
+			<h2>Spin a dreidel/h2<>
 			<button type="button" onclick="dreidelSpin();">Spin dreidel</button>
 			<b id="dreidelOutput"></b>
 		</div>

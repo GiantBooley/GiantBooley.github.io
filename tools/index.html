@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 
-	<div id="debugConsole" style="display:block">
+	<div id="debugConsole" style="display:none">
 		<p id="debugConsoleOutput">>> type</p>
 		<textarea id="debugConsoleTextarea" rows="5" cols="180"></textarea><br>
 		<button type="button" onclick="debugConsoleRunCommand()">Run command</button><br>
@@ -47,14 +47,19 @@
 			
 			function loop() {
 				if (document.getElementById("debugCheckbox").checked == true) {
-				document.getElementById("debug").style.display = "block";
+					document.getElementById("debug").style.display = "block";
 				} else {
-				document.getElementById("debug").style.display = "none";
+					document.getElementById("debug").style.display = "none";
 				};
 				if (document.getElementById("debugPageCentered").checked == true) {
-				document.body.style.textAlign = "center";
+					document.body.style.textAlign = "center";
 				} else {
-				document.body.style.textAlign = "";
+					document.body.style.textAlign = "";
+				};
+				if (document.getElementById("debugConsoleCheckbox").checked == true) {
+					document.getElementById("debugConsole").style.display = "block";
+				} else {
+					document.getElementById("debugConsole").style.display = "none";
 				};
 			};
 			
@@ -126,6 +131,7 @@
 			<button type="button" onclick="debugSetBackgroundColor();">Set background color</button>
 			<button type="button" onclick="debugDefaultBackgroundColor();">Default background color</button><br>
 			<input type="checkbox" id="debugPageCentered">Page centered</input><br>
+			<input type="checkbox" id="debugConsoleCheckbox">Debug console</input><br>
 			<hr>
 		</div>
 		

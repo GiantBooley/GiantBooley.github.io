@@ -2,9 +2,11 @@
 <html>
 
 	<div id="debugConsole" style="display:block">
-		<p id="debugConsoleOutput">>></p>
-		<textarea id="debugConsoleTextarea" rows="5" cols="180"></textarea><br>
-		<button type="button" onclick="">^</button>
+		<p id="debugConsoleOutput">>> type</p>
+		<textarea id="debugConsoleTextarea" rows="5" cols="180"></textarea>
+		<button type="button" onclick="debugConsoleRunCommand()">Run command</button><br>
+		<button type="button" onclick="debugConsoleLastCommand()">↑</button><br>
+		<button type="button" onclick="debugConsoleNextCommand()">↓</button>
 	</div>
 	
 	<title>Tools</title>
@@ -12,11 +14,21 @@
 		<script>
 		
 			// console
-			var debugConsole = document.getElementById("debugConsoleTextarea");
+			var debugConsoleHistory = [];
+			var debugConsoleTextarea = document.getElementById("debugConsoleTextarea");
 			var debugConsoleOutput = document.getElementById("debugConsoleOutput");
 			var debugConsoleLastCommand = "";
-			function addToDebugConsoleOutput(textToAdd) {
-			
+			function debugConsoleGetResponseFromTextarea() {
+				return debugConsoleTextarea.value;
+			};
+			function debugConsoleAddToOutput(textToAdd) {
+				debugConsoleOutput.innerHTML=debugConsoleOutput.innerHTML+"\n>> "+textToAdd;
+			};
+			function debugConsoleRunCommand() {
+				location="javascript:(()=>{"+debugConsoleTextarea.value+"})();";
+				debugConsoleHistory.push(debugConsoleTextarea.value);
+				addToDebugConsoleOutput(debugConsoleGetResponseFromTextarea());
+				debugConsoleTextarea.value="";
 			};
 			// console
 			
@@ -31,10 +43,6 @@
 				} else {
 				document.body.style.textAlign = "";
 				};
-				document.getElementById("honnle").innerHTML="asdasdasdasdasdasd   ."+aray;
-			};
-			function debugSetBackgroundColor() {
-			document.body.style.backgroundColor=document.getElementById("debugSetBackgroundColorInput").value;
 			};
 			
 			function getRandomInt(min, max) {
@@ -44,6 +52,9 @@
 };
 
 			// debug
+			function debugSetBackgroundColor() {
+			document.body.style.backgroundColor=document.getElementById("debugSetBackgroundColorInput").value;
+			};
 			function debugToggle() {
 				let x = document.getElementById("debug").style.display = "none";
 				if (x.style.display === "none") {

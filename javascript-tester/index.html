@@ -2,10 +2,42 @@
 <html>
 	<head>
 		<script>
-			var letter = 0
+			var squareLeft = 0;
+			var squareRight = 0;;
+			var curlyLeft = 0
+			var curlyRight = 0;
+			var parenthesesLeft = 0;
+			var parenthesesRight = 0;
+			var letterNum = 0;
+			var text="";
 			function clickButton() {
-				let results = document.getElementById("results");
-				results.innerHTML=document.getElementById("javascript").value
+				squareLeft=0;
+				squareRight=0;
+				curlyLeft=0;
+				curlyRight=0;
+				parenthesesLeft=0;
+				parenthesesRight=0;
+				letterNum=0;
+				text=document.getElementById("javascript").value;
+				
+				for (let i = 0;i < document.getElementById("javascript").textLength;i++) {
+					if (text.charAt(letterNum)=="[") {
+						squareLeft++
+					} else if (text.charAt(letterNum)=="]") {
+						squareRight++;
+					} else if (text.charAt(letterNum)=="{") {
+						curlyLeft++;
+					} else if (text.charAt(letterNum)=="}") {
+						curlyRight++;
+					} else if (text.charAt(letterNum)=="(") {
+						parenthesesLeft++;
+					} else if (text.charAt(letterNum)==")") {
+						parenthesesRight++;
+					};
+					letterNum++;
+				};
+				
+				document.getElementById("results").innerHTML="[: "+squareLeft+"<br>]:"+squareRight+"<br>{:"+curlyLeft+"<br>}:"+curlyRight+"<br>(:"parenthesesLeft+"<br>):"+parenthesesRight
 			}
 		</script>
 	</head>

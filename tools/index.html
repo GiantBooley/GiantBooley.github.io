@@ -42,7 +42,7 @@
 			// rng
 			
 			// dreidel
-			const dreidelSpinTypes = ["Nun","Shin","Hay","Gimel"]
+			const dreidelSpinTypes = ["Nun","Shin","Hay","Gimel"];
 			function dreidelSpin() {
 				document.getElementById("dreidelOutput").innerHTML=dreidelSpinTypes[getRandomInt(0,3)];
 			};
@@ -50,7 +50,7 @@
 			
 			// plantgen
 			const plantGenPrefixes = ["brain","wrinkle","crunch","puff"];
-			const plantGenSuffixes = ["bulb","shroom","stalk","vine","weed"]
+			const plantGenSuffixes = ["bulb","shroom","stalk","vine","weed"];
 			function plantGenGenerate() {
 				document.getElementById("plantGenOutput").innerHTML=plantGenPrefixes[getRandomInt(0,Prefixes.length-1)]+plantGenSuffixes[getRandomInt(0,plantGenSuffixes.length-1)];
 			};

@@ -3,12 +3,29 @@
 	<title>Tools</title>
 	<head>
 		<style>
-			.nonResizableTextarea {
-				resize: none;
-			}
-			
+body {
+  background-color: #FFF8DC;
+  color: black;
+}
+
+.dark-mode {
+  background-color: #000723;
+  color: white;
+}
 		</style>
 		<script>
+			var darkMode = false;
+			function toggleDarkMode() {
+				if (darkMode == true) {
+					document.body.style.backgroundColor="cornsilk";
+					document.body.style.color="black";
+					darkMode=false;
+				} else {
+					document.body.style.backgroundColor="#000723";
+					document.body.style.color="white";
+					darkMode=true;
+				};
+			};
 			function getRandomInt(min, max) {
 				min = Math.ceil(min);
 				max = Math.floor(max)+1;
@@ -62,10 +79,22 @@
 			};
 			// plantgen
 			
+			// storygen
+			var storyGenStory1 = ["bob","tom","fred","mike","jim","joe","jeff","jack","john","ted"];
+			var storyGenStory2 = ["looked at"];
+			function storyGenGenerate() {
+			document.getElementById("storyGenOutput").style.display="block";
+			document.getElementById("storyGenOutput").value = "";
+			};
+			// storygen
+			
 		</script>
 	</head>
-	<body style="background-color:cornsilk;">
+	<body>
 		<h1>Tools</h1>
+		<hr>
+		<label>Settings:</label>
+		<button type="button" onclick="toggleDarkMode();">Toggle dark mode</button>
 		<hr>
 		<div id="eightBall">
 			<h2>Magic 8 ball</h2>
@@ -156,11 +185,11 @@
 			<b id="plantGenOutput"></b>
 		</div>
 		<hr>
-		<div id="escape">
-			<h2>Escape text</h2>
-			<label>type the text here:</label>
-			<textarea id="escapeInput" rows="30" cols="30"></textarea>
-			<textarea>
+		<div id="storyGen">
+			<h2>Story generator not working yet</h2>
+			<button type="button" onclick="storyGenGenerate();">Generate</button><br>
+			<textarea readonly style="resize: none;display:none;" id="storyGenOutput" rows="15" cols="75">yyto</textarea>
 		</div>
+		<hr>
 	</body>
 </html>

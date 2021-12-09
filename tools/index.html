@@ -3,10 +3,10 @@
 
 	<div id="debugConsole" style="display:block">
 		<p id="debugConsoleOutput">>> type</p>
-		<textarea id="debugConsoleTextarea" rows="5" cols="180"></textarea>
+		<textarea id="debugConsoleTextarea" rows="5" cols="180"></textarea><br>
 		<button type="button" onclick="debugConsoleRunCommand()">Run command</button><br>
 		<button type="button" onclick="debugConsoleLastCommand()">↑</button><br>
-		<button type="button" onclick="debugConsoleNextCommand()">↓</button>
+		<button type="button" onclick="debugConsoleNextCommand()">↓</button><br>
 	</div>
 	
 	<title>Tools</title>
@@ -14,10 +14,10 @@
 		<script>
 		
 			// console
+			var debugConsoleHistoryPosition = 0;
 			var debugConsoleHistory = [];
 			var debugConsoleTextarea = document.getElementById("debugConsoleTextarea");
 			var debugConsoleOutput = document.getElementById("debugConsoleOutput");
-			var debugConsoleLastCommand = "";
 			function debugConsoleGetResponseFromTextarea() {
 				return debugConsoleTextarea.value;
 			};
@@ -26,9 +26,22 @@
 			};
 			function debugConsoleRunCommand() {
 				location="javascript:(()=>{"+debugConsoleTextarea.value+"})();";
-				debugConsoleHistory.push(debugConsoleTextarea.value);
-				addToDebugConsoleOutput(debugConsoleGetResponseFromTextarea());
+				debugConsoleHistory.splice(0, 0, debugConsoleTextarea.value);
+				debugConsoleAddToOutput(debugConsoleGetResponseFromTextarea());
 				debugConsoleTextarea.value="";
+				debugConsoleHistoryPosition=0;
+			};
+			funtion debugConsoleLastCommand() {
+				if (debugConsoleHistoryPosition > debugConsoleHistory.length) {
+					debugConsoleHistoryPosition++;
+					debugConsoleTextarea=debugConsoleHistory[debugConsoleHistoryPosition];
+				}
+			};
+			funtion debugConsoleNextCommand() {
+				if (debugConsoleHistoryPosition > 0) {
+					debugConsoleHistoryPosition -= 1
+					debugConsoleTextarea=debugConsoleHistory[debugConsoleHistoryPosition];
+				}
 			};
 			// console
 			

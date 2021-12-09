@@ -2,9 +2,16 @@
 <html>
 	<head>
 		<script>
+			var results = document.getElementById("results");
+			function clickButton() {
+				results.innerHTML="bob\ntom"
+			}
 		</script>
 	</head>
 	<body>
-		<textarea id="javascript" rows="50" cols="150">type</textarea>
+		<textarea id="javascript" rows="30" cols="130">type</textarea>
+		<label>click the button to see how many of each bracket things there are</label>
+		<button type="button" onclick="clickButton();">the button</button>
+		<p id="results">
 	</body>
 </html>

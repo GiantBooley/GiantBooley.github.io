@@ -2,14 +2,15 @@
 <html>
 	<head>
 		<script>
+			var letter = 0
 			var results = document.getElementById("results");
 			function clickButton() {
-				results.innerHTML="bob\ntom"
+				results.innerHTML=document.getElementById("javascript").value
 			}
 		</script>
 	</head>
 	<body>
-		<textarea id="javascript" rows="30" cols="130">type</textarea>
+		<textarea id="javascript" rows="30" cols="130">type</textarea><br>
 		<label>click the button to see how many of each bracket things there are</label>
 		<button type="button" onclick="clickButton();">the button</button>
 		<p id="results">

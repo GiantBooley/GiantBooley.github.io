@@ -5,18 +5,18 @@
 			var input = document.getElementById("input");
 			var output = document.getElementById("output");
 			function encode() {
-				output.value = encodeURI(input.value);
+				document.getElementById("output").value = encodeURI(document.getElementById("input").value);
 			};
 			function decode() {
-				output.value = decodeURI(input.value);
+				document.getElementById("output").value = decodeURI(document.getElementById("input").value);
 			};
 		</script>
 	</head>
 	<body style="background-color:cornsilk">
 		<h1>URL encoder and decoder</h1><hr>
 		<textarea style="resize:none" id="input" rows="15" cols="50"></textarea>
-		<button type="button" onclick="encode()">Encode</button>
-		<button type="button" onclick="decode()">Decode</button>
+		<button type="button" onclick="encode();">Encode</button>
+		<button type="button" onclick="decode();">Decode</button>
 		<textarea style="resize:none" readonly id="output" rows="15" cols="50"></textarea>
 	</body>
 </html>

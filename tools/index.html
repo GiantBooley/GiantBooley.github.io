@@ -26,6 +26,16 @@ body {
 					darkMode=true;
 				};
 			};
+			var centered = false;
+			function toggleCentered() {
+				if (centered == true) {
+					document.body.style.textAlign="";
+					centered=false;
+				} else {
+					document.body.style.textAlign="center";
+					centered=true;
+				};
+			};
 			function getRandomInt(min, max) {
 				min = Math.ceil(min);
 				max = Math.floor(max)+1;
@@ -85,7 +95,7 @@ body {
 			// var storyGenStory = [""];
 			function storyGenGenerate() {
 				document.getElementById("storyGenOutput").style.display="block";
-				document.getElementById("storyGenOutput").value = storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+storyGenStoryActions[getRandomInt(0,storyGenStoryActions.length-1)]+storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+".";
+				document.getElementById("storyGenOutput").value = storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+" "+storyGenStoryActions[getRandomInt(0,storyGenStoryActions.length-1)]+" "+storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+".";
 			};
 			// storygen
 			
@@ -96,6 +106,8 @@ body {
 		<hr>
 		<label>Settings:</label>
 		<button type="button" onclick="toggleDarkMode();">Toggle dark mode</button>
+		<label>|</label>
+		<button type="button" onclick="toggleCentered();">Toggle centered</button>
 		<hr>
 		<div id="eightBall">
 			<h2>Magic 8 ball</h2>
@@ -187,7 +199,7 @@ body {
 		</div>
 		<hr>
 		<div id="storyGen">
-			<h2>Story generator not working yet</h2>
+			<h2>Story generator</h2>
 			<button type="button" onclick="storyGenGenerate();">Generate</button><br>
 			<textarea readonly style="resize:none;display:none;" id="storyGenOutput" rows="15" cols="75"></textarea>
 		</div>

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script>
+			var input = document.getElementById("input");
+			var output = document.getElementById("output");
+			function encode() {
+				output.value = encodeURI(input.value);
+			};
+			function decode() {
+				output.value = decodeURI(input.value);
+			};
+		</script>
+	</head>
+	<body style="background-color=cornsilk">
+		<h1>URL encoder and decoder</h1><hr>
+		<textarea id="input" rows="15" cols="75"></textarea>
+		<button type="button" onclick="encode()">Encode</button>
+		<button type="button" onclick="decode()">Decode</button>
+		<textarea readonly id="output" rows="15" cols="75"></textarea>
+	</body>
+</html>

@@ -92,14 +92,14 @@ body {
 				storyGenStory2 = storyGenStory2Array[getRandomInt(0,storyGenStory2Array.length-1)];
 				
 				document.getElementById("storyGenOutput").style.display="block";
-				document.getElementById("storyGenOutput").value = "${storyGenStory1} ${storyGenStory2}";
+				document.getElementById("storyGenOutput").value = `${storyGenStory1} ${storyGenStory2}`;
 			};
 			// storygen
 			
 		</script>
 	</head>
 	<body>
-		<h1 style="text-align:center">Tools</h1>
+		<h1>Tools</h1>
 		<hr>
 		<label>Settings:</label>
 		<button type="button" onclick="toggleDarkMode();">Toggle dark mode</button>

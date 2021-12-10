@@ -83,17 +83,9 @@ body {
 			var storyGenStoryNames = ["bob","tom","fred","mike","jim","joe","jeff","jack","john","ted"];
 			var storyGenStoryActions = ["looked at","punched","outsmarted","bewildered","hollered at","squished the brain of"];
 			// var storyGenStory = [""];
-			
-			var storyGenStoryName = "";
-			var storyGenStoryAction = "";
-			
 			function storyGenGenerate() {
-				
-				storyGenStoryName = storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)];
-				storyGenStoryAction = storyGenStoryActions[getRandomInt(0,storyGenStoryActions.length-1)];
-				
 				document.getElementById("storyGenOutput").style.display="block";
-				document.getElementById("storyGenOutput").value = `${storyGenStoryName} ${storyGenStoryAction} ${storyGenStoryName} and`;
+				document.getElementById("storyGenOutput").value = storyGenNames[getRandomInt(0,storyGenNames.length-1)]+storyGenStoryActions[getRandomInt(0,storyGenStoryActions.length-1)]+storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+".";
 			};
 			// storygen
 			

@@ -80,19 +80,20 @@ body {
 			
 			// storygen
 			
-			var storyGenStory1Array = ["bob","tom","fred","mike","jim","joe","jeff","jack","john","ted"];
-			var storyGenStory2Array = ["looked at"];
+			var storyGenStoryNames = ["bob","tom","fred","mike","jim","joe","jeff","jack","john","ted"];
+			var storyGenStoryActions = ["looked at","punched","outsmarted","bewildered","hollered at","squished the brain of"];
+			// var storyGenStory = [""];
 			
-			var storyGenStory1 = "";
-			var storyGenStory2 = "";
+			var storyGenStoryName = "";
+			var storyGenStoryAction = "";
 			
 			function storyGenGenerate() {
 				
-				storyGenStory1 = storyGenStory1Array[getRandomInt(0,storyGenStory1Array.length-1)];
-				storyGenStory2 = storyGenStory2Array[getRandomInt(0,storyGenStory2Array.length-1)];
+				storyGenStoryName = storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)];
+				storyGenStoryAction = storyGenStoryActions[getRandomInt(0,storyGenStoryActions.length-1)];
 				
 				document.getElementById("storyGenOutput").style.display="block";
-				document.getElementById("storyGenOutput").value = `${storyGenStory1} ${storyGenStory2}`;
+				document.getElementById("storyGenOutput").value = `${storyGenStoryName} ${storyGenStoryAction} ${storyGenStoryName} and`;
 			};
 			// storygen
 			

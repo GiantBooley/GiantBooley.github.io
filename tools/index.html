@@ -31,7 +31,6 @@ body {
 				max = Math.floor(max)+1;
 				return Math.floor(Math.random() * (max - min) + min);
 			};
-	
 			// eightBall
 			const eightBallResponses = ["It is certain.","It is decidedly so.","Without a doubt.","Yes definitely.","You may rely on it.","As i see it, yes.","Most likely.","Outlook good.","Yes.","Signs point to yes.","Reply hazy, try again.","Ask again later.","Better not tell you now.","Cannot predict now.","Concentrate and ask again.","Don\'t count on it.","My reply is no.","My sources say no.","Outlook not so good.","Very doubtful."];
 			function eightBallButtonClick() {
@@ -80,11 +79,20 @@ body {
 			// plantgen
 			
 			// storygen
-			var storyGenStory1 = ["bob","tom","fred","mike","jim","joe","jeff","jack","john","ted"];
-			var storyGenStory2 = ["looked at"];
+			
+			var storyGenStory1Array = ["bob","tom","fred","mike","jim","joe","jeff","jack","john","ted"];
+			var storyGenStory2Array = ["looked at"];
+			
+			var storyGenStory1 = "";
+			var storyGenStory2 = "";
+			
 			function storyGenGenerate() {
-			document.getElementById("storyGenOutput").style.display="block";
-			document.getElementById("storyGenOutput").value = "";
+				
+				storyGenStory1 = storyGenStory1Array[getRandomInt(0,storyGenStory1Array.length-1)];
+				storyGenStory2 = storyGenStory2Array[getRandomInt(0,storyGenStory2Array.length-1)];
+				
+				document.getElementById("storyGenOutput").style.display="block";
+				document.getElementById("storyGenOutput").value = "${storyGenStory1} ${storyGenStory2}";
 			};
 			// storygen
 			
@@ -188,7 +196,7 @@ body {
 		<div id="storyGen">
 			<h2>Story generator not working yet</h2>
 			<button type="button" onclick="storyGenGenerate();">Generate</button><br>
-			<textarea readonly style="resize: none;display:none;" id="storyGenOutput" rows="15" cols="75">yyto</textarea>
+			<textarea readonly style="resize:none;display:none;" id="storyGenOutput" rows="15" cols="75"></textarea>
 		</div>
 		<hr>
 	</body>

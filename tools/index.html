@@ -100,10 +100,21 @@ body {
 			// storygen
 			
 			// numbershortener
+			const numberShortenerOnesPlace = ["","un","duo","tre","quattuor","quin","sex","septen","octo","novem"];
+			const numberShortenerTensPlace = ["","deci","viginti","triginti","quadraginti","]
+			var numberShortenerPrefixNumber = 0;
+			var numberShortenerOutputType = document.getElementById("numberShortenerOutputType").value;
 			function numberShortenerShortenNumber() {
-				            
-									z 	
-			}
+				if (numberShortenerOutputType == "realNumber") {
+					
+				} else if (numberShortenerOutputType == "zeros") {
+					
+				} else if (numberShortenerOutputType == "zeroGroups") {
+					
+				} else if (numberShortenerOutputType == "latinPrefix") {
+					
+				};
+			};
 			// numbershortener
 			
 		</script>
@@ -215,11 +226,15 @@ body {
 			<h2>Number shortener</h2>
 			<label>Output from:</label>
 			<select id="numberShortenerOutputType">
-				<option value="realNumber">Real number</option>
-				<option value="zeros">Zeros</option>
-				<option value="zeroGroups">Zero groups</option>
-				<option value="latinPrefix">Latin prefix number</option>
+				<option value="realNumber">Real number (ex. 1000000 => 1 million)</option>
+				<option value="zeros">Zeros (ex. 6 => 1 million)</option>
+				<option value="zeroGroups">Zero groups (ex. 3 => 1 billion)</option>
+				<option value="latinPrefix">Latin prefix number (ex. 30 => trigintillion)</option>
 			</select>
+			<input type="number" id="numberShortenerInput" placeholder="Type number" size="50">
+			<button type="button" onclick="numberShortenerShortenNumber();">Shorten number</button>
+			<b id="numberShortenerOutput"></b>
 		</div>
+		<hr>
 	</body>
 </html>

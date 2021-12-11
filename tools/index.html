@@ -98,25 +98,6 @@ body {
 				document.getElementById("storyGenOutput").value = storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+" "+storyGenStoryActions[getRandomInt(0,storyGenStoryActions.length-1)]+" "+storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+".";
 			};
 			// storygen
-			
-			// numbershortener
-			const numberShortenerOnesPlace = ["","un","duo","tre","quattuor","quin","sex","septen","octo","novem"];
-			const numberShortenerTensPlace = ["","deci","viginti","triginti","quadraginti","]
-			var numberShortenerPrefixNumber = 0;
-			var numberShortenerOutputType = document.getElementById("numberShortenerOutputType").value;
-			function numberShortenerShortenNumber() {
-				if (numberShortenerOutputType == "realNumber") {
-					
-				} else if (numberShortenerOutputType == "zeros") {
-					
-				} else if (numberShortenerOutputType == "zeroGroups") {
-					
-				} else if (numberShortenerOutputType == "latinPrefix") {
-					
-				};
-			};
-			// numbershortener
-			
 		</script>
 	</head>
 	<body>
@@ -220,20 +201,6 @@ body {
 			<h2>Story generator</h2>
 			<button type="button" onclick="storyGenGenerate();">Generate</button><br>
 			<textarea readonly style="resize:none;display:none;" id="storyGenOutput" rows="15" cols="75"></textarea>
-		</div>
-		<hr>
-		<div id="numberShortener">
-			<h2>Number shortener</h2>
-			<label>Output from:</label>
-			<select id="numberShortenerOutputType">
-				<option value="realNumber">Real number (ex. 1000000 => 1 million)</option>
-				<option value="zeros">Zeros (ex. 6 => 1 million)</option>
-				<option value="zeroGroups">Zero groups (ex. 3 => 1 billion)</option>
-				<option value="latinPrefix">Latin prefix number (ex. 30 => trigintillion)</option>
-			</select>
-			<input type="number" id="numberShortenerInput" placeholder="Type number" size="50">
-			<button type="button" onclick="numberShortenerShortenNumber();">Shorten number</button>
-			<b id="numberShortenerOutput"></b>
 		</div>
 		<hr>
 	</body>

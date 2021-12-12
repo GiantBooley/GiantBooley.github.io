@@ -2,44 +2,70 @@
 <html>
 	<head>
 		<script>
-			const onesPlace = ["","un","duo","tre","quattuor","quin","sex","septen","octo","novem"];
-			const tensPlace = ["","deci","viginti","triginti","quadraginti","quinquaginti","sexaginti","septuaginti","octoginti","nonaginti"];
-			const hundredsPlace = ["","centi","ducenti","trecenti","quadringenti","quingenti","sescenti","septingenti","octingenti","nongenti"];
-			const thousandsPlace = ["","milli","dumilli","trimilli","quadrinmilli","quinmilli","sesmilli","septinmilli","octinmilli","nonmilli"];
-			const tenThousandsPlace = ["","decimilli","vigintmilli","trigintmilli","quadragintmilli","quinquagintmilli","sexagintmilli","septuagintmilli","octogintmilli","nonagintmilli"];
+			const places = {
+				0: ["","un","duo","tre","quattuor","quin","sex","septen","octo","novem"],
+				1: ["","deci","viginti","triginti","quadraginti","quinquaginti","sexaginti","septuaginti","octoginti","nonaginti"],
+				2: ["","centi","ducenti","trecenti","quadringenti","quingenti","sescenti","septingenti","octingenti","nongenti"],
+				3: ["","milli","dumilli","trimilli","quadrinmilli","quinmilli","sesmilli","septinmilli","octinmilli","nonmilli"]
+			};
+		
 			var prefixNumber = 0;
-			var outputType = document.getElementById("outputType").value;
+			var outputType = "fred";
+			var input = "tom";
+			var shortenedNumber = "";
+			function returnShortenedNumber(number) {
+				shortenedNumber = "";
+				for (let i = 0;i < number.toString().length;i++) {
+					shortenedNumber = shortenedNumber+places[i][getPlaceValue(i,number)];
+					
+				};
+				return shortenedNumber+"llion"
+			};
+			function getPlaceValue(place,number) {
+				return Math.floor(number/Math.pow(10,place) % 10);
+			};
 			function shortenNumber() {
-				if (outputType == "zeros") {
-					
-				} else if (outputType == "zeroGroups") {
-					
-				} else if (OutputType == "latinPrefix") {
-					
+				document.getElementById("output").innerHTML = "overflow";
+				if (outputType.value == "zeros") {
+					alert("bob");
+				} else if (outputType.value == "zeroGroups") {
+					alert("bob");
+				} else if (outputType.value == "latinPrefix") {
+					shortenedNumber = returnShortenedNumber(Math.floor(input.value));
+					document.getElementById("output").innerHTML = `shortened number: ${shortenedNumber}<br>latin prefix number: ${input.value}<br>zeros: ${(input.valueAsNumber+1)*3}`; 
 				};
 			};
 			var interval = setInterval(function() {
-				if (outputType == "zeros") {
-					
-				} else if (outputType == "zeroGroups") {
-					
-				} else if (OutputType == "latinPrefix") {
-					
+				outputType = document.getElementById("outputType");
+				input = document.getElementById("input");
+				if (outputType.value == "zeros") {
+					input.placeholder="ex. 6 => million";
+				} else if (outputType.value == "zeroGroups") {
+					input.placeholder="ex. 3 => billion";
+				} else if (outputType.value == "latinPrefix") {
+					input.placeholder="ex. 30 => trigintillion";
+					if (Math.floor(input.value) > 9999 || Math.floor(input.value) < 10) {
+						input.style.backgroundColor = "darkorange";
+					} else {
+						input.style.backgroundColor = "white";
+					};
 				};
 			}, 100);
 		</script>
 	</head>
 	<body style="background-color:cornsilk">
 		<h1>Number shortener</h1>
+		<p>if the input turns red it means it will give a trash result<p>
 		<hr>
 		<label>Output from:</label>
 		<select id="outputType">
-			<option value="zeros">Zeros (ex. 6 => 1 million)</option>
-			<option value="zeroGroups">Zero groups (ex. 3 => 1 billion)</option>
-			<option value="latinPrefix">Latin prefix number (ex. 30 => trigintillion)</option>
+			<option value="zeros">Zeros</option>
+			<option value="zeroGroups">Zero groups</option>
+			<option value="latinPrefix">Latin prefix number</option>
 		</select>
-		<input type="number" id="input" placeholder="Type number" size="50">
+		<input type="number" style="background-color:red" id="input" placeholder="ex. 6 => million" size="50">
 		<button type="button" onclick="shortenNumber();">Shorten number</button>
+		<br>
 		<b id="output"></b>
 	</body>
 </html>

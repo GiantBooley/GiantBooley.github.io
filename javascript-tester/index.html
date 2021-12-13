@@ -2,6 +2,9 @@
 <html>
 	<head>
 		<script>
+			(function(window, document, undefined){
+				window.onload = init;
+				 function init(){
 			var squareLeft = 0;
 			var squareRight = 0;
 			var curlyLeft = 0;
@@ -34,13 +37,15 @@
 					};
 					letterNum++;
 				};
-				
 				document.getElementById("results").innerHTML=`[: ${squareLeft}<br>]: ${squareRight}<br>{: ${curlyLeft}<br>}: ${curlyRight}<br>(:${parenthesesLeft}<br>): ${parenthesesRight}`;
 			};
+		 }
+
+		})(window, document, undefined);
 		</script>
 	</head>
 	<body style="background-color:cornsilk">
-		<h1>type javascript and click the button</h1>
+		<h1>type javascript and clkick the button</h1>
 		<textarea id="javascript" rows="30" cols="130">type</textarea><br>
 		<label>click the button to see how many of each bracket things there are</label>
 		<button type="button" onclick="clickButton();">the button</button>

@@ -8,15 +8,15 @@
 			var curlyRight = 0;
 			var parenthesesLeft = 0;
 			var parenthesesRight = 0;
-			var text="";
+			var text = "";
 			function clickButton() {
-				squareLeft=0;
-				squareRight=0;
-				curlyLeft=0;
-				curlyRight=0;
-				parenthesesLeft=0;
-				parenthesesRight=0;
-				text=document.getElementById("javascript").value;
+				squareLeft = 0;
+				squareRight = 0;
+				curlyLeft = 0;
+				curlyRight = 0;
+				parenthesesLeft = 0;
+				parenthesesRight = 0;
+				text = document.getElementById("javascript").value;
 				
 				for (let i = 0;i < text.length;i++) {
 					if (text.charAt(i)=="[") {
@@ -35,7 +35,7 @@
 					letterNum++;
 				};
 				
-				document.getElementById("results").innerHTML=`[: ${squareLeft}<br>]: ${squareRight}<br>{: ${curlyLeft}<br>}: ${curlyRight}<br>(:${parenthesesLeft}<br>): ${parenthesesRight};
+				document.getElementById("results").innerHTML=`[: ${squareLeft}<br>]: ${squareRight}<br>{: ${curlyLeft}<br>}: ${curlyRight}<br>(:${parenthesesLeft}<br>): ${parenthesesRight}`;
 			};
 		</script>
 	</head>

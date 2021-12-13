@@ -1,0 +1,1 @@
+$(function(){Tracking.trackThumbsDisplay(),"undefined"!=typeof VideoPreview&&VideoPreview.init()});

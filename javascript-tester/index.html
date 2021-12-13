@@ -2,9 +2,6 @@
 <html>
 	<head>
 		<script>
-			(function(window, document, undefined){
-				window.onload = init;
-				 function init(){
 			var squareLeft = 0;
 			var squareRight = 0;
 			var curlyLeft = 0;
@@ -39,9 +36,6 @@
 				};
 				document.getElementById("results").innerHTML=`[: ${squareLeft}<br>]: ${squareRight}<br>{: ${curlyLeft}<br>}: ${curlyRight}<br>(:${parenthesesLeft}<br>): ${parenthesesRight}`;
 			};
-		 }
-
-		})(window, document, undefined);
 		</script>
 	</head>
 	<body style="background-color:cornsilk">

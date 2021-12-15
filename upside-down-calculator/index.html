@@ -2,6 +2,13 @@
 <html>
 	<head>
 		<script>
+			String.prototype.replaceAt = function(index, replacement) {
+			return this.substr(0, index) + replacement + this.substr(index + replacement.length);
+			};
+			function backspace() {
+				let str = document.getElementById("input").value;
+				document.getElementById("input").value=str.replaceAt(0,"");
+			};
 			function addLetter(letter) {
 				document.getElementById("input").value=letter.toString()+document.getElementById("input").value;
 			};
@@ -53,6 +60,7 @@
 		<button class="key" onclick="addLetter('1');">i</button>
 		<button class="key" onclick="addLetter('0');">o</button>
 		<button class="gray" onclick="addLetter('');" >p</button>
+		<button class="key" onclick="backspace();" >backspace</button>
 		<br>
 		<button class="key" onclick="addLetter('6');">a</button>
 		<button class="key" onclick="addLetter('5');">s</button>

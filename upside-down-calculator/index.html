@@ -29,7 +29,13 @@
 				display: inline-block;
 			}
 			.gray {
-				background-color: gray;
+				background-color: black;
+				color: white;
+				border: 4px solid gray;
+				padding: 16px 16px;
+				font-family: monospace;
+				display: inline-block;
+				opacity:0.2;
 			}
 		</style>
 	</head>
@@ -37,33 +43,33 @@
 		<h1>Upside down calculator generator</h1><hr>
 		<textarea rows="1" cols="28" id="input">bob</textarea><br>
 		<textarea rows="1" cols="28" class="rotated" id="output">bob</textarea><br>
-		<button class="key" onclick="addLetter('');" class="gray">q</button>
-		<button class="key" onclick="addLetter('');" class="gray">w</button>
+		<button class="gray" onclick="addLetter('');" >q</button>
+		<button class="gray" onclick="addLetter('');" >w</button>
 		<button class="key" onclick="addLetter('3');">e</button>
-		<button class="key" onclick="addLetter('');" class="gray">r</button>
-		<button class="key" onclick="addLetter('');" class="gray">t</button>
-		<button class="key" onclick="addLetter('');" class="gray">y</button>
-		<button class="key" onclick="addLetter('');" class="gray">u</button>
+		<button class="gray" onclick="addLetter('');" >r</button>
+		<button class="gray" onclick="addLetter('');" >t</button>
+		<button class="gray" onclick="addLetter('');" >y</button>
+		<button class="gray" onclick="addLetter('');" >u</button>
 		<button class="key" onclick="addLetter('1');">i</button>
 		<button class="key" onclick="addLetter('0');">o</button>
-		<button class="key" onclick="addLetter('');" class="gray">p</button>
+		<button class="gray" onclick="addLetter('');" >p</button>
 		<br>
 		<button class="key" onclick="addLetter('6');">a</button>
 		<button class="key" onclick="addLetter('5');">s</button>
 		<button class="key" onclick="addLetter('0');">d</button>
-		<button class="key" onclick="addLetter('');" class="gray">f</button>
+		<button class="gray" onclick="addLetter('');" >f</button>
 		<button class="key" onclick="addLetter('9');">g</button>
 		<button class="key" onclick="addLetter('4');">h</button>
-		<button class="key" onclick="addLetter('');" class="gray">j</button>
-		<button class="key" onclick="addLetter('');" class="gray">k</button>
+		<button class="gray" onclick="addLetter('');" >j</button>
+		<button class="gray" onclick="addLetter('');" >k</button>
 		<button class="key" onclick="addLetter('7');">l</button>
 		<br>
-		<button class="key" onclick="addLetter('');" class="gray">z</button>
-		<button class="key" onclick="addLetter('');" class="gray">x</button>
-		<button class="key" onclick="addLetter('');" class="gray">c</button>
-		<button class="key" onclick="addLetter('');" class="gray">v</button>
+		<button class="gray" onclick="addLetter('');" >z</button>
+		<button class="gray" onclick="addLetter('');" >x</button>
+		<button class="gray" onclick="addLetter('');" >c</button>
+		<button class="gray" onclick="addLetter('');" >v</button>
 		<button class="key" onclick="addLetter('8');">b</button>
-		<button class="key" onclick="addLetter('');" class="gray">n</button>
-		<button class="key" onclick="addLetter('');" class="gray">m</button>
+		<button class="gray" onclick="addLetter('');" >n</button>
+		<button class="gray" onclick="addLetter('');" >m</button>
 	</body>
 </html>

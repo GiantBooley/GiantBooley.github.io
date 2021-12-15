@@ -2,12 +2,9 @@
 <html>
 	<head>
 		<script>
-			String.prototype.replaceAt = function(index, replacement) {
-			return this.substr(0, index) + replacement + this.substr(index + replacement.length);
-			};
 			function backspace() {
 				let str = document.getElementById("input").value;
-				document.getElementById("input").value=str.replaceAt(0,"");
+				str.splice(1);
 			};
 			function addLetter(letter) {
 				document.getElementById("input").value=letter.toString()+document.getElementById("input").value;

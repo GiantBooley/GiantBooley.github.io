@@ -98,6 +98,19 @@ body {
 				document.getElementById("storyGenOutput").value = storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+" "+storyGenStoryActions[getRandomInt(0,storyGenStoryActions.length-1)]+" "+storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+".";
 			};
 			// storygen
+			
+			// multiplier
+			var multiplierMultiples
+			var multiplierNumber = 1;
+			function multiplierReset() {
+				multiplierNumber=1;
+				document.getElementById("multiplierOutput").innerHTML=multiplierNumber;
+			};
+			function multiplierMultiply() {
+				multiplierMultiples=document.getElementById("multiplierInput").valueAsNumber;
+				multiplierNumber=multiplierNumber*multiplierMultiples;
+			};
+			// multiplier
 		</script>
 	</head>
 	<body>
@@ -107,8 +120,6 @@ body {
 		<button type="button" onclick="toggleDarkMode();">Toggle dark mode</button>
 		<label>|</label>
 		<button type="button" onclick="toggleCentered();">Toggle centered</button>
-		<label>|</label>
-		<button type="reset">reset</button>
 		<hr>
 		<div id="eightBall">
 			<h2>Magic 8 ball</h2>
@@ -207,7 +218,11 @@ body {
 		<hr>
 		<div id="multiplier">
 			<h2>Multiplier<h2>
-				<button type="button">generate</button>
+			<label for="multiplierInput">Multiples of:</label>
+			<input type="number" id="multiplierInput">
+			<button type="button" onclick="multiplierReset();">Reset</button>
+			<button type="button" onclick="multiplierGenerate();">Multiply</button>
+				<b id="multiplierOutput">1</b>
 		</div>
 		<hr>
 	</body>

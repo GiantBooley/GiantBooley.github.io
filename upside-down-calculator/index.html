@@ -3,7 +3,7 @@
 	<head>
 		<script>
 			function addLetter(letter) {
-				document.getElementById("input").value=letter.toString()+document.getElementById("input");
+				document.getElementById("input").value=letter.toString()+document.getElementById("input").value;
 			};
 			var interval = setInterval(function() {
 				document.getElementById("output").value=document.getElementById("input").value;
@@ -30,8 +30,8 @@
 	</head>
 	<body style="background-color:cornsilk">
 		<h1>Upside down calculator generator</h1><hr>
-		<textarea rows="1" cols="30" id="input">bob</textarea><br>
-		<textarea rows="1" cols="30" class="rotated" id="output">bob</textarea><br>
+		<textarea rows="1" cols="28" id="input">bob</textarea><br>
+		<textarea rows="1" cols="28" class="rotated" id="output">bob</textarea><br>
 		<button class="key" onclick="addLetter('');">q</button>
 		<button class="key" onclick="addLetter('');">w</button>
 		<button class="key" onclick="addLetter('3');">e</button>

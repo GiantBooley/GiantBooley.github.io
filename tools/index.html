@@ -104,15 +104,25 @@ body {
 			// storygen
 			
 			// multiplier
-			var multiplierMultiples = 2
 			var multiplierNumber = 1;
+			var multiplierInfinity = false;
+			var multiplierInfinityDigits = 8.98846567431158;
+			var multiplierInfinityZeros = 307;
 			function multiplierReset() {
 				multiplierNumber=1;
+				multiplierInfinity = false;
+				multiplierInfinityDigits = 8.98846567431158;
+				multiplierInfinityZeros = 307;
 				document.getElementById("multiplierOutput").innerHTML=multiplierNumber;
 			};
 			function multiplierMultiply() {
-				multiplierMultiples=document.getElementById("multiplierInput").valueAsNumber;
-				multiplierNumber=multiplierNumber*multiplierMultiples;
+				if (multiplierNumber.toString() == "8.98846567431158e+307") {
+					multiplierInfinity = true;
+				};
+				if (multiplierInfinity == true) {
+					multiplierInfinity
+					multiplierNumber=`${multiplierInfinityDigits}e+${multiplierInfinityZeros}`;
+				};
 				document.getElementById("multiplierOutput").innerHTML=multiplierNumber;
 			};
 			// multiplier

@@ -126,6 +126,8 @@ body {
 						multiplierInfinityZeros++;
 					};
 					multiplierNumber=`${multiplierInfinityDigits}e+${multiplierInfinityZeros}`;
+				} else {
+					multiplierNumber=multiplierNumber*2;
 				};
 				document.getElementById("multiplierOutput").innerHTML=multiplierNumber;
 			};

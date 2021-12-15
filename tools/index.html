@@ -95,7 +95,7 @@ body {
 			// var storyGenStory = [""];
 			function storyGenGenerate() {
 				document.getElementById("storyGenOutput").style.display="block";
-				document.getElementById("storyGenOutput").value = storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+" "+storyGenStoryActions[getRandomInt(0,storyGenStoryActions.length-1)]+" "+storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]+".";
+				document.getElementById("storyGenOutput").value = `${storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]} ${storyGenStoryActions[getRandomInt(0,storyGenStoryActions.length-1)]} ${storyGenStoryNames[getRandomInt(0,storyGenStoryNames.length-1)]}.`;
 			};
 			// storygen
 			
@@ -109,7 +109,7 @@ body {
 			function multiplierMultiply() {
 				multiplierMultiples=document.getElementById("multiplierInput").valueAsNumber;
 				multiplierNumber=multiplierNumber*multiplierMultiples;
-				document.getElementById("multiplierOutput").innerHTML=multiplierNumber.toString();
+				document.getElementById("multiplierOutput").innerHTML=multiplierNumber;
 			};
 			// multiplier
 		</script>

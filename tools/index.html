@@ -120,7 +120,11 @@ body {
 					multiplierInfinity = true;
 				};
 				if (multiplierInfinity == true) {
-					multiplierInfinity
+					multiplierInfinityDigits = multiplierInfinityDigits*2;
+					if (multiplierInfinityDigits >= 10) {
+						multiplierInfinityDigits = multiplierInfinityDigits-10;
+						multiplierInfinityZeros++;
+					};
 					multiplierNumber=`${multiplierInfinityDigits}e+${multiplierInfinityZeros}`;
 				};
 				document.getElementById("multiplierOutput").innerHTML=multiplierNumber;

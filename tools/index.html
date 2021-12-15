@@ -45,9 +45,9 @@ body {
 			var eightBall = {};
 			const eightBall.responses = ["It is certain.","It is decidedly so.","Without a doubt.","Yes definitely.","You may rely on it.","As i see it, yes.","Most likely.","Outlook good.","Yes.","Signs point to yes.","Reply hazy, try again.","Ask again later.","Better not tell you now.","Cannot predict now.","Concentrate and ask again.","Don\'t count on it.","My reply is no.","My sources say no.","Outlook not so good.","Very doubtful."];
 			function eightBall.buttonClick() {
-				if ( document.getElementById("eightBallInput").textLength > 0) {
+				// if ( document.getElementById("eightBallInput").textLength > 0) {
 					document.getElementById("eightBallOutput").innerHTML=eightBall.responses[getRandomInt(0,eightBall.responses.length-1)];
-				};
+				// };
 			};
 			// eightBall
 			
@@ -117,7 +117,7 @@ body {
 		</div>
 		<hr>
 		<div id="dice">
-			<h2>Roll a die</h2>
+			<h2>Roll a dkie</h2>
 			<label for="diceSides">Select amount of sides:</label>
 			<select id="diceSides">
 				<option value=6>6 (hexahedron)</option>

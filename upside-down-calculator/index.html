@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<script>
+			var interval = setInterval(function() {
+				documet.getElementById("output").value=document.getElementById("input").value;
+			}, 100);
+		</script>
 		<style>
 			@font-face { font-family: Sevensegment; src: url('SEVENSEGMENT.TTF'); }
 			textarea {
@@ -8,9 +13,14 @@
 				font-size: 100px;
 				background-color:burlywood;
 			}
+			.rotated {
+				transform: rotate(180deg);
+			}
 		</style>
 	</head>
 	<body style="background-color:cornsilk">
-		<textarea rows="1" cols="30">bob</textarea>
+		<h1>Upside down calculator generator</h1><hr>
+		<textarea rows="1" cols="15" id="input">bob</textarea><br>
+		<textarea rows="1" cols="15" class="rotated" id="output">bob</textarea>
 	</body>
 </html>

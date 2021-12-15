@@ -95,15 +95,16 @@ body {
 			
 			var storyGenStoryNames = ["bob","tom","fred","mike","jim","joe","jeff","jack","john","ted"];
 			var storyGenStoryActions = ["looked at","punched","outsmarted","bewildered","hollered at","squished the brain of"];
+			var storyGenStoryFeelings = ["enraged","cross","mad","nice","happy"];
 			// var storyGenStory = [""];
 			function storyGenGenerate() {
 				document.getElementById("storyGenOutput").style.display="block";
-				document.getElementById("storyGenOutput").value = `${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} ${storyGenStoryActions[arrayRandom(storyGenStoryActions.length)]} ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]}.`;
+				document.getElementById("storyGenOutput").value = `${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} ${storyGenStoryActions[arrayRandom(storyGenStoryActions.length)]} ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} and ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} got ${storyGenStoryFeelings[arrayRandom(storyGenStoryFeelings.length)]} at ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]}`;
 			};
 			// storygen
 			
 			// multiplier
-			var multiplierMultiples
+			var multiplierMultiples = 2
 			var multiplierNumber = 1;
 			function multiplierReset() {
 				multiplierNumber=1;

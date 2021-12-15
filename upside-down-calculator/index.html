@@ -2,6 +2,9 @@
 <html>
 	<head>
 		<script>
+			function addLetter(letter) {
+				document.getElementById("input").value=letter.toString()+document.getElementById("input");
+			};
 			var interval = setInterval(function() {
 				document.getElementById("output").value=document.getElementById("input").value;
 			}, 100);
@@ -29,33 +32,33 @@
 		<h1>Upside down calculator generator</h1><hr>
 		<textarea rows="1" cols="15" id="input">bob</textarea><br>
 		<textarea rows="1" cols="15" class="rotated" id="output">bob</textarea><br>
-		<button class="key">q</button>
-		<button class="key">w</button>
-		<button class="key">e</button>
-		<button class="key">r</button>
-		<button class="key">t</button>
-		<button class="key">y</button>
-		<button class="key">u</button>
-		<button class="key">i</button>
-		<button class="key">o</button>
-		<button class="key">p</button>
+		<button class="key" onclick="addLetter('')">q</button>
+		<button class="key" onclick="addLetter('')">w</button>
+		<button class="key" onclick="addLetter('3')">e</button>
+		<button class="key" onclick="addLetter('')">r</button>
+		<button class="key" onclick="addLetter('')">t</button>
+		<button class="key" onclick="addLetter('')">y</button>
+		<button class="key" onclick="addLetter('')">u</button>
+		<button class="key" onclick="addLetter('')">i</button>
+		<button class="key" onclick="addLetter('')">o</button>
+		<button class="key" onclick="addLetter('')">p</button>
 		<br>
-		<button class="key">a</button>
-		<button class="key">s</button>
-		<button class="key">d</button>
-		<button class="key">f</button>
-		<button class="key">g</button>
-		<button class="key">h</button>
-		<button class="key">j</button>
-		<button class="key">k</button>
-		<button class="key">l</button>
+		<button class="key" onclick="addLetter('')">a</button>
+		<button class="key" onclick="addLetter('')">s</button>
+		<button class="key" onclick="addLetter('')">d</button>
+		<button class="key" onclick="addLetter('')">f</button>
+		<button class="key" onclick="addLetter('')">g</button>
+		<button class="key" onclick="addLetter('')">h</button>
+		<button class="key" onclick="addLetter('')">j</button>
+		<button class="key" onclick="addLetter('')">k</button>
+		<button class="key" onclick="addLetter('')">l</button>
 		<br>
-		<button class="key">z</button>
-		<button class="key">x</button>
-		<button class="key">c</button>
-		<button class="key">v</button>
-		<button class="key">b</button>
-		<button class="key">n</button>
-		<button class="key">m</button>
+		<button class="key" onclick="addLetter('')">z</button>
+		<button class="key" onclick="addLetter('')">x</button>
+		<button class="key" onclick="addLetter('')">c</button>
+		<button class="key" onclick="addLetter('')">v</button>
+		<button class="key" onclick="addLetter('')">b</button>
+		<button class="key" onclick="addLetter('')">n</button>
+		<button class="key" onclick="addLetter('')">m</button>
 	</body>
 </html>

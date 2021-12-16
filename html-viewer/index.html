@@ -27,32 +27,20 @@
 				padding: 0;
 				outline: none;
 			}
+			textarea {
+				resize: none;
+			}
 		</style>
 		<script>
 			function updateAsHTML() {
-				document.getElementById("embed").srcdoc=document.getElementById("textbox").value;
+				document.getElementById("embed").srcdoc=document.getElementById("input").value;
 			};
-			document.getElementById('textbox').addEventListener('keydown', function(e) {
-  if (e.key == 'Tab') {
-    e.preventDefault();
-    var start = this.selectionStart;
-    var end = this.selectionEnd;
-
-    // set textarea value to: text before caret + tab + text after caret
-    this.value = this.value.substring(0, start) +
-      "\t" + this.value.substring(end);
-
-    // put caret at right position again
-    this.selectionStart =
-      this.selectionEnd = start + 1;
-  }
-});
 		</script>
 	</head>
 	<body style="background-color:cornsilk">
 		<h1>HTML viewer</h1><hr>
 
-			<textarea placeholder="type html" id="textbox" spellcheck="false"></textarea>
+		<textarea rows="25" cols="150" placeholder="type html" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
 		
 		<button class="border" onclick="updateAsHTML();"><strong>Click to update</strong></button><br>
 		<div style="background-color:white">

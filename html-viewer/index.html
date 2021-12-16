@@ -2,15 +2,19 @@
 <html>
 	<head>
 		<script>
-			function updateiframe() {
+			function updateAsHTML() {
 				document.getElementById("embed").src="data:text/html,"+document.getElementById("input").value;
+			};
+			function updateAsWebsite() {
+				document.getElementById("embed").src=document.getElementById("input").value;
 			};
 		</script>
 	</head>
-	<body style="background-color:cornsilk">
+	<body>
 		<h1>HTML viewer</h1><hr>
 		<textarea id="input" placeholder="type html" rows="30" cols="100"></textarea><br>
-		<button onclick="updateiframe()">update html</button>
+		<button onclick="updateAsHTML();">update as html</button>
+		<button onclick="updateAsWebsite();">update as website</button>
 	</body>
 	<br>
 </html>

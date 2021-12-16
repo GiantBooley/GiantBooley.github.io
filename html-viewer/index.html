@@ -2,20 +2,16 @@
 <html>
 	<head>
 		<script>
-			function getlink() {
-				// document.getElementById("link").href="data:text/html,"+document.getElementById("input").value;
-				document.getElementById("embed").src=document.getElementById("input").value;
+			function updateiframe() {
+				document.getElementById("embed").src="data:text/html,"+document.getElementById("input").value;
 			};
 		</script>
 	</head>
 	<body style="background-color:cornsilk">
 		<h1>HTML viewer</h1><hr>
-		<h2>how to do it:</h2><br>
-		<p>1. type html in the text box<br>2. press update link<br>3. click the link<br>
-		<textarea id="input" placeholder="type html" rows="100" cols="100"></textarea><br>
-		<button onclick="getlink()">update link</button>
-		<a href="javascript:(()=>{alert('you have to type something in the text box and press update link')})();" target="_blank" id="link">click to go to the website</a>
+		<textarea id="input" placeholder="type html" rows="30" cols="100"></textarea><br>
+		<button onclick="updateiframe()">update html</button>
 	</body>
 	<br>
-	<iframe id="embed" src="https://giantbooley.github.io" width="100%" height="600"></iframe>
+	<iframe id="embed" src="data:,type in text box and press update html" width="100%" height="600"></iframe>
 </html>

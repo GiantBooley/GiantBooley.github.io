@@ -4,13 +4,19 @@
 		<style>
 			.border {
 				width: 100%;
-				background-color: gray;
+				background-color: darkgray;
 				text-align: center;
+				user-select:none;
+				font-size:32px;
+				border-style: solid;
 			}
 			.border:hover {
 				width: 100%;
-				background-color: darkgray;
+				background-color: gray;
 				text-align: center;
+				user-select:none;
+				font-size:32px;
+				border-style: solid;
 			}
 			iframe {
 				border:none;
@@ -31,7 +37,7 @@
 		<textarea resize="none" autocomplete="off" spellcheck="false" wrap="logical" id="input" placeholder="type html" rows="30" cols="150"></textarea><br>
 		<button onclick="updateAsHTML();">update as html</button><br>
 		<div class="border">
-			<strong><br>▼ iframe ▼<br></strong>
+			<strong>▼ iframe ▼</strong>
 		</div>
 		<div style="background-color:white">
 			<iframe allowfullscreen="true" id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="621"></iframe>

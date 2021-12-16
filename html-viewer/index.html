@@ -5,12 +5,23 @@
 			function updateAsHTML() {
 				document.getElementById("embed").srcdoc=document.getElementById("input").value;
 			};
+			var elem = document.getElementById("embed");
+
+			function openFullscreen() {
+				if (elem.requestFullscreen) {
+					elem.requestFullscreen();
+				} else if (elem.webkitRequestFullscreen) {
+					elem.webkitRequestFullscreen();
+				} else if (elem.msRequestFullscreen) {
+					elem.msRequestFullscreen();
+				};
+			};
 		</script>
 	</head>
 	<body>
 		<div style="background-color:cornsilk">
 			<h1>HTML viewer</h1><hr>
-			<textarea autocomplete="off" spellcheck="false" wrap="logical" id="input" placeholder="type html" rows="30" cols="100"></textarea><br>
+			<textarea resize="none" autocomplete="off" spellcheck="false" wrap="logical" id="input" placeholder="type html" rows="30" cols="100"></textarea><br>
 			<button onclick="updateAsHTML();">update as html</button>
 		</div>
 	</body>

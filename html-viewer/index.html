@@ -4,13 +4,11 @@
 		<style>
 			.border {
 				width: 100%;
-				height: 100;
 				background-color: gray;
 				text-align: center;
 			}
 			.border:hover {
 				width: 100%;
-				height: 100;
 				background-color: darkgray;
 				text-align: center;
 			}
@@ -30,10 +28,10 @@
 	</head>
 	<body style="background-color:cornsilk">
 		<h1>HTML viewer</h1><hr>
-		<textarea resize="none" autocomplete="off" spellcheck="false" wrap="logical" id="input" placeholder="type html" rows="30" cols="100"></textarea><br>
+		<textarea resize="none" autocomplete="off" spellcheck="false" wrap="logical" id="input" placeholder="type html" rows="30" cols="150"></textarea><br>
 		<button onclick="updateAsHTML();">update as html</button><br>
 		<div class="border">
-			<strong>V     iframe     V</strong>
+			<strong><br>▼ iframe ▼<br></strong>
 		</div>
 		<div style="background-color:white">
 			<iframe allowfullscreen="true" id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="621"></iframe>

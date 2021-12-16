@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<script>
+			function download(filename, text) {
+				var element = document.createElement('a');
+				element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+				element.setAttribute('download', filename);
+				
+				element.style.display = 'none';
+				document.body.appendChild(element);
+
+				element.click();
+				
+				document.body.removeChild(element);
+			};
+		</script>
+	</head>
+	<body style="background-color:cornsilk">
+		<h1>HTML downloader</h1><hr>
+		<label for="input">type html</label>
+		<textarea id="input" placeholder="type here"></textarea><br>
+		<button onclick="downloadhtml();" width="500" height="500">Download</button>
+	</body>
+</html>

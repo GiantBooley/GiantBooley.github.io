@@ -43,6 +43,15 @@
 			function updateAsHTML() {
 				document.getElementById("embed").srcdoc=document.getElementById("input").value;
 			};
+			var black = false;
+			function bob() {
+				if (black == true) {
+					black = false;
+					document.getElementsByClassName("border").style.backgroundColor="yellow";
+				} else {
+					black = true;
+					document.getElementsByClassName("border").style.backgroundColor="black";
+			};
 		</script>
 	</head>
 	<body>

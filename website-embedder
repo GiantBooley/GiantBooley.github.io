@@ -20,11 +20,11 @@
 	</head>
 	<body style="background-color:cornsilk">
 		<div id="bod">
-			<h1>Website unbloker</h1>
+			<h1>Website embedder</h1>
 			<hr>
 			<label for="input">unblocked website:</label>
 			<input id="input" type="text" width="100%"><br>
-			<button onclick="unblok();">unblock</button>
+			<button onclick="unblok();">embed</button>
 			<iframe style="display:none" width="100%" height="620" id="embed"></iframe>
 		</div>
 	</body>

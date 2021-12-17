@@ -17,6 +17,7 @@
 			function unblok() {
 				document.getElementById("bod").style.display="none";
 				document.body.style.backgroundColor="";
+				document.getElementById("embed").src=document.getElementById("input").value;
 				document.getElementById("embed").style.display="block";
 			};
 		</script>
@@ -27,8 +28,10 @@
 			<hr>
 			<label for="input">website to embed:</label>
 			<input id="input" type="text" width="100%"><br>
-			<button onclick="unblok();">embed</button>
+			<div class="btn-group">
+				<button class="button" onclick="unblok();">embed</button>
+			</div>
 		</div>
-		<iframe style="display:none" width="100%" height="620" id="embed"></iframe>
+		<iframe style="display:none" width="100%" height="620" id="embed" src=""></iframe>
 	</body>
 </html>

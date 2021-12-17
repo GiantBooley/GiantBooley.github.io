@@ -43,14 +43,15 @@
 			function updateAsHTML() {
 				document.getElementById("embed").srcdoc=document.getElementById("input").value;
 			};
-			var black = false;
+			var black = "off";
 			function bob() {
-				if (black == true) {
-					black = false;
+				if (black == "on") {
+					black = "off";
 					document.getElementsByClassName("border").style.backgroundColor="yellow";
 				} else {
-					black = true;
+					black = "on";
 					document.getElementsByClassName("border").style.backgroundColor="black";
+				};
 			};
 		</script>
 	</head>

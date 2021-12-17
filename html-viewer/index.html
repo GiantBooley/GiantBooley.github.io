@@ -62,6 +62,21 @@
 			}
 		</style>
 		<script>
+			function download(filename, text) {
+				var element = document.createElement('a');
+				element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(text));
+				element.setAttribute('download', filename);
+				
+				element.style.display = 'none';
+				document.body.appendChild(element);
+
+				element.click();
+				
+				document.body.removeChild(element);
+			};
+			function downloadHTML() {
+				download("index.html",document.getElementById("input").value);
+			};
 			window.onbeforeunload = function(){
 				if (document.getElementById("confirmleave").checked == true) {
 					return 'Are you sure you want to leave?';
@@ -104,8 +119,9 @@
 			<button onclick="darkMode();">Toggle editor dark mode</button>
 			<hr>
 			<textarea style="background-color:white;color:black;" rows="25" cols="150" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
-			<button class="border" style="width:80%" onclick="updateAsHTML();"><strong>Update HTML</strong></button>
-			<button class="border" style="width:20%" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
+			<button class="border" style="width:100%" onclick="updateAsHTML();"><strong>Update HTML</strong></button><br>
+			<button class="border" style="width:50%" onclick="downloadHTML();"><strong>Download not working</strong></button><br>
+			<button class="border" style="width:50%" onclick="toggleFullscreen();"><strong>Fullscreen</strong></button><br>
 		</div>
 		<div style="background-color:white">
 			<button style="display: none" class="exitfull" onclick="toggleFullScreen()">Exit fullscreen</button>

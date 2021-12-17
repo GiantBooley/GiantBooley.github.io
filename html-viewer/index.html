@@ -38,6 +38,18 @@
 				resize: none;
 				border:none;
 			}
+			.exitfull {
+				top: 0;
+				left: 0;
+				width: 200px;
+				height: 50px;
+			}
+			.exitfull:hover {
+				top: 0;
+				left: 0;
+				width: 200px;
+				height: 50px;
+			}
 		</style>
 		<script>
 			window.onbeforeunload = function(){
@@ -84,6 +96,7 @@
 			<button class="border" style="width:20%" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
 		</div>
 		<div style="background-color:white">
+			<button class="exitfull" onclick="toggleFullScreen()">Exit</button>
 			<iframe id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="617"></iframe>
 		</div>
 	</body>

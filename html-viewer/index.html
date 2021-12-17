@@ -2,6 +2,10 @@
 <html>
 	<head>
 		<style>
+			body {
+				background-color:cornsilk;
+				padding:0px;
+			}
 			.border {
 				width: 100%;
 				background-color: darkgray;
@@ -41,14 +45,14 @@
 			};
 		</script>
 	</head>
-	<body style="background-color:cornsilk;padding:0px;">
+	<body>
 		<h1>HTML viewer</h1><hr>
 
 		<textarea rows="25" cols="150" placeholder="type html" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
 		
 		<button class="border" onclick="updateAsHTML();"><strong>Click to update</strong></button><br>
 		<div style="background-color:white">
-			<iframe id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="619"></iframe>
+			<iframe id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="618"></iframe>
 		</div>
 	</body>
 </html>

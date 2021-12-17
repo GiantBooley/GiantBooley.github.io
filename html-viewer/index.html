@@ -39,16 +39,26 @@
 				border:none;
 			}
 			.exitfull {
+				position: fixed;
+				opacity: 0.3;
+				border: none;
+				background-color: darkgray;
 				top: 0;
 				left: 0;
-				width: 200px;
-				height: 50px;
+				width: 90px;
+				height: 20px;
+				padding: 0px;
 			}
 			.exitfull:hover {
+				position: fixed;
+				opacity: 0.8;
+				border: none;
+				background-color: gray;
 				top: 0;
 				left: 0;
-				width: 200px;
-				height: 50px;
+				width: 90px;
+				height: 20px;
+				padding: 0px;
 			}
 		</style>
 		<script>
@@ -96,7 +106,7 @@
 			<button class="border" style="width:20%" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
 		</div>
 		<div style="background-color:white">
-			<button class="exitfull" onclick="toggleFullScreen()">Exit</button>
+			<button class="exitfull" onclick="toggleFullScreen()">Exit fullscreen</button>
 			<iframe id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="617"></iframe>
 		</div>
 	</body>

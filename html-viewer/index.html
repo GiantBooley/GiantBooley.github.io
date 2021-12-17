@@ -2,12 +2,14 @@
 <html>
 	<head>
 		<style>
+			#nonfullscreen {
+				display="block;"
+			}
 			body {
 				background-color:cornsilk;
 				padding:0px;
 			}
 			.border {
-				width: 100%;
 				background-color: darkgray;
 				text-align: center;
 				user-select: none;
@@ -16,7 +18,6 @@
 				border: none;
 			}
 			.border:hover {
-				width: 100%;
 				background-color: gray;
 				text-align: center;
 				user-select: none;
@@ -43,26 +44,27 @@
 			function updateAsHTML() {
 				document.getElementById("embed").srcdoc=document.getElementById("input").value;
 			};
-			var black = "off";
-			function bob() {
-				if (black == "on") {
-					black = "off";
-					document.getElementsByClassName("border")[0].style.backgroundColor="yellow";
+			var fullscreen = false;
+			function toggleFullScreen() {
+				if (fullscreen == true) {
+					fullscreen = false;
+					document.getElementById("nonfullscreen").style.display="block";
 				} else {
-					black = "on";
-					document.getElementsByClassName("border")[0].style.backgroundColor="black";
+					fullscreen = true;
+					document.getElementById("nonfullscreen").style.display="none";
 				};
 			};
 		</script>
 	</head>
 	<body>
+		<div id="nonfullscreen">
 		<h1>HTML viewer</h1><hr>
-
 		<textarea rows="25" cols="150" placeholder="type html" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
-		
-		<button class="border" onclick="updateAsHTML();"><strong>Click to update</strong></button><br>
+		<button class="border" style="width:80%" onclick="updateAsHTML();"><strong>Click to update</strong></button>
+		<button class="border" style="width:20%" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
+		</div>
 		<div style="background-color:white">
-			<iframe id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="618"></iframe>
+			<iframe id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="617"></iframe>
 		</div>
 	</body>
 </html>

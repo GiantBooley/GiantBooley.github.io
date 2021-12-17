@@ -58,15 +58,28 @@
 					document.getElementById("nonfullscreen").style.display="none";
 				};
 			};
+			var darkModeOn = false;
+			function darkMode() {
+				if (darkModeOn == true) {
+					darkModeOn = false;
+					document.getElementById("input").style="background-color:white;color:black;";
+				} else {
+					darkModeOn = true;
+					document.getElementById("input").style="background-color:black;color:lightgray;";
+				};
+			};
 		</script>
 	</head>
 	<body>
 		<div id="nonfullscreen">
 			<h1>HTML viewer</h1><br>
-			<input type="checkbox" id="confirmleave">
-			<label for="confirmleave">Confirm leave</label>
 			<hr>
-			<textarea rows="25" cols="150" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
+			<label>Settings:</label>
+			<input type="checkbox" id="confirmleave">
+			<label for="confirmleave">Confirm leave |</label>
+			<button onclick="darkMode();">Toggle editor dark mode</button>
+			<hr>
+			<textarea style="background-color:white;color:black;" rows="25" cols="150" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
 			<button class="border" style="width:80%" onclick="updateAsHTML();"><strong>Update HTML</strong></button>
 			<button class="border" style="width:20%" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
 		</div>

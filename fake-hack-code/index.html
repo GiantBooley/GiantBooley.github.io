@@ -1,142 +1,52 @@
-
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>HTML viewer</title>
 		<style>
-			#nonfullscreen {
-				display: block;
-			}
-			body {
-				background-color:cornsilk;
-				padding:0px;
-			}
-			.border {
-				background-color: darkgray;
-				text-align: center;
-				user-select: none;
-				font-size: 32px;
-				display: inline-block;
-				border: none;
-				float: left;
-			}
-			.border:hover {
-				background-color: gray;
-				text-align: center;
-				user-select: none;
-				font-size: 32px;
-				display: inline-block;
-				border: none;
-				float: left;
-			}
-			iframe {
-				border:none;
-				display: block;
-				margin: 0px;
-				padding: 0px;
-				outline: none;
-			}
-			textarea {
-				resize: horizontal;
-				border: none;
-				white-space: nowrap;
-			}
-			.exitfull {
-				position: fixed;
-				opacity: 0.3;
-				border: 1px solid black;
-				background-color: darkgray;
-				top: 0;
-				left: 0;
-				width: 92px;
-				height: 20px;
-				padding: 0px;
-				border-bottom-right-radius: 10px;
-			}
-			.exitfull:hover {
-				position: fixed;
-				opacity: 0.8;
-				border: 1px solid black;
-				background-color: gray;
-				top: 0;
-				left: 0;
-				width: 92px;
-				height: 20px;
-				padding: 0px;
-				border-bottom-right-radius: 10px;
-			}
+		@font-face { font-family: Consolas; src: url('CONSOLA.TTF'); }
+		div {
+			font-family: Consolas;
+			color:#15C60D;
+			white-space: nowrap;
+		}
+		body {
+			background-color: black;
+		}
 		</style>
 		<script>
-			function download(filename, text) {
-				var element = document.createElement('a');
-				element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-				element.setAttribute('download', filename);
-				
-				element.style.display = 'none';
-				document.body.appendChild(element);
-
-				element.click();
-				
-				document.body.removeChild(element);
-			};
-			function downloadHTML() {
-				download("index.html",document.getElementById("htmlEditor").value);
-			};
-			window.onbeforeunload = function(){
-				if (document.getElementById("confirmleave").checked == true) {
-					return 'Are you sure you want to leave?';
+				var line = 0;
+				var codeparts = [
+					"int bob = new Bob;",
+					"if (mikeNum.length >= document.body.getNumberOfStuff) {",
+					"enum.docsEnabler = true;",
+					"};",
+					"function hackBob(val) {",
+					"document.getElementById(\"index\") = atlasNumber.toString(5.3);",
+					"public void onExplosion(final class_2664 explosionPacket, final CallbackInfo ci) {",
+					"at com.strobel.decompiler.languages.java.ast.AstBuilder.createTypeCore(AstBuilder.java:519);",
+					"at com.strobel.decompiler.ast.TypeAnalysis.inferCall(TypeAnalysis.java:2438);",
+					"java.lang.IllegalStateException: Invalid BootstrapMethods attribute entry: 2 additional arguments required for method java/lang/invoke/StringConcatFactory.makeConcatWithConstants, but only 1 specified.",
+					"}}}}}}}}}}}}}}}]]}}}}]]};",
+					"let list = {text: mapper.nodeNumber, frustum: \"none\"};",
+					"var bisectorType = \"binary\";"
+				];
+				function addLine(text) {
+					document.getElementById("text").innerHTML=document.getElementById("text").innerHTML+"<br>"+text;
 				};
-			};
-			function updateAsHTML() {
-				document.getElementById("embed").srcdoc=document.getElementById("htmlEditor").value;
-			};
-			var fullscreen = false;
-			function toggleFullScreen() {
-				if (fullscreen == true) {
-					fullscreen = false;
-					document.getElementById("nonfullscreen").style.display="block";
-					document.getElementsByClassName("exitfull")[0].style.display="none";
-				} else {
-					fullscreen = true;
-					document.getElementById("nonfullscreen").style.display="none";
-					document.getElementsByClassName("exitfull")[0].style.display="block";
+				function clearText() {
+					document.getElementById("text").innerHTML="Bobdoc function: loaded;"
 				};
-			};
-			var darkModeOn = false;
-			function darkMode() {
-				if (darkModeOn == true) {
-					darkModeOn = false;
-					document.getElementById("htmlEditor").style="background-color:white;color:black;";
-					document.body.style="background-color: cornsilk; color: black";
-				} else {
-					darkModeOn = true;
-					document.getElementById("htmlEditor").style="background-color:darkslategray;color:white;";
-					document.body.style="background-color: #000723; color: white";
+				function getRandomInt(min, max) {
+					min = Math.ceil(min);
+					max = Math.floor(max);
+					return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
 				};
-			};
-			function unloadHTML() {
-				document.getElementById("embed").srcdoc="";
-			};
-		</script>
+				var interval = setInterval(function() {
+					addLine(codeparts[getRandomInt(0,codeparts.length)]);
+					window.scrollTo(0,document.body.scrollHeight);
+				}, 10);
+			</script>
 	</head>
 	<body>
-		<div id="nonfullscreen">
-			<h1>HTML viewer</h1><br>
-			<hr>
-			<label>Settings:</label>
-			<input type="checkbox" id="confirmleave">
-			<label for="confirmleave">Confirm leave |</label>
-			<button onclick="darkMode();">Toggle dark mode</button>
-			<hr>
-			<textarea style="background-color:white;color:black;" rows="25" cols="150" placeholder="Type HTML" id="htmlEditor" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
-			<button class="border" style="width:100%" onclick="updateAsHTML();"><strong>Update HTML</strong></button><br>
-			<button class="border" style="width:33.333%" onclick="downloadHTML();"><strong>Download</strong></button><br>
-			<button class="border" style="width:33.333%" onclick="unloadHTML();"><strong>Unload HTML</strong></button><br>
-			<button class="border" style="width:33.333%" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
-		</div>
-	</body>
-	<div style="background-color:white">
-			<button style="display: none" class="exitfull" onclick="toggleFullScreen()">Exit fullscreen</button>
-			<iframe id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="617"></iframe>
-	</div>
+			<div id="text">bobDoc function: loaded;</div>
+	</body> 
 </html>

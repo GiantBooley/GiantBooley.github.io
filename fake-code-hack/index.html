@@ -1,0 +1,50 @@
+<html>
+	<head>
+		<script src="jquery-3.5.1.min.js"></script>
+		<style>
+		@font-face { font-family: Consolas; src: url('CONSOLA.TTF'); }
+		div {
+			font-family: Consolas;
+			color:#15C60D;
+			white-space: nowrap;
+		}
+		body {
+			background-color: black;
+		}
+		</style>
+		<script>
+				var codeparts = [
+					"int bob = new Bob;",
+					"if (mikeNum.length >= document.body.getNumberOfStuff) {",
+					"enum.docsEnabler = true;",
+					"};",
+					"function hackBob(val) {",
+					"document.getElementById(\"index\") = atlasNumber.toString(5.3);",
+					"public void onExplosion(final class_2664 explosionPacket, final CallbackInfo ci) {",
+					"at com.strobel.decompiler.languages.java.ast.AstBuilder.createTypeCore(AstBuilder.java:519);",
+					"at com.strobel.decompiler.ast.TypeAnalysis.inferCall(TypeAnalysis.java:2438);",
+					"java.lang.IllegalStateException: Invalid BootstrapMethods attribute entry: 2 additional arguments required for method java/lang/invoke/StringConcatFactory.makeConcatWithConstants, but only 1 specified.",
+					"}}}}}}}}}}}}}}}]]}}}}]]};",
+					"let list = {text: broke};"
+				];
+				function addLine(text) {
+					document.getElementById("text").innerHTML=document.getElementById("text").innerHTML+"<br>"+text;
+				};
+				function clearText() {
+					document.getElementById("text").innerHTML="Bobdoc function: loaded;"
+				};
+				function getRandomInt(min, max) {
+					min = Math.ceil(min);
+					max = Math.floor(max);
+					return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+				};
+				var interval = setInterval(function() {
+					addLine(codeparts[getRandomInt(0,codeparts.length)]);
+					window.scrollTo(0,document.body.scrollHeight);
+				}, 1000);
+			</script>
+	</head>
+	<body>
+			<div id="text">bobDoc function: loaded;</div>
+	</body> 
+</html>

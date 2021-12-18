@@ -125,11 +125,12 @@
 				document.getElementById("embed").srcdoc="";
 			};
 			function iFrameJavascript() {
-			document.getElementById("embed").src="javascript:(()=>{"+document.getElementById("jsinput").value+"})();";
+			alert("bob");
 			};
 			function runJavascript() {
 				// iFrameJavascript = "()=>{"+document.getElementById("jsinput").value+"}";
-				iFrameJavascript();
+				// iFrameJavascript();
+				document.getElementById('embed').contentWindow.iFrameJavascript();
 			}
 		</script>
 	</head>

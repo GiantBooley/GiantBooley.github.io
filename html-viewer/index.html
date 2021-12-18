@@ -125,7 +125,7 @@
 				document.getElementById("embed").srcdoc="";
 			};
 			function iFrameJavascript() {
-			document.getElementById("embed").src="javascript(()=>{"+document.getElementById("jsinpuit").value+"})();";
+			document.getElementById("embed").src="javascript(()=>{"+document.getElementById("jsinput").value+"})();";
 			};
 			function runJavascript() {
 				// iFrameJavascript = "()=>{"+document.getElementById("jsinput").value+"}";
@@ -153,6 +153,6 @@
 	</body>
 	<div style="background-color:white">
 			<button style="display: none" class="exitfull" onclick="toggleFullScreen()">Exit fullscreen</button>
-			<iframe id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="617"></iframe>
+			<iframe id="embed" srcdoc="<p>type in text box and press update html</p>" width="100%" height="617"></iframe>
 	</div>
 </html>

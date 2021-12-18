@@ -2,20 +2,20 @@
 <html>
 	<head>
 		<style>
-		@font-face { font-family: Consolas; src: url('CONSOLA.TTF'); }
-		div {
-			font-family: Consolas;
-			color:#15C60D;
-			white-space: nowrap;
-		}
-		body {
-			background-color: black;
-		}
+			@font-face { font-family: Consolas; src: url('CONSOLA.TTF'); }
+			div {
+				font-family: Consolas;
+				color:#15C60D;
+				white-space: nowrap;
+			}
+			body {
+				background-color: black;
+			}
 		</style>
 		<script>
-				var line = 0;
+				var numberOfLines = 1;
 				var codeparts = [
-					"int bob = new Bob;",
+					"bob Bob = new Bob;",
 					"if (mikeNum.length >= document.body.getNumberOfStuff) {",
 					"enum.docsEnabler = true;",
 					"};",
@@ -31,9 +31,21 @@
 				];
 				function addLine(text) {
 					document.getElementById("text").innerHTML=document.getElementById("text").innerHTML+"<br>"+text;
+					numberOfLines++;
+					if (numberOfLines > 35) {
+						let textblock = document.getElementById("text").innerHTML;
+						// break the textblock into an array of lines
+						var lines = textblock.split('<br>');
+						// remove one line, starting at the first position
+						lines.splice(0,1);
+						// join the array back into a single string
+						var newtext = lines.join('<br>');
+						document.getElementById("text").innerHTML = newtext;
+						numberOfLines = numberOfLines-1;
+					};
 				};
 				function clearText() {
-					document.getElementById("text").innerHTML="Bobdoc function: loaded;"
+					document.getElementById("text").innerHTML="Bobdoc function: loaded;";
 				};
 				function getRandomInt(min, max) {
 					min = Math.ceil(min);
@@ -43,10 +55,10 @@
 				var interval = setInterval(function() {
 					addLine(codeparts[getRandomInt(0,codeparts.length)]);
 					window.scrollTo(0,document.body.scrollHeight);
-				}, 10);
+				}, 50);
 			</script>
 	</head>
 	<body>
-			<div id="text">bobDoc function: loaded;</div>
+		<div id="text">bobDoc function: loaded;</div>
 	</body> 
 </html>

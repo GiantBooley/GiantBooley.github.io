@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 	<head>
@@ -10,6 +9,7 @@
 			body {
 				background-color:cornsilk;
 				padding:0px;
+				white-space: nowrap;
 			}
 			.border {
 				background-color: darkgray;
@@ -30,18 +30,17 @@
 				float: left;
 			}
 			iframe {
-				border:none;
+				border: none;
 				display: block;
 				margin: 0px;
 				padding: 0px;
 				outline: none;
 			}
 			textarea {
-				resize: horizontal;
+				resize: vertical;
 				border: none;
 				white-space: nowrap;
-				width: 50%;
-				height: 450px;
+				width: 100%;
 			}
 			.exitfull {
 				position: fixed;
@@ -108,11 +107,17 @@
 			function darkMode() {
 				if (darkModeOn == true) {
 					darkModeOn = false;
-					document.getElementById("input").style="background-color:white;color:black;";
+					document.getElementById("input").style.backgroundColor="white";
+					document.getElementById("input").style.color="black";
+					document.getElementById("jsinput").style.backgroundColor="white";
+					document.getElementById("jsinput").style.color="black";
 					document.body.style="background-color: cornsilk; color: black";
 				} else {
 					darkModeOn = true;
-					document.getElementById("input").style="background-color:darkslategray;color:white;";
+					document.getElementById("input").style.backgroundColor="darkslategray";
+					document.getElementById("input").style.color="white";
+					document.getElementById("jsinput").style.backgroundColor="darkslategray";
+					document.getElementById("jsinput").style.color="white";
 					document.body.style="background-color: #000723; color: white";
 				};
 			};
@@ -130,11 +135,12 @@
 			<label for="confirmleave">Confirm leave |</label>
 			<button onclick="darkMode();">Toggle dark mode</button>
 			<hr>
-			<textarea style="background-color:white;color:black;" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
+			<textarea style="background-color:white;color:black;height:350px;" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
+			<textarea style="background-color:white;color:black;height:100px;" placeholder="Type javascript" id="jsinput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
 			<button class="border" style="width:100%" onclick="updateAsHTML();"><strong>Update HTML</strong></button><br>
-			<button class="border" style="width:25%" onclick="downloadHTML();"><strong>Download</strong></button><br>
-			<button class="border" style="width:25%" onclick="unloadHTML();"><strong>Unload HTML</strong></button><br>
-			<button class="border" style="width:25%" onclick="runJavascript();"><strong>Run javascript</strong></button><br>
+			<button class="border" style="width:25%" onclick="downloadHTML();"><strong>Download</strong></button>
+			<button class="border" style="width:25%" onclick="unloadHTML();"><strong>Unload HTML</strong></button>
+			<button class="border" style="width:25%" onclick="runJavascript();"><strong>Run javascript</strong></button>
 			<button class="border" style="width:25%" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
 		</div>
 	</body>

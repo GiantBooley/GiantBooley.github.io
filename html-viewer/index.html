@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 	<head>
@@ -105,10 +106,15 @@
 				if (darkModeOn == true) {
 					darkModeOn = false;
 					document.getElementById("input").style="background-color:white;color:black;";
+					document.body.style="background-color: cornsilk; color: black";
 				} else {
 					darkModeOn = true;
-					document.getElementById("input").style="background-color:black;color:lightgray;";
+					document.getElementById("input").style="background-color:darkslategray;color:white;";
+					document.body.style="background-color: #000723; color: white";
 				};
+			};
+			function unloadHTML() {
+				document.getElementById("embed").srcdoc="";
 			};
 		</script>
 	</head>
@@ -119,16 +125,17 @@
 			<label>Settings:</label>
 			<input type="checkbox" id="confirmleave">
 			<label for="confirmleave">Confirm leave |</label>
-			<button onclick="darkMode();">Toggle editor dark mode</button>
+			<button onclick="darkMode();">Toggle dark mode</button>
 			<hr>
 			<textarea style="background-color:white;color:black;" rows="25" cols="150" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
 			<button class="border" style="width:100%" onclick="updateAsHTML();"><strong>Update HTML</strong></button><br>
-			<button class="border" style="width:50%" onclick="downloadHTML();"><strong>Download</strong></button><br>
-			<button class="border" style="width:50%" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
-		</div>
-		<div style="background-color:white">
-			<button style="display: none" class="exitfull" onclick="toggleFullScreen()">Exit fullscreen</button>
-			<iframe id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="617"></iframe>
+			<button class="border" style="width:33.333%" onclick="downloadHTML();"><strong>Download</strong></button><br>
+			<button class="border" style="width:33.333%" onclick="unloadHTML();"><strong>Unload HTML</strong></button><br>
+			<button class="border" style="width:33.333%" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
 		</div>
 	</body>
+	<div style="background-color:white">
+			<button style="display: none" class="exitfull" onclick="toggleFullScreen()">Exit fullscreen</button>
+			<iframe id="embed" srcdoc="<p>type in text box and press update html<p>" width="100%" height="617"></iframe>
+	</div>
 </html>

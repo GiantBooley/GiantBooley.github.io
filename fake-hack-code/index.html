@@ -1,6 +1,5 @@
 <html>
 	<head>
-		<script src="jquery-3.5.1.min.js"></script>
 		<style>
 		@font-face { font-family: Consolas; src: url('CONSOLA.TTF'); }
 		div {
@@ -13,6 +12,7 @@
 		}
 		</style>
 		<script>
+				var line = 0;
 				var codeparts = [
 					"int bob = new Bob;",
 					"if (mikeNum.length >= document.body.getNumberOfStuff) {",
@@ -25,7 +25,8 @@
 					"at com.strobel.decompiler.ast.TypeAnalysis.inferCall(TypeAnalysis.java:2438);",
 					"java.lang.IllegalStateException: Invalid BootstrapMethods attribute entry: 2 additional arguments required for method java/lang/invoke/StringConcatFactory.makeConcatWithConstants, but only 1 specified.",
 					"}}}}}}}}}}}}}}}]]}}}}]]};",
-					"let list = {text: broke};"
+					"let list = {text: mapper.nodeNumber, frustum: \"none\"};",
+					"var bisectorType = \"binary\";"
 				];
 				function addLine(text) {
 					document.getElementById("text").innerHTML=document.getElementById("text").innerHTML+"<br>"+text;

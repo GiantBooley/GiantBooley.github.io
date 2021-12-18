@@ -124,6 +124,13 @@
 			function unloadHTML() {
 				document.getElementById("embed").srcdoc="";
 			};
+			function iFrameJavascript() {
+			
+			};
+			function runJavascript() {
+				iFrameJavascript = "()=>{"+document.getElementById("jsinput").value+"}";
+				document.getElementById('embed').contentWindow.iFrameJavascript();
+			}
 		</script>
 	</head>
 	<body>

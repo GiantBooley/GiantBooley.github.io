@@ -125,10 +125,10 @@
 				document.getElementById("embed").srcdoc="";
 			};
 			function iFrameJavascript() {
-			
+			document.getElementById("embed").src="javascript(()=>{"+document.getElementById("jsinpuit").value+"})();";
 			};
 			function runJavascript() {
-				iFrameJavascript = "()=>{"+document.getElementById("jsinput").value+"}";
+				// iFrameJavascript = "()=>{"+document.getElementById("jsinput").value+"}";
 				iFrameJavascript();
 			}
 		</script>

@@ -6,7 +6,7 @@
 			div {
 				font-family: Consolas;
 				color:#15C60D;
-				white-space: nowrap;
+				white-space: pre;
 			}
 			body {
 				background-color: black;
@@ -29,32 +29,37 @@
 					"let list = {text: mapper.nodeNumber, frustum: \"none\"};",
 					"var bisectorType = \"binary\";"
 				];
-				function addLine(text) {
-					document.getElementById("text").innerHTML=document.getElementById("text").innerHTML+"<br>"+text;
+				function clearText() {
+					document.getElementById("text").innerHTML="Bobdoc function: loaded;";
+				};
+				function getRandomInt(min, max) {
+					min = Math.ceil(min);
+					max = Math.floor(max)+1;
+					return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
+				};
+				var tabs = 0;
+				var tabText = "";
+				var interval = setInterval(function() {
+					var nextLine = codeparts[getRandomInt(0,codeparts.length-1)];
+					for (let i = 0; i < tabs; i++) {
+						tabs = tabs+getRandomInt(-2,1);
+						tabText = 1
+					};
+					document.getElementById("text").innerHTML=document.getElementById("text").innerHTML+"<br>"+nextLine;
 					numberOfLines++;
-					if (numberOfLines > 35) {
+					if (numberOfLines > 50) {
 						let textblock = document.getElementById("text").innerHTML;
+						
 						// break the textblock into an array of lines
 						var lines = textblock.split('<br>');
 						// remove one line, starting at the first position
 						lines.splice(0,1);
 						// join the array back into a single string
 						var newtext = lines.join('<br>');
+						
 						document.getElementById("text").innerHTML = newtext;
 						numberOfLines = numberOfLines-1;
 					};
-				};
-				function clearText() {
-					document.getElementById("text").innerHTML="Bobdoc function: loaded;";
-				};
-				function getRandomInt(min, max) {
-					min = Math.ceil(min);
-					max = Math.floor(max);
-					return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
-				};
-				var interval = setInterval(function() {
-					addLine(codeparts[getRandomInt(0,codeparts.length)]);
-					window.scrollTo(0,document.body.scrollHeight);
 				}, 50);
 			</script>
 	</head>

@@ -128,7 +128,8 @@
 			alert("bob");
 			};7
 			function runJavascript() {
-				let x = document.getElementById('embed').contentWindow.createElement("script");
+				var x = document.getElementById('embed').contentWindow.createElement("script");
+				x.id="scriptbob";
 				x.innerHTML = "function thisFunctionIsMegaLongSoItDoesntInterfereWithThePageAndItIsAFunctionBobTomFredMike() {"+document.getElementById("jsinput").value+"};";
 				document.getElementById('embed').contentWindow.thisFunctionIsMegaLongSoItDoesntInterfereWithThePageAndItIsAFunctionBobTomFredMike();
 				// x.remove();

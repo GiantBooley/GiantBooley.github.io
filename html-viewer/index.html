@@ -145,7 +145,7 @@
 			<hr>
 			<textarea style="background-color:white;color:black;height:350px;" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
 			<textarea style="background-color:white;color:black;height:100px;" placeholder="Type javascript" id="jsinput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}" disabled></textarea>
-			<button class="border" style="width:100;%" onclick="updateAsHTML();"><strong>Update HTML</strong></button><br>
+			<button class="border" style="width:100%;" onclick="updateAsHTML();"><strong>Update HTML</strong></button><br>
 			<button class="border" style="width:25%;" onclick="downloadHTML();"><strong>Download</strong></button>
 			<button class="border" style="width:25%;" onclick="unloadHTML();"><strong>Unload HTML</strong></button>
 			<button class="border" style="width:25%; cursor: not-allowed;" onclick="runJavascript();" disabled><strong>Run javascript</strong></button>

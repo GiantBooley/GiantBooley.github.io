@@ -2,7 +2,7 @@
 <html>
 	<head>
 		<style>
-			@font-face { font-family: Consolas; src: url('CONSOLA.TTF'); }
+			@font-face { font-family: Consolas; src: url('https://giantbooley.github.io/fake-hack-code/CONSOLA.TTF'); }
 			div {
 				font-family: Consolas;
 				color:#15C60D;
@@ -41,11 +41,15 @@
 				var tabText = "";
 				var interval = setInterval(function() {
 					var nextLine = codeparts[getRandomInt(0,codeparts.length-1)];
-					for (let i = 0; i < tabs; i++) {
-						tabs = tabs+getRandomInt(-2,1);
-						tabText = 1
+					tabs = tabs+getRandomInt(-2,1);
+					if (tabs < 0) {
+						tabs = 0;
 					};
-					document.getElementById("text").innerHTML=document.getElementById("text").innerHTML+"<br>"+nextLine;
+					tabText = "";
+					for (let i = 0; i < tabs; i++) {
+						tabText = tabText+"	";
+					};
+					document.getElementById("text").innerHTML=document.getElementById("text").innerHTML+"<br>"+tabText+nextLine;
 					numberOfLines++;
 					if (numberOfLines > 50) {
 						let textblock = document.getElementById("text").innerHTML;
@@ -60,7 +64,7 @@
 						document.getElementById("text").innerHTML = newtext;
 						numberOfLines = numberOfLines-1;
 					};
-				}, 50);
+				}, 30);
 			</script>
 	</head>
 	<body>

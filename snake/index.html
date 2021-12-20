@@ -2,15 +2,36 @@
 <html>
 	<head>
 		<style>
+			#player {
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width: 100px;
+				height: 100px;
+				background-color: gold;
+				border: 5px outset orange
+			}
 		</style>
 		<script>
-			var player = {x: 0, y: 0};
+			var x = 0;
+			var y = 0;
 			document.onkeypress = function (e) {
 				e = e || window.event;
-				alert(e.keyCode)
+				if (e.keyCode == 119) { // w
+					y = y + 10;
+				} else if (e.keyCode == 97) { // a
+					x = x - 10;
+				} else if (e.keyCode == 115) { // s
+					y = y - 10;
+				} else if (e.keyCode == 100) { //d
+					x = x + 10;
+				};
+				document.getElementById("player").style.bottom = y+"px";
+				document.getElementById("player").style.left = x+"px";
 			};
 		</script>
 	</head>
 	<body>
+		<div id="player"></div>
 	</body>
 </html>

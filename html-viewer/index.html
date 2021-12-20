@@ -8,7 +8,7 @@
 			}
 			body {
 				background-color:cornsilk;
-				padding:0px;
+				padding: 0px;
 				white-space: nowrap;
 			}
 			.border {
@@ -90,6 +90,7 @@
 				download("index.html",document.getElementById("input").value);
 			};
 			window.onbeforeunload = function() {
+				save();
 				if (document.getElementById("input").value.length > 0) {
 					return 'Are you sure you want to leave?';
 				};

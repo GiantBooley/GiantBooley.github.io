@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			#button {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				width: 11%;
+				height: 11%;
+				background-color: green;
+				border: 4px double red;
+				font-size: 22px;
+				color: red;
+			}
+		</style>
+		<script>
+			function move() {
+				document.getElementById("button").style.top=(Math.random()*89)+"%";
+				document.getElementById("button").style.left=(Math.random()*89)+"%";
+			};
+			function clickButton() {
+				alert("HOW DOD YOU CLIKC THE BUTTON HACKER PERSON");
+				var interval = setInterval(function() {
+					move();
+				},50);
+			};
+		</script>
+	</head>
+	<body>
+		<button id="button" onmouseover="move();" onclick="clickButton()">CLICK ME</button>
+	</body>
+</html>

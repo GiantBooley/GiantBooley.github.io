@@ -90,14 +90,12 @@
 				download("index.html",document.getElementById("input").value);
 			};
 			window.onbeforeunload = function() {
-				save();
 				if (document.getElementById("input").value.length > 0) {
 					return 'Are you sure you want to leave?';
 				};
 			};
 			function updateAsHTML() {
 				document.getElementById("embed").srcdoc=document.getElementById("input").value;
-				save();
 			};
 			var fullscreen = false;
 			function toggleFullScreen() {
@@ -150,7 +148,7 @@
 			<hr>
 			<label>Settings:</label>
 			<input id="darkmode" type="checkbox" onclick="darkMode();">Dark mode |</input>
-			<button onclick="save(); alert('HTML input saved to local storage.');" title="autosaves when clicking update html">Save</button>
+			<button onclick="save(); alert('HTML input saved to local storage.');">Save</button>
 			<hr>
 			<textarea style="background-color:white;color:black;height:350px;" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
 			<textarea style="background-color:white;color:black;height:100px;display: none;" placeholder="Type javascript" id="jsinput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>

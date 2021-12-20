@@ -83,8 +83,7 @@
 			function downloadHTML() {
 				download("index.html",document.getElementById("input").value);
 			};
-			window.onbeforeunload = function(){
-				let lengthOfInput =
+			window.onbeforeunload = function() {
 				if (document.getElementById("input").value.length > 0) {
 					return 'Are you sure you want to leave?';
 				};

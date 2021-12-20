@@ -68,6 +68,9 @@
 			}
 		</style>
 		<script>
+			window.onload = function() {
+				document.getElementById("input").value = localStorage.getItem('HTMLSAVE');
+			};
 			function download(filename, text) {
 				var element = document.createElement('a');
 				element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
@@ -90,6 +93,7 @@
 			};
 			function updateAsHTML() {
 				document.getElementById("embed").srcdoc=document.getElementById("input").value;
+				localStorage.setItem('HTMLSAVE', document.getElementById("input").value);
 			};
 			var fullscreen = false;
 			function toggleFullScreen() {

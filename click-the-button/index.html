@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<title>dontusefullscreen</title>
 		<style>
 			#button {
 				position: absolute;
@@ -17,8 +18,10 @@
 		</style>
 		<script>
 			function move() {
-				document.getElementById("button").style.top=(Math.random()*89)+"%";
-				document.getElementById("button").style.left=(Math.random()*89)+"%";
+				setTimeout(function() {
+					document.getElementById("button").style.top=(Math.random()*89)+"%";
+					document.getElementById("button").style.left=(Math.random()*89)+"%";
+				}, 100);
 			};
 			function clickButton() {
 				alert("HOW DOD YOU CLIKC THE BUTTON HACKER PERSON");

@@ -84,7 +84,8 @@
 				download("index.html",document.getElementById("input").value);
 			};
 			window.onbeforeunload = function(){
-				if (document.getElementById("confirmleave").checked == true) {
+				let lengthOfInput =
+				if (document.getElementById("input").value.length > 0) {
 					return 'Are you sure you want to leave?';
 				};
 			};
@@ -126,14 +127,14 @@
 			};
 			function iFrameJavascript() {
 			alert("bob");
-			};7
+			};
 			function runJavascript() {
 				var x = document.getElementById('embed').contentWindow.createElement("script");
 				x.id="scriptbob";
 				x.innerHTML = "function thisFunctionIsMegaLongSoItDoesntInterfereWithThePageAndItIsAFunctionBobTomFredMike() {"+document.getElementById("jsinput").value+"};";
 				document.getElementById('embed').contentWindow.thisFunctionIsMegaLongSoItDoesntInterfereWithThePageAndItIsAFunctionBobTomFredMike();
-				// x.remove();
-			}
+				x.remove();
+			};
 		</script>
 	</head>
 	<body>
@@ -141,9 +142,7 @@
 			<h1>HTML viewer</h1><br>
 			<hr>
 			<label>Settings:</label>
-			<input type="checkbox" id="confirmleave">
-			<label for="confirmleave">Confirm leave |</label>
-			<button onclick="darkMode();">Toggle dark mode</button>
+			<input id="darkmode" type="checkbox" onclick="darkMode();">Dark mode</input>
 			<hr>
 			<textarea style="background-color:white;color:black;height:350px;" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
 			<textarea style="background-color:white;color:black;height:100px;display: none;" placeholder="Type javascript" id="jsinput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>

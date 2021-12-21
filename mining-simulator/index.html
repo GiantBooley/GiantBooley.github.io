@@ -14,6 +14,16 @@
 				cursor: pointer;
 				border: 3px dashed black;
 			}
+			#coalAnimation {
+				display: none;
+				position: absolute;
+				left: 690px;
+				top: 250px;
+				color: white;
+				user-select: none;
+				font-family: arial;
+				font-size: 20px;
+			}
 		</style>
 		<script>
 			var coal = 0;
@@ -21,11 +31,23 @@
 			function mine() {
 				coal = coal+coalPerClick;
 				document.getElementById("coal").innerHTML = "coal: "+coal;
+				document.getElementById("coalAnimation").innerHTML = "+"+coalPerClick;
+				document.getElementById("coalAnimation").style.display = "block";
+				setTimeout(function() {
+					document.getElementById("coalAnimation").style.display = "none";
+				}, 100);
+			};
+			function upgradeCoalPerClick() {
+				coalPerClick = coalPerClick*2;
+				document.getElementById("coalPerClickButton").innerHTML = "double coal per click (current: "+coalPerClick+")";
 			};
 		</script>
 	</head>
 	<body>
-		<div id="coal">click to mine</div><br>
+		<div id="coal">coal: 0</div><br>
 		<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="https://image.shutterstock.com/shutterstock/photos/74197867/display_1500/stock-photo-satisfied-male-miner-with-pick-axe-showing-thumbs-up-74197867.jpg">
+		<div id="coalAnimation">+1</div>
+		</img><br>
+		<button id="coalPerClickButton" onclick="upgradeCoalPerClick()">double coal per click (current: 1)</button>
 	</body>
 </html>

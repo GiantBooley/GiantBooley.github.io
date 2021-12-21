@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			body {
+				text-align: center;
+			}
+			#miner {
+				width: 300px;
+				height: 300px;
+				position: absolute;
+				top: 100px;
+				left: 40%;
+				cursor: pointer;
+				border: 3px dashed black;
+			}
+		</style>
+		<script>
+			var coal = 0;
+			var coalPerClick = 1;
+			function mine() {
+				coal = coal+coalPerClick;
+				document.getElementById("coal").innerHTML = "coal: "+coal;
+			};
+		</script>
+	</head>
+	<body>
+		<div id="coal">click to mine</div><br>
+		<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="https://image.shutterstock.com/shutterstock/photos/74197867/display_1500/stock-photo-satisfied-male-miner-with-pick-axe-showing-thumbs-up-74197867.jpg">
+	</body>
+</html>

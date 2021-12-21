@@ -43,13 +43,13 @@
 					coal = coal-upgradeCost;
 					cpc = cpc*2;
 					upgradeCost = upgradeCost*1.5;
-					document.getElementById("coalPerClickButton").innerHTML = "double coal per click (cost: "+upgradeCost+")";
+					document.getElementById("coalPerClickButton").innerHTML = "double coal per click (cost: "+Math.ceil(upgradeCost)+")";
 					document.getElementById("coalPerClickButton").title = "current coal per click: "+cpc;
 					document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal);
 				} else {
 					document.getElementById("coalPerClickButton").innerHTML = "Not enough coal!";
 					setTimeout(function() {
-						document.getElementById("coalPerClickButton").innerHTML = "double coal per click (cost: "+Math.round(upgradeCost)+")";
+						document.getElementById("coalPerClickButton").innerHTML = "double coal per click (cost: "+Math.ceil(upgradeCost)+")";
 					}, 1000);
 				};
 			};

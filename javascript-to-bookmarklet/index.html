@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			body {
+				background-color: cornsilk;
+			}
+			textarea {
+				display: inline-block;
+				width: 100%;
+				height: 500px;
+			}
+		</style>
+		<script>
+			function clickbutton() {
+				let inputText = document.getElementById("input").value;
+				for (let i = 0; i < inputText.length; i++) {
+					document.getElementById("output").value = inputText.replace('bob','tom');
+				};
+			};
+		</script>
+	</head>
+	<body>
+		<h1>Javascript to bookmarklet</h1>
+		<hr>
+		<textarea style="white-space: pre;" id="input" placeholder="type javascript but you cant do comments"></textarea>
+		<button onclick="clickbutton();">click to convert</button>
+		<textarea id="output" readonly></textarea>
+	</body>
+</html>

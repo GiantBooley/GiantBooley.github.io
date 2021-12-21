@@ -19,7 +19,7 @@
 				position: absolute;
 				left: 690px;
 				top: 250px;
-				color: white;
+				color: cyan;
 				user-select: none;
 				font-family: arial;
 				font-size: 20px;
@@ -27,19 +27,31 @@
 		</style>
 		<script>
 			var coal = 0;
-			var coalPerClick = 1;
+			var cpc = 1;
+				var upgradeCost = 100;
 			function mine() {
-				coal = coal+coalPerClick;
-				document.getElementById("coal").innerHTML = "coal: "+coal;
-				document.getElementById("coalAnimation").innerHTML = "+"+coalPerClick;
+				coal = coal+cpc;
+				document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal);
+				document.getElementById("coalAnimation").innerHTML = "+"+cpc;
 				document.getElementById("coalAnimation").style.display = "block";
 				setTimeout(function() {
 					document.getElementById("coalAnimation").style.display = "none";
 				}, 100);
 			};
 			function upgradeCoalPerClick() {
-				coalPerClick = coalPerClick*2;
-				document.getElementById("coalPerClickButton").innerHTML = "double coal per click (current: "+coalPerClick+")";
+				if (coal >= upgradeCost) {
+					coal = coal-upgradeCost;
+					cpc = cpc*2;
+					upgradeCost = upgradeCost*1.5;
+					document.getElementById("coalPerClickButton").innerHTML = "double coal per click (cost: "+upgradeCost+")";
+					document.getElementById("coalPerClickButton").title = "current coal per click: "+cpc;
+					document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal);
+				} else {
+					document.getElementById("coalPerClickButton").innerHTML = "Not enough coal!";
+					setTimeout(function() {
+						document.getElementById("coalPerClickButton").innerHTML = "double coal per click (cost: "+Math.round(upgradeCost)+")";
+					}, 1000);
+				};
 			};
 		</script>
 	</head>
@@ -48,6 +60,6 @@
 		<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="https://image.shutterstock.com/shutterstock/photos/74197867/display_1500/stock-photo-satisfied-male-miner-with-pick-axe-showing-thumbs-up-74197867.jpg">
 		<div id="coalAnimation">+1</div>
 		</img><br>
-		<button id="coalPerClickButton" onclick="upgradeCoalPerClick()">double coal per click (current: 1)</button>
+		<button id="coalPerClickButton" title="current coal per click: 1" onclick="upgradeCoalPerClick()">double coal per click (cost: 100)</button>
 	</body>
 </html>

@@ -4,13 +4,12 @@
 		<style>
 			body {
 				text-align: center;
+				background-image: url("https://thumbs.dreamstime.com/b/dirt-texture-12611254.jpg");
+				overflow: hidden;
 			}
 			#miner {
 				width: 300px;
 				height: 300px;
-				position: absolute;
-				top: 100px;
-				left: 40%;
 				cursor: pointer;
 				border: 3px dashed black;
 			}
@@ -23,6 +22,12 @@
 				user-select: none;
 				font-family: arial;
 				font-size: 20px;
+			}
+			p {
+				color: white;
+				font-size: 30px;
+				font-family: monospace;
+				font-weight: bold;
 			}
 		</style>
 		<script>
@@ -56,10 +61,10 @@
 		</script>
 	</head>
 	<body>
-		<div id="coal">coal: 0</div><br>
+		<p id="coal">coal: 0</p><br>
+		<button id="coalPerClickButton" title="current coal per click: 1" onclick="upgradeCoalPerClick()">double coal per click (cost: 100)</button><br><br>
 		<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="https://image.shutterstock.com/shutterstock/photos/74197867/display_1500/stock-photo-satisfied-male-miner-with-pick-axe-showing-thumbs-up-74197867.jpg">
 		<div id="coalAnimation">+1</div>
 		</img><br>
-		<button id="coalPerClickButton" title="current coal per click: 1" onclick="upgradeCoalPerClick()">double coal per click (cost: 100)</button>
 	</body>
 </html>

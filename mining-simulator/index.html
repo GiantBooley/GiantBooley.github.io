@@ -23,6 +23,12 @@
 				text-align: center;
 				background-image: url("https://thumbs.dreamstime.com/b/dirt-texture-12611254.jpg");
 				overflow: hidden;
+				user-drag: none;
+				-webkit-user-drag: none;
+				user-select: none;
+				-moz-user-select: none;
+				-webkit-user-select: none;
+				-ms-user-select: none;
 			}
 			#miner {
 				width: 300px;
@@ -57,14 +63,27 @@
 				text-align: left;
 				line-height: 70%;
 			}
+			.machineImage {
+				width: 25%;
+				height: 100%;
+				display: inline-block;
+				float: left;
+			}
+			img {
+				user-drag: none;
+ 				-webkit-user-drag: none;
+				user-select: none;
+				-moz-user-select: none;
+				-webkit-user-select: none;
+				-ms-user-select: none;
+			}
 		</style>
 		<script>
-			var drillCost = 300;
-			var drillLevel = 0;
+			var machines = {drill: {name: "Drill", cost: 300, level: 0, cps: 0}, digger: {name: "Digger", cost: 5000, level: 0, cps: 0}};
 			var cps = 0;
 			var coal = 0;
 			var cpc = 1;
-			var upgradeCost = 100;
+			var upgradeCpcCost = 100;
 			function mine() {
 				coal = coal+cpc;
 				document.getElementById("coalAnimation").innerHTML = "+"+cpc;
@@ -73,53 +92,82 @@
 					document.getElementById("coalAnimation").style.display = "none";
 				}, 100);
 			};
-			function upgradeCoalPerClick() {
-				if (coal >= upgradeCost) {
-					coal = coal-upgradeCost;
+			function upgradeCpc() {
+				if (coal >= upgradeCpcCost) {
+					coal = coal-upgradeCpcCost;
 					cpc = cpc*2;
-					upgradeCost = upgradeCost*5;
-					document.getElementById("coalPerClickButton").innerHTML = "double coal per click (cost: "+Math.ceil(upgradeCost)+")";
-					document.getElementById("coalPerClickButton").title = "current coal per click: "+cpc;
+					upgradeCpcCost = upgradeCpcCost*2.5;
+					document.getElementById("cpcButton").innerHTML = "double coal per click (cost: "+Math.ceil(upgradeCpcCost)+")";
+					document.getElementById("cpcButton").title = "current coal per click: "+cpc;
 					document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal);
-				} else {
-					document.getElementById("coalPerClickButton").innerHTML = "Not enough coal!";
-					setTimeout(function() {
-						document.getElementById("coalPerClickButton").innerHTML = "double coal per click (cost: "+Math.ceil(upgradeCost)+")";
-					}, 1000);
 				};
 			};
 			function levelUpDrill() {
-				if (coal >= drillCost) {
-					coal = coal-drillCost;
-					drillLevel++;
-					cps = cps+5;
-					drillCost = drillCost*1.15;
-					document.getElementById("drillLevel").innerHTML = "Drill level: "+drillLevel;
-					document.getElementById("drillCps").innerHTML = "Drill coal per second: "+cps;
-					document.getElementById("buyDrill").innerHTML = "Upgrade drill (cost: "+Math.ceil(drillCost)+")";
-				} else {
-					alert("Not enough coal");
-				};
+					coal = coal-machines.drill.cost;
+					machines.drill.level++;
+					cps = cps-machines.drill.cps;
+					machines.drill.cps = machines.drill.cps + 5;
+					cps = cps+machines.drill.cps;
+					machines.drill.cost = machines.drill.cost*1.5;
+					document.getElementById("drillLevel").innerHTML = "Drill level: "+machines.drill.level;
+					document.getElementById("drillCps").innerHTML = "Drill coal per second: "+machines.drill.cps;
+					document.getElementById("drillButton").innerHTML = "Upgrade drill (cost: "+Math.ceil(machines.drill.cost)+")";
+			};
+			function levelUpDigger() {
+					coal = coal-machines.digger.cost;
+					machines.digger.level++;
+					cps = cps-machines.digger.cps;
+					machines.digger.cps = machines.digger.cps + 50;
+					cps = cps+machines.digger.cps;
+					machines.digger.cost = machines.digger.cost*1.5;
+					document.getElementById("diggerLevel").innerHTML = "Digger level: "+machines.digger.level;
+					document.getElementById("diggerCps").innerHTML = "Digger coal per second: "+machines.digger.cps;
+					document.getElementById("diggerButton").innerHTML = "Upgrade digger (cost: "+Math.ceil(machines.digger.cost)+")";
 			};
 			var tick = setInterval(function(){
 				coal = coal+(cps/100);
 				document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal)+"<br>(per second: "+Math.ceil(cps)+")";
-			},10);
+				
+				
+				if (machines.drill.cost > coal) {
+					document.getElementById("drillButton").disabled = true;
+				} else {
+					document.getElementById("drillButton").disabled = false;
+				};
+				if (upgradeCpcCost > coal) {
+					document.getElementById("cpcButton").disabled = true;
+				} else {
+					document.getElementById("cpcButton").disabled = false;
+				};
+				if (machines.digger.cost > coal) {
+					document.getElementById("diggerButton").disabled = true;
+				} else {
+					document.getElementById("diggerButton").disabled = false;
+				};
+				
+				
+			}, 10);
 		</script>
 	</head>
 	<body>
 		<p id="coal">coal: 0<br>(per second: 0)</p><br>
-		<button id="coalPerClickButton" title="current coal per click: 1" onclick="upgradeCoalPerClick()">double coal per click (cost: 100)</button><br><br>
+		<button id="cpcButton" title="current coal per click: 1" onclick="upgradeCpc()">double coal per click (cost: 100)</button><br><br>
 		<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="https://image.shutterstock.com/shutterstock/photos/74197867/display_1500/stock-photo-satisfied-male-miner-with-pick-axe-showing-thumbs-up-74197867.jpg">
 		<div id="coalAnimation">+1</div>
 		</img><br>
 		<div id="machines">
 			<div class="machine">
-				<button class="upgradeMachine" id="buyDrill" onclick="levelUpDrill();">Upgrade drill (cost: 300)</button><br>
+				<img src="https://lh3.googleusercontent.com/proxy/J84I2s0l6bCXaq2XeySRdGGnTo1Rqvlv765jFA7ZT-DRcXttFy72Twa1C5_EoGLhf7f-M25Z-UoduHzmclSQspOl2UHqwVzG7VRL8hO8FNCt8tLVnhFSgJfVmCLyWa7r-auPJ9pQqxSuv5VWR3sMtvzYcJ-wS9u8spGc-TbcByGvKFiO9-bjc3fuN4r_kUve5i2Ev1oI" class="machineImage" alt="drill image">
+				<button class="upgradeMachine" id="drillButton" onclick="levelUpDrill();">Upgrade drill (cost: 300)</button><br>
 				<div id="drillLevel">Drill level: 0</div><br>
 				<div id="drillCps">Drill coal per second: 0</div>
 			</div>
-			
+			<div class="machine">
+				<img src="https://www.diggerland.com/wp-content/uploads/2020/10/MonsterDigger3.png" class="machineImage" alt="digger image">
+				<button class="upgradeMachine" id="diggerButton" onclick="levelUpDigger();">Upgrade digger (cost: 5000)</button><br>
+				<div id="diggerLevel">Digger level: 0</div><br>
+				<div id="diggerCps">Digger coal per second: 0</div>
+			</div>
 		</div>
 	</body>
 </html>

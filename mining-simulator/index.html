@@ -87,7 +87,7 @@
 			}
 		</style>
 		<script>
-			var tempGame = {
+			var Game = { // set to tempGame to save
 					isItASave: true,
 					machines: {
 						drill: {name: "Drill", cost: 300, level: 0, cps: 0},
@@ -99,14 +99,17 @@
 					cpc: 1,
 					upgradeCpcCost: 100
 			};
-			var tempSave = localStorage.getItem('LOCALSAVE');
-			if (tempSave.isItASave == true) {
-				var Game = tempSave;
-			} else {
-				var Game = tempGame;
-			};
-			function save() {
-				localStorage.setItem('LOCALSAVE', Game);
+			// var tempSave = localStorage.getItem('LOCALSAVE');
+			// if (tempSave.isItASave == true) {
+			// 	var Game = tempSave;
+			// } else {
+			// 	var Game = tempGame;
+			// };
+			// function save() {
+			// 	localStorage.setItem('LOCALSAVE', Game);
+			// };
+			function gameAlert(whatToAlert) {
+				
 			};
 			function mine() {
 				Game.coal = Game.coal+Game.cpc;
@@ -145,7 +148,7 @@
 					Game.machines.digger.level++;
 					Game.cps = Game.cps-Game.machines.digger.cps;
 					Game.machines.digger.cps = Game.machines.digger.cps + 50;
-					Game.cps = cps+Game.machines.digger.cps;
+					Game.cps = Game.cps+Game.machines.digger.cps;
 					Game.machines.digger.cost = Game.machines.digger.cost*1.5;
 					document.getElementById("diggerLevel").innerHTML = "Digger level: "+Game.machines.digger.level;
 					document.getElementById("diggerCps").innerHTML = "Digger coal per second: "+Game.machines.digger.cps;
@@ -221,6 +224,6 @@
 				<div id="mineshaftCps">Mineshaft coal per second: 0</div>
 			</div>
 		</div>
-		<img src="https://www.thecrystalman.com/wp-content/uploads/2020/09/Peacock-Ore-Blue-Purple-7f.jpg" id="unobtanium" alt="unobtanium ore">
+		<div></div>
 	</body>
 </html>

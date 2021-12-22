@@ -103,6 +103,7 @@
 				};
 			};
 			function levelUpDrill() {
+				if (coal >= machines.drill.cost) {
 					coal = coal-machines.drill.cost;
 					machines.drill.level++;
 					cps = cps-machines.drill.cps;
@@ -112,8 +113,10 @@
 					document.getElementById("drillLevel").innerHTML = "Drill level: "+machines.drill.level;
 					document.getElementById("drillCps").innerHTML = "Drill coal per second: "+machines.drill.cps;
 					document.getElementById("drillButton").innerHTML = "Upgrade drill (cost: "+Math.ceil(machines.drill.cost)+")";
+				};
 			};
 			function levelUpDigger() {
+				if (coal >= machines.digger.cost) {
 					coal = coal-machines.digger.cost;
 					machines.digger.level++;
 					cps = cps-machines.digger.cps;
@@ -123,6 +126,7 @@
 					document.getElementById("diggerLevel").innerHTML = "Digger level: "+machines.digger.level;
 					document.getElementById("diggerCps").innerHTML = "Digger coal per second: "+machines.digger.cps;
 					document.getElementById("diggerButton").innerHTML = "Upgrade digger (cost: "+Math.ceil(machines.digger.cost)+")";
+				};
 			};
 			var tick = setInterval(function(){
 				coal = coal+(cps/100);

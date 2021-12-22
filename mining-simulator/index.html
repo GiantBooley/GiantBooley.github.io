@@ -96,7 +96,7 @@
 					drillCost = drillCost*1.15;
 					document.getElementById("drillLevel").innerHTML = "Drill level: "+drillLevel;
 					document.getElementById("drillCps").innerHTML = "Drill coal per second: "+cps;
-					document.getElementById("buyDrill").innerHTML = "Upgrade drill (cost: "+drillCost+")";
+					document.getElementById("buyDrill").innerHTML = "Upgrade drill (cost: "+Math.ceil(drillCost)+")";
 				} else {
 					alert("Not enough coal");
 				};

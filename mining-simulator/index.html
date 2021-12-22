@@ -1,7 +1,24 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<title>Mining simulator</title>
 		<style>
+			button {
+				border: 3px outset gold;
+				background-color: orange;
+			}
+			button:hover {
+				border-style: inset;
+			}
+			#machines {
+				background-color: lightgray;
+				position: absolute;
+				width: 25%;
+				height: 84%;
+				bottom: 0px;
+				right: 0px;
+				border: 10px double gray;
+			}
 			body {
 				text-align: center;
 				background-image: url("https://thumbs.dreamstime.com/b/dirt-texture-12611254.jpg");
@@ -11,7 +28,7 @@
 				width: 300px;
 				height: 300px;
 				cursor: pointer;
-				border: 3px dashed black;
+				border: 3px solid gold;
 			}
 			#coalAnimation {
 				display: none;
@@ -24,19 +41,27 @@
 				font-size: 20px;
 			}
 			p {
-				color: white;
+				color: black;
 				font-size: 30px;
 				font-family: monospace;
 				font-weight: bold;
+				background-color: yellow;
+				border: 5px double gold;
+				width: 100%;
+			}
+			.buymachine {
+				width: 100%;
+				height: 15%;
+				font-size: 30px;
 			}
 		</style>
 		<script>
+			var cps = 0;
 			var coal = 0;
 			var cpc = 1;
-				var upgradeCost = 100;
+			var upgradeCost = 100;
 			function mine() {
 				coal = coal+cpc;
-				document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal);
 				document.getElementById("coalAnimation").innerHTML = "+"+cpc;
 				document.getElementById("coalAnimation").style.display = "block";
 				setTimeout(function() {
@@ -47,7 +72,7 @@
 				if (coal >= upgradeCost) {
 					coal = coal-upgradeCost;
 					cpc = cpc*2;
-					upgradeCost = upgradeCost*1.5;
+					upgradeCost = upgradeCost*5;
 					document.getElementById("coalPerClickButton").innerHTML = "double coal per click (cost: "+Math.ceil(upgradeCost)+")";
 					document.getElementById("coalPerClickButton").title = "current coal per click: "+cpc;
 					document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal);
@@ -58,6 +83,13 @@
 					}, 1000);
 				};
 			};
+			function buyDrill() {
+				document.getElementById("buydrill").style.display="none";
+			};
+			var tick = setInterval(function(){
+				coal = coal+(cps/100);
+				document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal);
+			},10);
 		</script>
 	</head>
 	<body>
@@ -66,5 +98,11 @@
 		<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="https://image.shutterstock.com/shutterstock/photos/74197867/display_1500/stock-photo-satisfied-male-miner-with-pick-axe-showing-thumbs-up-74197867.jpg">
 		<div id="coalAnimation">+1</div>
 		</img><br>
+		<div id="machines">
+			<div>
+				<button class="buymachine" id="buydrill" onclick="buyDrill();">Buy drill</button>
+			</div>
+			
+		</div>
 	</body>
 </html>

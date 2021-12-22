@@ -14,7 +14,7 @@
 				background-color: lightgray;
 				position: absolute;
 				width: 25%;
-				height: 84%;
+				height: 79%;
 				bottom: 0px;
 				right: 0px;
 				border: 10px double gray;
@@ -40,7 +40,7 @@
 				font-family: arial;
 				font-size: 20px;
 			}
-			p {
+			#coal {
 				color: black;
 				font-size: 30px;
 				font-family: monospace;
@@ -49,13 +49,18 @@
 				border: 5px double gold;
 				width: 100%;
 			}
-			.buymachine {
+			.machine {
 				width: 100%;
 				height: 15%;
-				font-size: 30px;
+				background-color: darkgray;
+				border: 2px solid darkslategray;
+				text-align: left;
+				line-height: 70%;
 			}
 		</style>
 		<script>
+			var drillCost = 300;
+			var drillLevel = 0;
 			var cps = 0;
 			var coal = 0;
 			var cpc = 1;
@@ -83,24 +88,36 @@
 					}, 1000);
 				};
 			};
-			function buyDrill() {
-				document.getElementById("buydrill").style.display="none";
+			function levelUpDrill() {
+				if (coal >= drillCost) {
+					coal = coal-drillCost;
+					drillLevel++;
+					cps = cps+5;
+					drillCost = drillCost*1.15;
+					document.getElementById("drillLevel").innerHTML = "Drill level: "+drillLevel;
+					document.getElementById("drillCps").innerHTML = "Drill coal per second: "+cps;
+					document.getElementById("buyDrill").innerHTML = "Upgrade drill (cost: "+drillCost+")";
+				} else {
+					alert("Not enough coal");
+				};
 			};
 			var tick = setInterval(function(){
 				coal = coal+(cps/100);
-				document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal);
+				document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal)+"<br>(per second: "+Math.ceil(cps)+")";
 			},10);
 		</script>
 	</head>
 	<body>
-		<p id="coal">coal: 0</p><br>
+		<p id="coal">coal: 0<br>(per second: 0)</p><br>
 		<button id="coalPerClickButton" title="current coal per click: 1" onclick="upgradeCoalPerClick()">double coal per click (cost: 100)</button><br><br>
 		<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="https://image.shutterstock.com/shutterstock/photos/74197867/display_1500/stock-photo-satisfied-male-miner-with-pick-axe-showing-thumbs-up-74197867.jpg">
 		<div id="coalAnimation">+1</div>
 		</img><br>
 		<div id="machines">
-			<div>
-				<button class="buymachine" id="buydrill" onclick="buyDrill();">Buy drill</button>
+			<div class="machine">
+				<button class="upgradeMachine" id="buyDrill" onclick="levelUpDrill();">Upgrade drill (cost: 300)</button><br>
+				<div id="drillLevel">Drill level: 0</div><br>
+				<div id="drillCps">Drill coal per second: 0</div>
 			</div>
 			
 		</div>

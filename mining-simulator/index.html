@@ -79,7 +79,7 @@
 			}
 		</style>
 		<script>
-			var machines = {drill: {name: "Drill", cost: 300, level: 0, cps: 0}, digger: {name: "Digger", cost: 5000, level: 0, cps: 0}};
+			var machines = {drill: {name: "Drill", cost: 300, level: 0, cps: 0}, digger: {name: "Digger", cost: 5000, level: 0, cps: 0}, mineshaft: {name: "Mineshaft", cost: 50000, level: 0, cps: 0}};
 			var cps = 0;
 			var coal = 0;
 			var cpc = 1;
@@ -128,25 +128,43 @@
 					document.getElementById("diggerButton").innerHTML = "Upgrade digger (cost: "+Math.ceil(machines.digger.cost)+")";
 				};
 			};
+			function levelUpMineshaft() {
+				if (coal >= machines.mineshaft.cost) {
+					coal = coal-machines.mineshaft.cost;
+					machines.mineshaft.level++;
+					cps = cps-machines.mineshaft.cps;
+					machines.mineshaft.cps = machines.mineshaft.cps + 300;
+					cps = cps+machines.mineshaft.cps;
+					machines.mineshaft.cost = machines.mineshaft.cost*1.5;
+					document.getElementById("mineshaftLevel").innerHTML = "Mineshaft level: "+machines.mineshaft.level;
+					document.getElementById("mineshaftCps").innerHTML = "Mineshaft coal per second: "+machines.mineshaft.cps;
+					document.getElementById("mineshaftButton").innerHTML = "Upgrade mineshaft (cost: "+Math.ceil(machines.mineshaft.cost)+")";
+				};
+			};
 			var tick = setInterval(function(){
 				coal = coal+(cps/100);
 				document.getElementById("coal").innerHTML = "coal: "+Math.ceil(coal)+"<br>(per second: "+Math.ceil(cps)+")";
 				
 				
-				if (machines.drill.cost > coal) {
-					document.getElementById("drillButton").disabled = true;
-				} else {
-					document.getElementById("drillButton").disabled = false;
-				};
 				if (upgradeCpcCost > coal) {
 					document.getElementById("cpcButton").disabled = true;
 				} else {
 					document.getElementById("cpcButton").disabled = false;
 				};
+				if (machines.drill.cost > coal) {
+					document.getElementById("drillButton").disabled = true;
+				} else {
+					document.getElementById("drillButton").disabled = false;
+				};
 				if (machines.digger.cost > coal) {
 					document.getElementById("diggerButton").disabled = true;
 				} else {
 					document.getElementById("diggerButton").disabled = false;
+				};
+				if (machines.mineshaft.cost > coal) {
+					document.getElementById("mineshaftButton").disabled = true;
+				} else {
+					document.getElementById("mineshaftButton").disabled = false;
 				};
 				
 				
@@ -172,6 +190,13 @@
 				<div id="diggerLevel">Digger level: 0</div><br>
 				<div id="diggerCps">Digger coal per second: 0</div>
 			</div>
+			<div class="machine">
+				<img src="https://image.shutterstock.com/image-photo/abandoned-copper-ore-mine-underground-260nw-1699759951.jpg" class="machineImage" alt="mineshaft image">
+				<button class="upgradeMachine" id="mineshaftButton" onclick="levelUpMineshaft();">Upgrade mineshaft (cost: 50000)</button><br>
+				<div id="mineshaftLevel">Mineshaft level: 0</div><br>
+				<div id="mineshaftCps">Mineshaft coal per second: 0</div>
+			</div>
 		</div>
+		
 	</body>
 </html>

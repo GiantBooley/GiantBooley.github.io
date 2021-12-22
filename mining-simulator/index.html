@@ -87,24 +87,26 @@
 			}
 		</style>
 		<script>
-			var Game = {
-				machines: {
-					drill: {name: "Drill", cost: 300, level: 0, cps: 0},
-					digger: {name: "Digger", cost: 5000, level: 0, cps: 0},
-					mineshaft: {name: "Mineshaft", cost: 50000, level: 0, cps: 0}
-				},
-				coal: 0,
-				cps: 0,
-				cpc: 1,
-				upgradeCpcCost: 100
+			var tempGame = {
+					isItASave: true,
+					machines: {
+						drill: {name: "Drill", cost: 300, level: 0, cps: 0},
+						digger: {name: "Digger", cost: 5000, level: 0, cps: 0},
+						mineshaft: {name: "Mineshaft", cost: 50000, level: 0, cps: 0}
+					},
+					coal: 0,
+					cps: 0,
+					cpc: 1,
+					upgradeCpcCost: 100
+			};
+			var tempSave = localStorage.getItem('LOCALSAVE');
+			if (tempSave.isItASave == true) {
+				var Game = tempSave;
+			} else {
+				var Game = tempGame;
 			};
 			function save() {
 				localStorage.setItem('LOCALSAVE', Game);
-			};
-			function load() {
-				if (localStorage.getItem('LOCALSAVE') == null) {
-					alert("no local storage");
-				};
 			};
 			function mine() {
 				Game.coal = Game.coal+Game.cpc;

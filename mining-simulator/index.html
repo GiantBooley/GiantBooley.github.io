@@ -5,7 +5,7 @@
 		<style>
 			#cpcButton {
 				width: 100%;
-				height: 15%;
+				height: 50px;
 				display: block;
 				float: left;
 			}
@@ -119,8 +119,8 @@
 			#minerContainer {
 				background-color: lightgray;
 				position: absolute;
-				width: 20%;
-				height: 60%;
+				width: 306px;
+				height: 405px;
 				top: 25%;
 				left: 40%;
 				border: 5px solid gray;
@@ -128,7 +128,7 @@
 			}
 			#cashInButton {
 				width: 100%;
-				height: 14%;
+				height: 50px;
 			}
 		</style>
 		<script>
@@ -247,11 +247,11 @@
 	<body>
 		<p id="coal">coal: 0<br>(per second: 0)</p><br>
 		<div id="minerContainer">
-		<button id="cpcButton" title="current coal per click: 1" onclick="upgradeCpc()">double coal per click (cost: 100)</button><br><br>
-		<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="img/miner.png">
-		<div id="coalAnimation">+1</div>
-		</img>
-		<button id="cashInButton" onclick="cashInCoal">Cash in 0 coal for $0</button>
+			<button id="cpcButton" title="current coal per click: 1" onclick="upgradeCpc()">double coal per click (cost: 100)</button><br><br>
+			<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="img/miner.png">
+				<div id="coalAnimation">+1</div>
+			</img>
+			<button id="cashInButton" onclick="cashInCoal">Cash in 0 coal for $0</button>
 		</div>
 		<div id="machines">
 			<div class="machine">
@@ -276,12 +276,12 @@
 		<div id="mines">
 			<div class="mine">
 				<img src="img/coalmineicon.png" alt="coal mine image" class="mineIcon">
-				<img src="img/coalminetitle.png" class="mineTitle">
+				<img src="img/coalminetitle.png" alt="coal mine title" class="mineTitle">
 				<button class="mineButton">Current mine</button>
 			</div>
 			<div class="mine">
 				<img src="img/coppermineicon.png" alt="copper mine image" class="mineIcon">
-				<img src="img/copperminetitle.png" class="mineTitle">
+				<img src="img/copperminetitle.png" alt="copper mine title" class="mineTitle">
 				<button class="mineButton">Copper mine locked</button>
 			</div>
 		</div>

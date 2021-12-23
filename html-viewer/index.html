@@ -16,18 +16,12 @@
 				text-align: center;
 				user-select: none;
 				font-size: 32px;
-				display: inline-block;
+				display: block;
 				border: none;
 				float: left;
 			}
 			.border:hover {
 				background-color: gray;
-				text-align: center;
-				user-select: none;
-				font-size: 32px;
-				display: inline-block;
-				border: none;
-				float: left;
 			}
 			iframe {
 				border: none;
@@ -66,6 +60,12 @@
 				padding: 0px;
 				border-bottom-right-radius: 10px;
 			}
+			#title {
+				background-color: lightgray;
+				border: 3px inset gray;
+				width: 100%;
+				display: block;
+			}
 		</style>
 		<script>
 			function save() {
@@ -90,12 +90,17 @@
 				download("index.html",document.getElementById("input").value);
 			};
 			window.onbeforeunload = function() {
-				if (document.getElementById("input").value.length > 0) {
+				if (document.getElementById("input").value !== localStorage.getItem('HTMLSAVE')) {
 					return 'Are you sure you want to leave?';
 				};
 			};
 			function updateAsHTML() {
+				document.getElementById("title").innerHTML = "Title: ";
 				document.getElementById("embed").srcdoc=document.getElementById("input").value;
+				setTimeout(() => {
+					document.getElementById("title").innerHTML = "Title: "+document.getElementById("embed").contentWindow.document.getElementsByTagName("title")[0].innerHTML;
+				}, 100);
+				
 			};
 			var fullscreen = false;
 			function toggleFullScreen() {
@@ -129,13 +134,13 @@
 			};
 			function unloadHTML() {
 				document.getElementById("embed").srcdoc="";
+				document.getElementById("title").innerHTML = "Title: ";
 			};
 			function iFrameJavascript() {
-			alert("bob");
+				alert("bob");
 			};
 			function runJavascript() {
 				var x = document.getElementById('embed').contentWindow.createElement("script");
-				x.id="scriptbob";
 				x.innerHTML = "function thisFunctionIsMegaLongSoItDoesntInterfereWithThePageAndItIsAFunctionBobTomFredMike() {"+document.getElementById("jsinput").value+"};";
 				document.getElementById('embed').contentWindow.thisFunctionIsMegaLongSoItDoesntInterfereWithThePageAndItIsAFunctionBobTomFredMike();
 				x.remove();
@@ -152,10 +157,11 @@
 			<hr>
 			<textarea style="background-color:white;color:black;height:350px;" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
 			<textarea style="background-color:white;color:black;height:100px;display: none;" placeholder="Type javascript" id="jsinput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
-			<button class="border" style="width:100%;" onclick="updateAsHTML();"><strong>Update HTML</strong></button><br>
+			<button class="border" style="width:100%;" onclick="updateAsHTML();"><strong>Update HTML</strong></button><br><br>
+			<div id="title">Title: </div>
 			<button class="border" style="width:33.333%;" onclick="downloadHTML();"><strong>Download</strong></button>
 			<button class="border" style="width:33.333%;" onclick="unloadHTML();"><strong>Unload HTML</strong></button>
-			<button class="border" style="width:25%;display: none;" onclick="runJavascript();"><strong>Run javascript</strong></button>
+			<button class="border" style="width:25%; display: none;" onclick="runJavascript();"><strong>Run javascript</strong></button>
 			<button class="border" style="width:33.333%;" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
 		</div>
 	</body>

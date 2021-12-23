@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 	<head>
@@ -43,6 +44,10 @@
 				border: 3px solid gold;
 				float: top;
 				display: block;
+				transition-duration: 0.2s
+			}
+			#miner:active {
+				transform: scale(0.95,0.95)
 			}
 			#coalAnimation {
 				display: none;
@@ -70,6 +75,10 @@
 				border: 2px solid darkslategray;
 				text-align: left;
 				line-height: 70%;
+				transition-duration: 0.4s;
+			}
+			.machine:hover {
+				transform: translate(-5px, 0px);
 			}
 			.machineImage {
 				width: 25%;
@@ -100,7 +109,11 @@
 				background-color: darkgray;
 				border: 2px solid darkslategray;
 				text-align: left;
-				line-height: 70%;	
+				line-height: 70%;
+				transition-duration: 0.4s;
+			}
+			.mine:hover {
+				transform: translate(5px, 0px);
 			}
 			.mineIcon {
 				width: 25%;

@@ -3,6 +3,12 @@
 	<head>
 		<title>Mining simulator</title>
 		<style>
+			#cpcButton {
+				width: 100%;
+				height: 15%;
+				display: block;
+				float: left;
+			}
 			button {
 				border: 3px outset gold;
 				background-color: orange;
@@ -21,7 +27,7 @@
 			}
 			body {
 				text-align: center;
-				background-image: url("https://thumbs.dreamstime.com/b/dirt-texture-12611254.jpg");
+				background-image: url("img/background.png");
 				overflow: hidden;
 				user-drag: none;
 				-webkit-user-drag: none;
@@ -35,6 +41,8 @@
 				height: 300px;
 				cursor: pointer;
 				border: 3px solid gold;
+				float: top;
+				display: block;
 			}
 			#coalAnimation {
 				display: none;
@@ -77,18 +85,55 @@
 				-webkit-user-select: none;
 				-ms-user-select: none;
 			}
-			#unobtanium {
-				width: 100px;
-				height: 100px;
+			#mines {
+				background-color: lightgray;
 				position: absolute;
-				top: 0%;
-				left: 0%;
-				display: none;
+				width: 25%;
+				height: 79%;
+				bottom: 0px;
+				left: 0px;
+				border: 10px double gray;
+			}
+			.mine {
+				width: 100%;
+				height: 15%;
+				background-color: darkgray;
+				border: 2px solid darkslategray;
+				text-align: left;
+				line-height: 70%;	
+			}
+			.mineIcon {
+				width: 25%;
+				height: 100%;
+				float: left;
+			}
+			.mineButton {
+				width: 75%;
+				height: 50%;
+				font-size: 20px;
+			}
+			.mineTitle {
+				width: 75%;
+				height: 50%;
+			}
+			#minerContainer {
+				background-color: lightgray;
+				position: absolute;
+				width: 20%;
+				height: 60%;
+				top: 25%;
+				left: 40%;
+				border: 5px solid gray;
+				display: block;
+			}
+			#cashInButton {
+				width: 100%;
+				height: 14%;
 			}
 		</style>
 		<script>
 			var Game = { // set to tempGame to save
-					isItASave: true,
+					// isItASave: true,
 					machines: {
 						drill: {name: "Drill", cost: 300, level: 0, cps: 0},
 						digger: {name: "Digger", cost: 5000, level: 0, cps: 0},
@@ -97,7 +142,8 @@
 					coal: 0,
 					cps: 0,
 					cpc: 1,
-					upgradeCpcCost: 100
+					upgradeCpcCost: 100,
+					money: 0
 			};
 			// var tempSave = localStorage.getItem('LOCALSAVE');
 			// if (tempSave.isItASave == true) {
@@ -200,30 +246,44 @@
 	</head>
 	<body>
 		<p id="coal">coal: 0<br>(per second: 0)</p><br>
+		<div id="minerContainer">
 		<button id="cpcButton" title="current coal per click: 1" onclick="upgradeCpc()">double coal per click (cost: 100)</button><br><br>
-		<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="https://image.shutterstock.com/shutterstock/photos/74197867/display_1500/stock-photo-satisfied-male-miner-with-pick-axe-showing-thumbs-up-74197867.jpg">
+		<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="img/miner.png">
 		<div id="coalAnimation">+1</div>
-		</img><br>
+		</img>
+		<button id="cashInButton" onclick="cashInCoal">Cash in 0 coal for $0</button>
+		</div>
 		<div id="machines">
 			<div class="machine">
-				<img src="https://lh3.googleusercontent.com/proxy/J84I2s0l6bCXaq2XeySRdGGnTo1Rqvlv765jFA7ZT-DRcXttFy72Twa1C5_EoGLhf7f-M25Z-UoduHzmclSQspOl2UHqwVzG7VRL8hO8FNCt8tLVnhFSgJfVmCLyWa7r-auPJ9pQqxSuv5VWR3sMtvzYcJ-wS9u8spGc-TbcByGvKFiO9-bjc3fuN4r_kUve5i2Ev1oI" class="machineImage" alt="drill image">
+				<img src="img/drill.png" class="machineImage" alt="drill image">
 				<button class="upgradeMachine" id="drillButton" onclick="levelUpDrill();">Upgrade drill (cost: 300)</button><br>
 				<div id="drillLevel">Drill level: 0</div><br>
 				<div id="drillCps">Drill coal per second: 0</div>
 			</div>
 			<div class="machine">
-				<img src="https://www.diggerland.com/wp-content/uploads/2020/10/MonsterDigger3.png" class="machineImage" alt="digger image">
+				<img src="img/digger.png" class="machineImage" alt="digger image">
 				<button class="upgradeMachine" id="diggerButton" onclick="levelUpDigger();">Upgrade digger (cost: 5000)</button><br>
 				<div id="diggerLevel">Digger level: 0</div><br>
 				<div id="diggerCps">Digger coal per second: 0</div>
 			</div>
 			<div class="machine">
-				<img src="https://image.shutterstock.com/image-photo/abandoned-copper-ore-mine-underground-260nw-1699759951.jpg" class="machineImage" alt="mineshaft image">
+				<img src="img/mineshaft.png" class="machineImage" alt="mineshaft image">
 				<button class="upgradeMachine" id="mineshaftButton" onclick="levelUpMineshaft();">Upgrade mineshaft (cost: 50000)</button><br>
 				<div id="mineshaftLevel">Mineshaft level: 0</div><br>
 				<div id="mineshaftCps">Mineshaft coal per second: 0</div>
 			</div>
 		</div>
-		<div></div>
+		<div id="mines">
+			<div class="mine">
+				<img src="img/coalmineicon.png" alt="coal mine image" class="mineIcon">
+				<img src="img/coalminetitle.png" class="mineTitle">
+				<button class="mineButton">Current mine</button>
+			</div>
+			<div class="mine">
+				<img src="img/coppermineicon.png" alt="copper mine image" class="mineIcon">
+				<img src="img/copperminetitle.png" class="mineTitle">
+				<button class="mineButton">Copper mine locked</button>
+			</div>
+		</div>
 	</body>
 </html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+		#container {
+			perspective: none;
+			top: 30%;
+			left: 40%;
+			position: absolute;
+		}
+		img {
+			width: 300px;
+			height: 300px;
+			animation: rotate 3s infinite linear;
+		}
+		@keyframes rotate {
+			0% {transform: rotateY(0deg)}
+			25% {transform: rotateY(90deg)}
+			50% {transform: rotateY(180deg)}
+			75% {transform: rotateY(270deg)}
+			100% {transform: rotateY(360deg)}
+		}
+		</style>
+	</head>
+	<body>
+		<div id="container">
+			<img src="window.png" alt="ames window">
+		</div>
+	</body>
+</html>

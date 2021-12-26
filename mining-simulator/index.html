@@ -4,7 +4,7 @@
 	<head>
 		<title>Mining simulator</title>
 		<style>
-			#cpcButton {
+			#opcButton {
 				width: 100%;
 				height: 50px;
 				display: block;
@@ -15,16 +15,20 @@
 				background-color: orange;
 			}
 			button:hover {
-				border-style: inset;
+				border: 3px inset orange;
+				cursor: pointer;
+				background-color: darkorange;
 			}
-			#machines {
+			.container {
 				background-color: lightgray;
 				position: absolute;
+				border: 10px double gray;
+			}
+			#machines {
 				width: 25%;
 				height: 79%;
 				bottom: 0px;
 				right: 0px;
-				border: 10px double gray;
 			}
 			body {
 				text-align: center;
@@ -44,12 +48,12 @@
 				border: 3px solid gold;
 				float: top;
 				display: block;
-				transition-duration: 0.2s
+				transition-duration: 0.1s
 			}
 			#miner:active {
-				transform: scale(0.95,0.95)
+				transform: scale(0.98,0.98)
 			}
-			#coalAnimation {
+			#oreAnimation {
 				display: none;
 				position: absolute;
 				left: 690px;
@@ -59,7 +63,7 @@
 				font-family: arial;
 				font-size: 20px;
 			}
-			#coal {
+			#ore {
 				color: black;
 				font-size: 30px;
 				font-family: monospace;
@@ -87,6 +91,7 @@
 				float: left;
 			}
 			img {
+				user-select: none;
 				user-drag: none;
  				-webkit-user-drag: none;
 				user-select: none;
@@ -94,49 +99,32 @@
 				-webkit-user-select: none;
 				-ms-user-select: none;
 			}
-			#mines {
-				background-color: lightgray;
-				position: absolute;
+			#oreUpgrader {
 				width: 25%;
-				height: 79%;
+				height: 100px;
+				line-height: 70%;
 				bottom: 0px;
 				left: 0px;
-				border: 10px double gray;
 			}
-			.mine {
-				width: 100%;
-				height: 15%;
-				background-color: darkgray;
-				border: 2px solid darkslategray;
-				text-align: left;
-				line-height: 70%;
-				transition-duration: 0.4s;
-			}
-			.mine:hover {
-				transform: translate(5px, 0px);
-			}
-			.mineIcon {
+			.oreIcon {
 				width: 25%;
 				height: 100%;
 				float: left;
 			}
-			.mineButton {
+			.oreButton {
 				width: 75%;
 				height: 50%;
 				font-size: 20px;
 			}
-			.mineTitle {
+			.oreTitle {
 				width: 75%;
 				height: 50%;
 			}
 			#minerContainer {
-				background-color: lightgray;
-				position: absolute;
 				width: 306px;
 				height: 405px;
 				top: 25%;
 				left: 40%;
-				border: 5px solid gray;
 				display: block;
 			}
 			#cashInButton {
@@ -148,15 +136,15 @@
 			var Game = { // set to tempGame to save
 					// isItASave: true,
 					machines: {
-						drill: {name: "Drill", cost: 300, level: 0, cps: 0},
-						digger: {name: "Digger", cost: 5000, level: 0, cps: 0},
-						mineshaft: {name: "Mineshaft", cost: 50000, level: 0, cps: 0}
+						drill: {name: "Drill", cost: 300, level: 0, ops: 0},
+						digger: {name: "Digger", cost: 5000, level: 0, ops: 0},
+						mineshaft: {name: "Mineshaft", cost: 50000, level: 0, ops: 0}
 					},
-					coal: 0,
-					cps: 0,
-					cpc: 1,
-					upgradeCpcCost: 100,
-					money: 0
+					ore: 0,
+					money: 0,
+					ops: 0,
+					opc: 1,
+					upgradeOpcCost: 100
 			};
 			// var tempSave = localStorage.getItem('LOCALSAVE');
 			// if (tempSave.isItASave == true) {
@@ -170,84 +158,87 @@
 			function gameAlert(whatToAlert) {
 				
 			};
+			function toCost(number) {
+				return "(cost: $"+number+")";
+			}
 			function mine() {
-				Game.coal = Game.coal+Game.cpc;
-				document.getElementById("coalAnimation").innerHTML = "+"+Game.cpc;
-				document.getElementById("coalAnimation").style.display = "block";
+				Game.ore = Game.ore+Game.opc;
+				document.getElementById("oreAnimation").innerHTML = "+"+Game.opc;
+				document.getElementById("oreAnimation").style.display = "block";
 				setTimeout(function() {
-					document.getElementById("coalAnimation").style.display = "none";
+					document.getElementById("oreAnimation").style.display = "none";
 				}, 100);
 			};
-			function upgradeCpc() {
-				if (Game.coal >= Game.upgradeCpcCost) {
-					Game.coal = Game.coal-Game.upgradeCpcCost;
-					Game.cpc = Game.cpc*2;
-					Game.upgradeCpcCost = Game.upgradeCpcCost*2.5;
-					document.getElementById("cpcButton").innerHTML = "double coal per click (cost: "+Math.ceil(Game.upgradeCpcCost)+")";
-					document.getElementById("cpcButton").title = "current coal per click: "+Game.cpc;
-					document.getElementById("coal").innerHTML = "coal: "+Math.ceil(Game.coal);
+			function upgradeOpc() {
+				if (Game.ore >= Game.upgradeOpcCost) {
+					Game.ore = Game.ore-Game.upgradeOpcCost;
+					Game.opc = Game.opc*2;
+					Game.upgradeOpcCost = Game.upgradeOpcCost*2.5;
+					document.getElementById("opcButton").innerHTML = "double ore per click (cost: "+Math.ceil(Game.upgradeOpcCost)+")";
+					document.getElementById("opcButton").title = "current ore per click: "+Game.opc;
+					document.getElementById("ore").innerHTML = "ore: "+Math.ceil(Game.ore);
 				};
 			};
 			function levelUpDrill() {
-				if (Game.coal >= Game.machines.drill.cost) {
-					Game.coal = Game.coal-Game.machines.drill.cost;
+				if (Game.ore >= Game.machines.drill.cost) {
+					Game.ore = Game.ore-Game.machines.drill.cost;
 					Game.machines.drill.level++;
-					Game.cps = Game.cps-Game.machines.drill.cps;
-					Game.machines.drill.cps = Game.machines.drill.cps + 5;
-					Game.cps = Game.cps+Game.machines.drill.cps;
+					Game.ops = Game.ops-Game.machines.drill.ops;
+					Game.machines.drill.ops = Game.machines.drill.ops + 5;
+					Game.ops = Game.ops+Game.machines.drill.ops;
 					Game.machines.drill.cost = Game.machines.drill.cost*1.5;
 					document.getElementById("drillLevel").innerHTML = "Drill level: "+Game.machines.drill.level;
-					document.getElementById("drillCps").innerHTML = "Drill coal per second: "+Game.machines.drill.cps;
+					document.getElementById("drillops").innerHTML = "Drill ore per second: "+Game.machines.drill.ops;
 					document.getElementById("drillButton").innerHTML = "Upgrade drill (cost: "+Math.ceil(Game.machines.drill.cost)+")";
 				};
 			};
 			function levelUpDigger() {
-				if (Game.coal >= Game.machines.digger.cost) {
-					Game.coal = Game.coal-Game.machines.digger.cost;
+				if (Game.ore >= Game.machines.digger.cost) {
+					Game.ore = Game.ore-Game.machines.digger.cost;
 					Game.machines.digger.level++;
-					Game.cps = Game.cps-Game.machines.digger.cps;
-					Game.machines.digger.cps = Game.machines.digger.cps + 50;
-					Game.cps = Game.cps+Game.machines.digger.cps;
+					Game.ops = Game.ops-Game.machines.digger.ops;
+					Game.machines.digger.ops = Game.machines.digger.ops + 50;
+					Game.ops = Game.ops+Game.machines.digger.ops;
 					Game.machines.digger.cost = Game.machines.digger.cost*1.5;
 					document.getElementById("diggerLevel").innerHTML = "Digger level: "+Game.machines.digger.level;
-					document.getElementById("diggerCps").innerHTML = "Digger coal per second: "+Game.machines.digger.cps;
+					document.getElementById("diggerops").innerHTML = "Digger ore per second: "+Game.machines.digger.ops;
 					document.getElementById("diggerButton").innerHTML = "Upgrade digger (cost: "+Math.ceil(Game.machines.digger.cost)+")";
 				};
 			};
 			function levelUpMineshaft() {
-				if (Game.coal >= Game.machines.mineshaft.cost) {
-					Game.coal = Game.coal-Game.machines.mineshaft.cost;
+				if (Game.ore >= Game.machines.mineshaft.cost) {
+					Game.ore = Game.ore-Game.machines.mineshaft.cost;
 					Game.machines.mineshaft.level++;
-					Game.cps = Game.cps-Game.machines.mineshaft.cps;
-					Game.machines.mineshaft.cps = Game.machines.mineshaft.cps + 300;
-					Game.cps = Game.cps+Game.machines.mineshaft.cps;
+					Game.ops = Game.ops-Game.machines.mineshaft.ops;
+					Game.machines.mineshaft.ops = Game.machines.mineshaft.ops + 300;
+					Game.ops = Game.ops+Game.machines.mineshaft.ops;
 					Game.machines.mineshaft.cost = Game.machines.mineshaft.cost*1.5;
 					document.getElementById("mineshaftLevel").innerHTML = "Mineshaft level: "+Game.machines.mineshaft.level;
-					document.getElementById("mineshaftCps").innerHTML = "Mineshaft coal per second: "+Game.machines.mineshaft.cps;
+					document.getElementById("mineshaftops").innerHTML = "Mineshaft ore per second: "+Game.machines.mineshaft.ops;
 					document.getElementById("mineshaftButton").innerHTML = "Upgrade mineshaft (cost: "+Math.ceil(Game.machines.mineshaft.cost)+")";
 				};
 			};
 			var tick = setInterval(function(){
-				Game.coal = Game.coal+(Game.cps/100);
-				document.getElementById("coal").innerHTML = "coal: "+Math.ceil(Game.coal)+"<br>(per second: "+Math.ceil(Game.cps)+")";
+				Game.ore = Game.ore+(Game.ops/100);
+				document.getElementById("ore").innerHTML = "ore: "+Math.ceil(Game.ore)+"<br>(per second: "+Math.ceil(Game.ops)+")";
 				
 				
-				if (Game.upgradeCpcCost > Game.coal) {
-					document.getElementById("cpcButton").disabled = true;
+				if (Game.upgradeopcCost > Game.ore) {
+					document.getElementById("opcButton").disabled = true;
 				} else {
-					document.getElementById("cpcButton").disabled = false;
+					document.getElementById("opcButton").disabled = false;
 				};
-				if (Game.machines.drill.cost > Game.coal) {
+				if (Game.machines.drill.cost > Game.ore) {
 					document.getElementById("drillButton").disabled = true;
 				} else {
 					document.getElementById("drillButton").disabled = false;
 				};
-				if (Game.machines.digger.cost > Game.coal) {
+				if (Game.machines.digger.cost > Game.ore) {
 					document.getElementById("diggerButton").disabled = true;
 				} else {
 					document.getElementById("diggerButton").disabled = false;
 				};
-				if (Game.machines.mineshaft.cost > Game.coal) {
+				if (Game.machines.mineshaft.cost > Game.ore) {
 					document.getElementById("mineshaftButton").disabled = true;
 				} else {
 					document.getElementById("mineshaftButton").disabled = false;
@@ -258,45 +249,38 @@
 		</script>
 	</head>
 	<body>
-		<p id="coal">coal: 0<br>(per second: 0)</p><br>
-		<div id="minerContainer">
-			<button id="cpcButton" title="current coal per click: 1" onclick="upgradeCpc()">double coal per click (cost: 100)</button><br><br>
-			<img title="click to mine coal" id="miner" alt="the miner" onclick="mine();" src="img/miner.png">
-				<div id="coalAnimation">+1</div>
+		<p id="ore">ore: 0<br>(per second: 0)</p><br>
+		<div id="minerContainer" class="container">
+			<button id="opcButton" title="current ore per click: 1" onclick="upgradeopc()">double ore per click (cost: 100)</button><br><br>
+			<img title="click to mine ore" id="miner" alt="the miner" onclick="mine();" src="img/miner.png">
+				<div id="oreAnimation">+1</div>
 			</img>
-			<button id="cashInButton" onclick="cashInCoal">Cash in 0 coal for $0</button>
+			<button id="cashInButton" onclick="cashInore">Cash in 0 ore for $0</button>
 		</div>
-		<div id="machines">
+		<div id="machines" class="container">
 			<div class="machine">
 				<img src="img/drill.png" class="machineImage" alt="drill image">
 				<button class="upgradeMachine" id="drillButton" onclick="levelUpDrill();">Upgrade drill (cost: 300)</button><br>
 				<div id="drillLevel">Drill level: 0</div><br>
-				<div id="drillCps">Drill coal per second: 0</div>
+				<div id="drillops">Drill ore per second: 0</div>
 			</div>
 			<div class="machine">
 				<img src="img/digger.png" class="machineImage" alt="digger image">
 				<button class="upgradeMachine" id="diggerButton" onclick="levelUpDigger();">Upgrade digger (cost: 5000)</button><br>
 				<div id="diggerLevel">Digger level: 0</div><br>
-				<div id="diggerCps">Digger coal per second: 0</div>
+				<div id="diggerops">Digger ore per second: 0</div>
 			</div>
 			<div class="machine">
 				<img src="img/mineshaft.png" class="machineImage" alt="mineshaft image">
 				<button class="upgradeMachine" id="mineshaftButton" onclick="levelUpMineshaft();">Upgrade mineshaft (cost: 50000)</button><br>
 				<div id="mineshaftLevel">Mineshaft level: 0</div><br>
-				<div id="mineshaftCps">Mineshaft coal per second: 0</div>
+				<div id="mineshaftops">Mineshaft ore per second: 0</div>
 			</div>
 		</div>
-		<div id="mines">
-			<div class="mine">
-				<img src="img/coalmineicon.png" alt="coal mine image" class="mineIcon">
-				<img src="img/coalminetitle.png" alt="coal mine title" class="mineTitle">
-				<button class="mineButton">Current mine</button>
+			<div id="oreUpgrader" class="container">
+				<img src="img/coal.png" alt="ore image" class="oreIcon">
+				<img src="img/coal_ore_title.png" alt="ore title" class="oreTitle">
+				<button class="oreButton">Upgrade ore</button>
 			</div>
-			<div class="mine">
-				<img src="img/coppermineicon.png" alt="copper mine image" class="mineIcon">
-				<img src="img/copperminetitle.png" alt="copper mine title" class="mineTitle">
-				<button class="mineButton">Copper mine locked</button>
-			</div>
-		</div>
 	</body>
 </html>

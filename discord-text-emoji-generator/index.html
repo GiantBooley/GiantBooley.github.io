@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			body {
+				background-color: cornsilk;
+			}
+			#input {
+				width: 100%;
+				height: 300px;
+			}
+			button {
+				width: 100%;
+				height: 50px;
+			}
+			#ahk {
+				width: 100%;
+			}
+		</style>
+		<script>
+			const combos = [
+				{name: "ok", amount: 0, emojis: ["ok"]},
+				{name: "sos", amount: 0, emojis: ["sos"]},
+				{name: "vs", amount: 0, emojis: ["vs"]},
+				{name: "ab", amount: 0, emojis: ["ab"]},
+				{name: "id", amount: 0, emojis: ["id"]},
+				{name: "cl", amount: 0, emojis: ["cl"]},
+				{name: "wc", amount: 0, emojis: ["wc"]},
+				{name: "atm", amount: 0, emojis: ["atm"]},
+				{name: "cool", amount: 0, emojis: ["cool"]},
+				{name: "new", amount: 0, emojis: ["new"]},
+				{name: "abc", amount: 0, emojis: ["abc"]},
+				{name: "free", amount: 0, emojis: ["free"]},
+				{name: "ng", amount: 0, emojis: ["ng"]},
+				{name: "up!", amount: 0, emojis: ["up"]},
+				{name: "10", amount: 0, emojis: ["keycap_ten"]},
+				{name: "!!", amount: 0, emojis: ["bangbang"]},
+				{name: "!?", amount: 0, emojis: ["interrobang"]},
+			];
+			const letters = [
+				{name: " ", amount: 0, emojis: ["black_large_square"]},
+				{name: "a", amount: 0, emojis: ["regional_indicator_a","a"]},
+				{name: "b", amount: 0, emojis: ["regional_indicator_b","b"]},
+				{name: "c", amount: 0, emojis: ["regional_indicator_c"]},
+				{name: "d", amount: 0, emojis: ["regional_indicator_d"]},
+				{name: "e", amount: 0, emojis: ["regional_indicator_e"]},
+				{name: "f", amount: 0, emojis: ["regional_indicator_f"]},
+				{name: "g", amount: 0, emojis: ["regional_indicator_g"]},
+				{name: "h", amount: 0, emojis: ["regional_indicator_h"]},
+				{name: "i", amount: 0, emojis: ["regional_indicator_i","information_source"]},
+				{name: "j", amount: 0, emojis: ["regional_indicator_j"]},
+				{name: "k", amount: 0, emojis: ["regional_indicator_k"]},
+				{name: "l", amount: 0, emojis: ["regional_indicator_l"]},
+				{name: "m", amount: 0, emojis: ["regional_indicator_m"]},
+				{name: "n", amount: 0, emojis: ["regional_indicator_n"]},
+				{name: "o", amount: 0, emojis: ["regional_indicator_o","o2","o"]},
+				{name: "p", amount: 0, emojis: ["regional_indicator_p","parking"]},
+				{name: "q", amount: 0, emojis: ["regional_indicator_q"]},
+				{name: "r", amount: 0, emojis: ["regional_indicator_r"]},
+				{name: "s", amount: 0, emojis: ["regional_indicator_s"]},
+				{name: "t", amount: 0, emojis: ["regional_indicator_t","cross"]},
+				{name: "u", amount: 0, emojis: ["regional_indicator_u"]},
+				{name: "v", amount: 0, emojis: ["regional_indicator_v"]},
+				{name: "w", amount: 0, emojis: ["regional_indicator_w"]},
+				{name: "x", amount: 0, emojis: ["regional_indicator_x"]},
+				{name: "y", amount: 0, emojis: ["regional_indicator_y"]},
+				{name: "z", amount: 0, emojis: ["regional_indicator_z"]},
+				{name: "!", amount: 0, emojis: ["exclamation","grey_exclamation"]},
+				{name: "?", amount: 0, emojis: ["question","grey_question"]},
+				{name: "*", amount: 0, emojis: ["asterisk"]},
+				{name: "#", amount: 0, emojis: ["hash"]},
+				{name: "0", amount: 0, emojis: ["zero"]},
+				{name: "1", amount: 0, emojis: ["one"]},
+				{name: "2", amount: 0, emojis: ["two"]},
+				{name: "3", amount: 0, emojis: ["three"]},
+				{name: "4", amount: 0, emojis: ["four"]},
+				{name: "5", amount: 0, emojis: ["five"]},
+				{name: "6", amount: 0, emojis: ["six"]},
+				{name: "7", amount: 0, emojis: ["seven"]},
+				{name: "8", amount: 0, emojis: ["eight"]},
+				{name: "9", amount: 0, emojis: ["nine"]}
+			];
+			function letterToEmoji(letter) {
+				for (let thei = 0; thei < letters.length; thei++) {
+					if (letters[thei].name == letter.toLowerCase()) {
+						return `:${letters[thei].emojis[letters[thei].amount]}:`;
+					};
+				};
+			};
+			function autohotkey() {
+				let ahk = document.getElementById("ahk");
+				let ahkArray = output.split("");
+				for (let i = 0; i < ahkArray.length; i++) {
+					ahk.value = ahk.value+"::F2 ; key to type the stuff";
+				};
+			};
+			function generate() {
+				let inputValue = document.getElementById("input").value;
+				let input = inputValue.split(""); 
+				let output = "";
+				for (let i = 0; i < input.length; i++) {
+					output = output+letterToEmoji(input[i])+"\n";
+					if (letterToEmoji(input[i]) == undefined) {
+						console.warn(`letter: \"${input[i]}\" is undefined`);
+					} else {
+						// console.log(`letter: \"${input[i]}\", emoji: \"${letterToEmoji(input[i])}\"`);
+					};
+				};
+				autohotkey();
+				document.getElementById("output").innerHTML = output;
+			};
+		</script>
+	</head>
+	<body>
+		<textarea id="input"></textarea>
+		<button onclick="generate();">generate emojis</button>
+		<textarea id="ahk" rows="1">the autohotkey script will be here</textarea>
+		<p id="output"></p>
+	</body>
+</html>

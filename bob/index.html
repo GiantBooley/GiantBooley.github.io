@@ -1,33 +1,20 @@
-var htmldomtooltip = document.createElement("div");
-htmldomtooltip.style = "font-size: 120%; border-radius: 10px; padding: 5px; background-color: darkslategray; opacity: 0.9; color: white; position: fixed; left: 0px; top: 0px; font-family: monospace; display: inline-block";
-document.body.appendChild(htmldomtooltip);
-var htmldomtooltipwindow = document.createElement("div");
-htmldomtooltipwindow.style = "text-align: left; white-space: pre; font-size: 120%; width: 800px; height: 400px; border-radius: 15px; padding: 20px; background-color: darkslategray; opacity: 0.95; color: white; position: fixed; font-family: monospace; display: none; top: 50%; left: 50%; transform: translate(-50%, -50%);";
-document.body.appendChild(htmldomtooltipwindow);
-var htmldomtooltipwindowx = "<button onclick=\"closehtmldomtooltipwindow();\" style=\"display: block; width: 40px; height: 40px; border-radius: 50px; padding: 5px; background-color: darkslategray; opacity: 0.95; color: white; position: fixed; font-family: monospace; top: 10px; right: 10px;\">X</button>";
-var mousex = 0;
-var mousey = 0;
-var htmldomabletoinspect = "true";
-function closehtmldomtooltipwindow() {
-	htmldomtooltip.style.display="inline-block";
-	htmldomtooltipwindow.style.display = "none";
-	setTimeout(() => {  htmldomabletoinspect = "true"; }, 100);
-};
-document.addEventListener("mousemove", () => {
-	mousex = event.clientX;
-	mousey = event.clientY;
-});
-document.addEventListener("click", () => {
-	if (htmldomabletoinspect == "true") {
-		htmldomabletoinspect = "false";
-		htmldomtooltip.style.display="none";
-		htmldomtooltipwindow.style.display = "block";
-		htmldomtooltipwindow.innerHTML = htmldomtooltipwindowx+"HTML DOM node name: "+elementMouseIsOver+"<br>Node name:"+elementMouseIsOver.nodeName+"<br>Style: "+elementMouseIsOver.style+"<br>Id: "+elementMouseIsOver.id+"<br>Classes: "+elementMouseIsOver.classList;
-	};
-});
-var htmldomtooltipinterval = setInterval(function() {
-	elementMouseIsOver = document.elementFromPoint(mousex, mousey);
-	htmldomtooltip.innerHTML = elementMouseIsOver;
-	htmldomtooltip.style.top = (mousey+10) + "px";
-	htmldomtooltip.style.left = (mousex+10) + "px";
-}, 10);
+var bobconhist = [];
+var bobconhistpos = -1;
+var bobconcon = document.createElement("div");
+var bobcon = document.createElement("textarea");
+var bobconx = document.createElement("button");
+var bobconbar = document.createElement("div");
+var bobconoutcon = document.createElement("div");
+var bobconout = document.createElement("pre");
+bobconbar.style="position: absolute; top: 0px; width: 100%; height: 24px; border: 1px solid black;";
+bobconx.style="position: absolute; right: 0px;";
+bobconx.innerHTML = "X";
+bobconx.onclick = function(){bobconcon.remove();};
+bobcon.onkeydown = function(e){if (e.code == "Enter") {e.preventDefault();eval(bobcon.value);bobconhistpos = -1;bobconhist.unshift(bobcon.value);bobcon.value="";} else if (e.code == "ArrowUp") {e.preventDefault;if (bobconhist[bobconhistpos+1] !== undefined) {bobconhistpos++;bobcon.value = bobconhist[bobconhistpos]}}};
+bobcon.style = "white-space: pre;width: 99%; position: absolute; resize: none; bottom: 0px; left: 0px;";
+bobcon.rows="4";
+bobconcon.style="position: absolute; width: 100%; height: 200px; border: 1px solid black; background-color: #f7f7f7; bottom: 0px; left: 0px;"
+document.body.appendChild(bobconcon);
+bobconcon.appendChild(bobcon);
+bobconbar.appendChild(bobconx);
+bobconcon.appendChild(bobconbar);

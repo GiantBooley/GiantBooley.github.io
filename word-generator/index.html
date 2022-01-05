@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Word generator</title>
+		<style>
+			body {
+				background-color: cornsilk;
+				margin: 0px;
+			}
+			textarea {
+				height: 450px;
+				width: 49%;
+			}
+			#output {
+				position: absolute;
+				right: 10px;
+				top: 125px;
+			}
+			button {
+				width: 99%;
+				border-radius: 10px;
+			}
+			div {
+				width: 49%;
+				height: 480px;
+				overflow: auto;
+				border: 3px inset gray;
+				position: absolute;
+				background-color: white;
+				right: 4px;
+				bottom: 7px;
+			}
+		</style>
+		<script>
+			var words = new Array();
+			var lengths = new Array();
+			var length = new Number();
+			function generate() {
+				length = 0;
+				lengths = [];
+				words = [];
+				let input = document.getElementById("input").value.split("\n");
+				for (let i = 0; i < input.length; i++) {
+					words[input[i]] = input[i] ?? new String();
+					
+				};
+				document.getElementById("output").innerText = input;
+			};
+		</script>
+	</head>
+	<body>
+		<h1>Word generator</h1>
+		<p>type words on each line and it will generate a word like them</p>
+		<hr>
+		<textarea id="input" placeholder="type words"></textarea><br>
+		<button onclick="generate();">Generate</button>
+		<textarea id="output" readonly></textarea>
+	</body>
+</html>

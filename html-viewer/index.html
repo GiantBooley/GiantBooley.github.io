@@ -1,10 +1,16 @@
 
-
 <!DOCTYPE html>
 <html>
 	<head>
 		<title>HTML viewer</title>
 		<style>
+			body::-webkit-scrollbar {
+				display: none;
+			}
+			body {
+				-ms-overflow-style: none;
+				scrollbar-width: none;
+			}
 			#nonfullscreen {
 				display: block;
 			}
@@ -32,19 +38,19 @@
 				padding: 0px;
 				outline: none;
 			}
-			#input {
+			textarea {
 				resize: vertical;
 				border: none;
 				border-radius: 0px;
 				white-space: pre;
-				width: 100%;
+				width: calc(100% - 4px);
 				float: left;
 				transition-duration: 0.2s;
 				overflow: auto;
+				outline: 1px solid black;
 			}
-			#input:focus {
+			textarea:focus {
 				border: none;
-				outline: none;
 				box-shadow: 0px 5px 10px gray;
 			}
 			.exitfull {
@@ -67,11 +73,11 @@
 				background-color: lightgray;
 				border: 2px solid slategray;
 				width: calc(100% - 4px);
-				height: 1em;
+				height: 20px;
 				display: inline-block;
 				float: left;
-				overflow: auto;
-				overflow-wrap: break-word;
+				overflow-x: auto;
+				white-space: nowrap;
 			}
 		</style>
 		<script>
@@ -145,20 +151,20 @@
 				document.getElementById("embed").srcdoc="";
 				document.getElementById("title").innerHTML = "Title: ";
 			};
-			function iFrameJavascript() {
-				alert("bob");
-			};
 			function runJavascript() {
-				var x = document.getElementById('embed').contentWindow.createElement("script");
-				x.innerHTML = "function thisFunctionIsMegaLongSoItDoesntInterfereWithThePageAndItIsAFunctionBobTomFredMike() {"+document.getElementById("jsinput").value+"};";
-				document.getElementById('embed').contentWindow.thisFunctionIsMegaLongSoItDoesntInterfereWithThePageAndItIsAFunctionBobTomFredMike();
-				x.remove();
+				document.getElementById("embed").contentWindow.eval.call(window, document.getElementById("jsinput").value);
 			};
 			function inputFocus() {
 				document.getElementById("input").style.overflow="auto";
 			};
 			function inputFocusOut() {
 				document.getElementById("input").style.overflow="hidden";
+			};
+			function jsInputFocus() {
+				document.getElementById("jsinput").style.overflow="auto";
+			};
+			function jsInputFocusOut() {
+				document.getElementById("jsinput").style.overflow="hidden";
 			};
 		</script>
 	</head>
@@ -171,13 +177,13 @@
 			<button onclick="save(); alert('HTML input saved to local storage.');">Save</button>
 			<hr>
 			<textarea style="background-color:white;color:black;height:350px;" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
-			<textarea style="background-color:white;color:black;height:100px; display: none;" placeholder="Type javascript" id="jsinput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
+			<textarea style="background-color:white;color:black;height:100px;" onfocus="jsInputFocus();" onfocusout="jsInputFocusOut();" placeholder="Type javascript" id="jsinput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
 			<button class="border border-top" style="width:100%;" onclick="updateAsHTML();"><strong>Update HTML</strong></button><br><br>
 			<div id="title">Title: </div>
-			<button class="border" style="width:33.333%;" onclick="downloadHTML();"><strong>Download</strong></button>
-			<button class="border" style="width:33.333%;" onclick="unloadHTML();"><strong>Unload HTML</strong></button>
-			<button class="border" style="width:25%; display: none;" onclick="runJavascript();"><strong>Run javascript</strong></button>
-			<button class="border" style="width:33.333%;" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
+			<button class="border" style="width:25%;" onclick="downloadHTML();"><strong>Download</strong></button>
+			<button class="border" style="width:25%;" onclick="unloadHTML();"><strong>Unload HTML</strong></button>
+			<button class="border" style="width:25%;" onclick="runJavascript();"><strong>Run javascript</strong></button>
+			<button class="border" style="width:25%;" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
 		</div>
 	</body>
 	<div style="background-color:white">

@@ -1,49 +1,144 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<style>
-			body {
-				margin: 0px;
-				background-color: cornsilk;
-			}
-			#output {
-				width: 50%;
-				height: 500px;
-				border: 3px solid black;
-				background-color: white;
-			}
-			#input {
-				width: 50%;
-				resize: none;
-			}
-		</style>
-		<script>
-			var messages = new Object();
-			function send() {
-				let input = document.getElementById("input").value;
-				let message = new String();
-				if (typeof messages[input] == "undefined") {
-					messages[input] = new Object();
-					messages[input].bob = 1;
-				} else {
-					
-				};
-				document.getElementById("input").value="";
+<head>
+	<title>Bob chatbot</title>
+	<style>
+		body {
+			background-image: linear-gradient(to right, red, green, blue);
+		}
+		#output {
+			width: 100%;
+			height: 90vh;
+			background-color: green;
+			overflow: auto;
+			padding: 3px;
+		}
+		#input {
+			width: calc(100% - 1px);
+		}
+	</style>
+</head>
+<body>
+	<div id="output"></div>
+	<input type="text" id="input" onkeypress="enter(event);">
+</body>
+<script>
+
+	var wordsAfter = {
+		"idk": ["why dont you know", "i dont know isnt an answer", "answer", "answer but dont do idk", "tell me"],
+		"how could you say that": ["because i can"],
+		"say bob": ["bob"],
+		"say something": ["something", "what you just said", "a brick", "a cat", "a door", "a car", "a table", "a broom", "air", "a rock", "a brain", "a human", "a drop of water", "a person", "a computer", "a doorknob", "a toilet", "a blade of grass", "a tissue", "a cloud", "a pine needle", "a tree", "wood", "a plank of wood", "a 2 by 4", "a blob of mush", "a bucket of paint"],
+		"bob": ["why did you say my name", "you"],
+		"what is a brick": ["a rectangle but 3d and brown"],
+		"how do you talk to bob": ["your doing it"],
+		"you're*": ["*y'ureu'eru'eru'eru'rue"],
+		"your weird": ["*you're"],
+		"are you tom": ["does it look like it"],
+		"deshaun": ["who is deshaun"],
+		"why": ["because i said so", "because", "because tom insists", "because it is", "because they are"],
+		"why is it trending": ["because it is", "because the new tom update just dropped in bobcraft"],
+		"bruh": ["why are you a technoblade stan"],
+		"br": ["why are you a technoblade stan"],
+		"brr": ["why are you a technoblade stan"],
+		"brrr": ["why are you a technoblade stan"],
+		"brrrr": ["why are you a technoblade stan"],
+		"brh": ["why are you a technoblade stan"],
+		"brrh": ["why are you a technoblade stan"],
+		"brrrh": ["why are you a technoblade stan"],
+		"brrrrhh": ["why are you a technoblade stan"],
+		"brrrrrhh": ["why are you a technoblade stan"],
+		"DONT LOOK BEHIND YOU": ["*don't"],
+		"why do i have to type something": ["because you just did", "you just did"],
+		"how much is it": ["80 bux", "80 bux a pop"],
+		"because is not an answer": ["it is", "it is because"],
+		"why dont you know it": ["because my brain is a peanut", "because i dont", "because"],
+		"in bobs hometown": ["noted", "im on my way"],
+		"i just did": ["you didnt", "not in my book"],
+		"i did": ["you didnt", "not in my book"],
+		"im not tom": ["yes you are", "tom sai you are"],
+		"no i didnt": ["yes you did", "you did"],
+		"what is it": ["something"],
+		"what is the mission": ["find bobs hometown"],
+		"stop being fresh": ["im rotten not fresh"],
+		"your a robot": ["no im bob"],
+		"why dont you know": ["because my brain is a peanut", "because i dont", "because"],
+		"why cant you comprehend it": ["because i cant", "because you are a mastermind"],
+		"who is tom": ["you", "you are tom"],
+		"something": ["did tom tell you to say something", "why did you say something"],
+		"why are you my father": ["because i am", "because"],
+		"no im not": ["yes you are", "you are", "u r"],
+		"yes": ["no", "good you agreed"],
+		"no": ["yes"],
+		"yea": ["no"],
+		"whats your merch": ["my new bob hoodie", "its 80 bux a pop and a brain special"],
+		"how much is it": ["tis 80 bux", "its 80 bux a pop", "ninety nine dollars and niety nine cents"],
+		"w-": ["why did you say why"],
+		"it is": ["no it isnt", "it isnt", "agreed"],
+		"what is something": ["something", "what you just said", "a brick", "a cat", "a door", "a car", "a table", "a broom", "air", "a rock", "a brain", "a human", "a drop of water", "a person", "a computer", "a doorknob", "a toilet", "a blade of grass", "a tissue", "a cloud", "a pine needle", "a tree", "wood", "a plank of wood", "a 2 by 4", "a blob of mush", "a bucket of paint"],
+		"what color": ["blue", "red", "green", "purple", "tan", "peach", "black", "white", "pink", "brown", "gray", "gold", "silver", "yellow"],
+		"say a random color": ["blue", "red", "green", "purple", "tan", "peach", "black", "white", "pink", "brown", "gray", "gold", "silver", "yellow"],
+		"and why is that": ["because"],
+		"this one or that one": ["this one", "that one"],
+		"say anything": ["anything"],
+		"smash your keyboard": ["erttg yhertguy ugye", "sdyhrtfguiyerotcyuiw", "rwetioytnhyweiourtnweoirt", "teruiho", "wer", "wueitbwueit", "qwertyuio", "wuepuoiwertuoiuioptweruiuwertipoy", "bhsd gfr", "pqw", "78er3956t342w", "45bdfngsusrt", "rfeg jhkserh t", "ui943yw5ye45", "i dont have a keyboard"],
+		"then how are you typing": ["with a mouse", "with my brain", "magic"],
+		"how are you typing": ["with a mouse", "with my brain", "magic"],
+		"then how r u typing": ["with a mouse", "with my brain", "magic"],
+		"im not": ["you are", "yes you are", "u r"],
+		"where is it": ["49 johnson avenue", "947 hamilton road", "11 shawn drive", "somewhere"],
+		"where is bobs hometown": ["REDACTED", "bob knows where"],
+		"where is somewhere": ["where some is", "idk"],
+		"good": ["why is it good"],
+		"are you weird": ["yes", "no", "maybe", "so"],
+		"say bob but big": ["\n#..........................#..........\n#..........................#..........\n#..........................#..........\n#####......####....#####..\n#........#..#........#..#........#\n#........#..#........#..#........#\n#####......####....#####.."]
+	};
+	var startingMessages = [
+		"i have a mission for you tom",
+		"do you know who bob is",
+		"where is toms bunker, WHERE IS IT!",
+		"the new tom challenge is trending",
+		"type something",
+		"i have a frecedes bobs",
+		"go on bob.com for my merch",
+		"tom, i am your father"
+	];
+	var responsesToUnknown = [
+		"what did you say",
+		"i dont know what you just said",
+		"what you said bob cant comprehend",
+		"say something bob knows",
+		"why are you saying stuff that i dont know"
+	];
+	var whatBobSaidLast = choose(startingMessages);
+	var bobMessageToSend = "";
+
+	sendMessage("Bob", whatBobSaidLast);
+
+	function choose(arr) {
+		return arr[Math.floor(Math.random()*arr.length)];
+	};
+
+	function enter(e) {
+		if (e.code == "Enter") {
+			let input = document.getElementById("input").value;
+			sendMessage("You", input);
+			wordsAfter[whatBobSaidLast] = wordsAfter[whatBobSaidLast] ?? [];
+			wordsAfter[whatBobSaidLast].push(input);
+			if (typeof wordsAfter[input] == "undefined") {
+				bobMessageToSend = choose(responsesToUnknown);
+			} else {
+				bobMessageToSend = choose(wordsAfter[input]);
 			};
-			function` showMessage(name, message) {
-				document.getElementById("output").innerText = `${document.getElementById("output").innerText}\n${name}: ${message}`;
-			};
-			function messageBoxEnter(e) {
-				if ((e.code == "Enter") && !e.shiftKey) {
-					e.preventDefault();
-					send();
-				};
-			};
-			
-		</script>
-	</head>
-	<body>
-		<div id="output"></div>
-		<textarea id="input" rows="3" onkeydown="messageBoxEnter();"></textarea>
-	</body>
+			sendMessage("Bob", bobMessageToSend);
+			whatBobSaidLast = bobMessageToSend;
+			document.getElementById("output").scrollTop = document.getElementById("output").scrollHeight;
+			document.getElementById("input").value = "";
+		};
+	};
+
+	function sendMessage(guyName, messageToSend) {
+		document.getElementById("output").innerText +=`${guyName}: ${messageToSend}\n`;
+	};
+</script>
 </html>

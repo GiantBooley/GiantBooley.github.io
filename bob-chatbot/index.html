@@ -4,23 +4,46 @@
 	<title>Bob chatbot</title>
 	<style>
 		body {
-			background-image: linear-gradient(to right, red, green, blue);
+			background-color: cornsilk;
+			margin: 0px;
 		}
 		#output {
-			width: 100%;
-			height: 90vh;
-			background-color: green;
+			width: calc(100% - 8px);
+			height: calc(100vh - 142px);
+			background-image: radial-gradient(lightgreen, lime);
 			overflow: auto;
-			padding: 3px;
+			padding: 4px;
+			border-top-right-radius: 5px;
+			border-top-left-radius: 5px;
 		}
 		#input {
-			width: calc(100% - 1px);
+			width: calc(100% - 4px);
+			height: 40px;
+			border: none;
+			outline: none;
+			background-color: white;
+			font-size: 32px;
+			transition-duration: 0.3s;
+			border-bottom-left-radius: 5px;
+			border-bottom-right-radius: 5px;
+			border-top: none;
+		}
+		#input:focus {
+			box-shadow: 0 0 10px gray;
+		}
+		#outline {
+			border-radius: 5px;
+			border: 1px solid black;
 		}
 	</style>
 </head>
 <body>
-	<div id="output"></div>
-	<input type="text" id="input" onkeypress="enter(event);">
+	<h1>Bob chatbot</h1>
+	<hr>
+	<div id="outline">
+		<div id="output"></div>
+		<input autocomplete="off" type="text" id="input" onkeypress="enter(event);">
+	</div>
 </body>
 <script>
 
@@ -91,7 +114,7 @@
 		"where is somewhere": ["where some is", "idk"],
 		"good": ["why is it good"],
 		"are you weird": ["yes", "no", "maybe", "so"],
-		"say bob but big": ["\n#..........................#..........\n#..........................#..........\n#..........................#..........\n#####......####....#####..\n#........#..#........#..#........#\n#........#..#........#..#........#\n#####......####....#####.."],
+		"say bob but big": ["<br>#..........................#..........<br>#..........................#..........<br>#..........................#..........<br>#####......####....#####..<br>#........#..#........#..#........#<br>#........#..#........#..#........#<br>#####......####....#####.."],
 		"tom": ["why did you say your own name", "why did you say your name"]
 	};
 	var startingMessages = [
@@ -101,7 +124,7 @@
 		"the new tom challenge is trending",
 		"type something",
 		"i have a frecedes bobs",
-		"go on bob.com for my merch",
+		"go to bob.com for my merch",
 		"tom, i am your father"
 	];
 	var responsesToUnknown = [
@@ -139,7 +162,7 @@
 	};
 
 	function sendMessage(guyName, messageToSend) {
-		document.getElementById("output").innerText +=`${guyName}: ${messageToSend}\n`;
+		document.getElementById("output").innerHTML +=`<b>${guyName}:</b> ${messageToSend}<br>`;
 	};
 </script>
 </html>

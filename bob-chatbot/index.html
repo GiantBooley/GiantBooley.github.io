@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -52,7 +53,6 @@
 			transition-duration: 0.2s;
 			font-size: 32px;
 			cursor: pointer;
-			transform: translate(-1px, 1px);
 		}
 		#sendButton:hover {
 			background-color: crimson;
@@ -124,6 +124,7 @@
 		"yea": ["no"],
 		"whats your merch": ["my new bob hoodie", "its 80 bux a pop and a brain special"],
 		"how much is it": ["tis 80 bux", "its 80 bux a pop", "ninety nine dollars and niety nine cents"],
+		"how much": ["tis 80 bux", "its 80 bux a pop", "ninety nine dollars and niety nine cents"],
 		"w-": ["hy did bob talk to bob"],
 		"it is": ["no it isnt", "it isnt", "disagreed", "agreed", "i disagree", "i agree"],
 		"what is something": ["something", "what you just said", "a brick", "a cat", "a door", "a car", "a table", "a broom", "air", "a rock", "a brain", "a human", "a drop of water", "a person", "a computer", "a doorknob", "a toilet", "a blade of grass", "a tissue", "a cloud", "a pine needle", "a tree", "wood", "a plank of wood", "a 2 by 4", "a blob of mush", "a bucket of paint"],
@@ -143,7 +144,12 @@
 		"good": ["why is it good"],
 		"are you weird": ["yes", "no", "maybe", "so"],
 		"say bob but big": ["<br>#..........................#..........<br>#..........................#..........<br>#..........................#..........<br>#####......####....#####..<br>#........#..#........#..#........#<br>#........#..#........#..#........#<br>#####......####....#####.."],
-		"tom": ["why did you say your own name", "why did you say your name"]
+		"tom": ["why did you say your own name", "why did you say your name"],
+		"Message bob...": ["why did you type whats in the box", "i ate a brick, to: bob, from: bob"],
+		"why did you eat a brick": ["who said i cant"],
+		"y did u eat a brick": ["who said i cant"],
+		"why did u eat a brick": ["who said i cant"],
+		"why dont u know": ["because", "because my brain is a peanut"]
 	};
 	var startingMessages = [
 		"i have a mission for you tom",
@@ -172,12 +178,12 @@
 	};
 
 	function enter(e) {
-		if (e.code == "Enter") {
+		if (e.code == "Enter" && document.getElementById("input").value.trim() !== "") {
 			send();
 		};
 	};
 	function send() {
-		let input = document.getElementById("input").value;
+		let input = document.getElementById("input").value.trim();
 		sendMessage("You", input);
 		wordsAfter[whatBobSaidLast] = wordsAfter[whatBobSaidLast] ?? [];
 		wordsAfter[whatBobSaidLast].push(input);
@@ -194,5 +200,12 @@
 	function sendMessage(guyName, messageToSend) {
 		document.getElementById("output").innerHTML +=`<b>${guyName}:</b> ${messageToSend}<br>`;
 	};
+	var loop = setInterval(function(){
+		if (document.getElementById("input").value.trim() == "") {
+			document.getElementById("sendButton").disabled = true;
+		} else {
+			document.getElementById("sendButton").disabled = false;
+		};
+	}, 10);
 </script>
 </html>

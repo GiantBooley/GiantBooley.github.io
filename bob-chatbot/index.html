@@ -3,9 +3,13 @@
 <head>
 	<title>Bob chatbot</title>
 	<style>
+		* {
+			--roundness: 10px;
+		}
 		body {
 			background-color: cornsilk;
 			margin: 0px;
+			overflow: hidden;
 		}
 		#output {
 			width: calc(100% - 8px);
@@ -13,8 +17,8 @@
 			background-image: radial-gradient(lightgreen, lime);
 			overflow: auto;
 			padding: 4px;
-			border-top-right-radius: 5px;
-			border-top-left-radius: 5px;
+			border-top-right-radius: var(--roundness);
+			border-top-left-radius: var(--roundness);
 		}
 		#input {
 			width: calc(100% - 4px);
@@ -24,16 +28,39 @@
 			background-color: white;
 			font-size: 32px;
 			transition-duration: 0.3s;
-			border-bottom-left-radius: 5px;
-			border-bottom-right-radius: 5px;
+			border-bottom-left-radius: var(--roundness);
+			border-bottom-right-radius: var(--roundness);
 			border-top: none;
 		}
 		#input:focus {
 			box-shadow: 0 0 10px gray;
+			width: calc(100% - 128px);
+			border-bottom-right-radius: 0px;
 		}
 		#outline {
-			border-radius: 5px;
+			border-radius: var(--roundness);
 			border: 1px solid black;
+			white-space: nowrap;
+		}
+		#sendButton {
+			background-color: red;
+			outline: 2px outset red;
+			height: 39px;
+			width: 120px;
+			border-bottom-right-radius: var(--roundness);
+			border: none;
+			transition-duration: 0.2s;
+			font-size: 32px;
+			cursor: pointer;
+			transform: translate(-1px, 1px);
+		}
+		#sendButton:hover {
+			background-color: crimson;
+			outline: 2px inset red;
+			box-shadow: 0 0 5px orange;
+		}
+		#input:focus + #sendButton {
+			transform: translate(-2px, 1px);
 		}
 	</style>
 </head>
@@ -43,6 +70,7 @@
 	<div id="outline">
 		<div id="output"></div>
 		<input autocomplete="off" type="text" id="input" onkeypress="enter(event);">
+		<button id="sendButton" onclick="send();">Send</button>
 	</div>
 </body>
 <script>
@@ -145,22 +173,24 @@
 
 	function enter(e) {
 		if (e.code == "Enter") {
-			let input = document.getElementById("input").value;
-			sendMessage("You", input);
-			wordsAfter[whatBobSaidLast] = wordsAfter[whatBobSaidLast] ?? [];
-			wordsAfter[whatBobSaidLast].push(input);
-			if (typeof wordsAfter[input] == "undefined") {
-				bobMessageToSend = choose(responsesToUnknown);
-			} else {
-				bobMessageToSend = choose(wordsAfter[input]);
-			};
-			sendMessage("Bob", bobMessageToSend);
-			whatBobSaidLast = bobMessageToSend;
-			document.getElementById("output").scrollTop = document.getElementById("output").scrollHeight;
-			document.getElementById("input").value = "";
+			send();
 		};
 	};
-
+	function send() {
+		let input = document.getElementById("input").value;
+		sendMessage("You", input);
+		wordsAfter[whatBobSaidLast] = wordsAfter[whatBobSaidLast] ?? [];
+		wordsAfter[whatBobSaidLast].push(input);
+		if (typeof wordsAfter[input] == "undefined") {
+			bobMessageToSend = choose(responsesToUnknown);
+		} else {
+			bobMessageToSend = choose(wordsAfter[input]);
+		};
+		sendMessage("Bob", bobMessageToSend);
+		whatBobSaidLast = bobMessageToSend;
+		document.getElementById("output").scrollTop = document.getElementById("output").scrollHeight;
+		document.getElementById("input").value = "";
+	}
 	function sendMessage(guyName, messageToSend) {
 		document.getElementById("output").innerHTML +=`<b>${guyName}:</b> ${messageToSend}<br>`;
 	};

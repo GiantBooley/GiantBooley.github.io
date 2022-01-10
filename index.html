@@ -1,64 +1,91 @@
+
 <!DOCTYPE html>
 <html>
 	<head>
 		<style>
+			body {
+				background-color: cornsilk;
+			}
 			a {
-				border: 3px outset gray;
-				background-color: gray;
+				background-color: darkgray;
 				color: white;
+				padding: 5px;
 				text-decoration: none;
+				width: 50px;
+				border-radius: 5px;
+				border: 3px ridge black;
 			}
 			a:hover {
-				color: cyan;
-				border-style: inset;
+				color: aqua;
+				background-color: gray;
+			}
+			.unblocked {
+				display: none;
+			}
+			.buttons {
+				line-height: 2.25;
+			}
+			.broken {
+				opacity: 0.5;
 			}
 		</style>
 	</head>
-	<body style="background-color:cornsilk">
+	<body>
 		<h1>GiantBooley's website</h1>
 		<p>friends github: <a href=https://WyattNewman.github.io/>wyattnewman.github.io (this is my website)</a></p>
-	<hr>
-	<div id="stuff">
-		<h2>Random stuff</h2><br>
-		<a href="fake-terminal">Fake terminal</a><br>
-		<a href="fake-hack-decimal">Fake hack decimal</a><br>
-		<a href="fake-hack-binary">Fake hack binary</a><br>
-		<a href="bookmarklets">Bookmarklets</a><br>
-		<a href="fake-hack-code">Fake code hack</a><br>
-		<a href="click-the-button">Click the button</a><br>
-		<a href="mining-simulator">Mining simulator</a><br>
-		<a href="snake">Snake</a>
-	</div>
-	<hr>
-	<div id="ai">
-		<h2>ai stuff</h2>
-		<a href="story-lengthener">Story lengthener</a><br>
-		<a href="bob-chatbot">Bob chatbot</a><br>
-	</div>
-	<div id="tools">
-		<h2>Tools stuff</h2><br>
-		<a href="tools">Other tools</a><br>
-		<a href="url-encode-decode">URL encoder and decoder</a><br>
-		<a href="number-shortener">Number shortener</a><br>
-		<a href="javascript-tester">Javascript tester</a><br>
-		<a href="upside-down-calculator">Upside down calculator generator</a><br>
-		<a href="file-downloader">File downloader</a><br>
-		<a href="html-viewer">HTML viewer</a><br>
-		<a href="website-embedder">Website embedder</a><br>
-		<a href="discord-text-emoji-generator">Discord text emoji generator</a>
-	</div>
-	<hr>
-	<div id="unblocked">
-		<h2>Unblocked stuff</h2><br>
-		<a href="unbloked/y8/www.y8.com/games/slope.html">slope unblocked</a><br>
-		<a href="unbloked/y8/www.y8.com/games/subway_surfers_world_tour_houston.html">subway surfers unblocked</a><br>
-	</div>
-	<hr>
-	<div id="brokenStuff" style="opacity: 0.5;">
-		<h2>Broken stuff</h2><br>
-		<a href="nvidia-gaugan/gaugan.org/gaugan2">nvidia gaugan</a><br>
-		<a href="word-generator">Word generator</a><br>
-	</div>
-	<hr>
+		<hr>
+		<div class="stuff category">
+			<h2>Random stuff (8)</h2>
+			<div class="buttons">
+				<a role="button" href="fake-terminal">Fake terminal</a><br>
+				<a role="button" href="fake-hack-decimal">Fake hack decimal</a><br>
+				<a href="fake-hack-binary">Fake hack binary</a><br>
+				<a href="bookmarklets">Bookmarklets</a><br>
+				<a href="fake-hack-code">Fake code hack</a><br>
+				<a href="click-the-button">Click the button</a><br>
+				<a href="mining-simulator">Mining simulator</a><br>
+				<a href="snake">Snake</a><br>
+			</div>
+			<hr>
+		</div>
+		<div class="ai category">
+			<h2>AI stuff (2)</h2>
+			<div class="buttons">
+				<a href="story-lengthener">Story lengthener</a><br>
+				<a href="bob-chatbot">Bob chatbot</a><br>
+			</div>
+			<hr>
+		</div>
+		<div class="tools category">
+			<h2>Tools stuff (9)</h2>
+			<div class="buttons">
+				<a href="tools">Other tools</a><br>
+				<a href="url-encode-decode">URL encoder and decoder</a><br>
+				<a href="number-shortener">Number shortener</a><br>
+				<a href="javascript-tester">Javascript tester</a><br>
+				<a href="upside-down-calculator">Upside down calculator generator</a><br>
+				<a href="file-downloader">File downloader</a><br>
+				<a href="html-viewer">HTML viewer</a><br>
+				<a href="website-embedder">Website embedder</a><br>
+				<a href="discord-text-emoji-generator">Discord text emoji generator</a>
+			</buttons>
+			<hr>
+		</div>
+		<div class="unblocked category">
+			<h2>Unblocked stuff (2)</h2>
+			<div class="buttons">
+				<a href="unbloked/y8/www.y8.com/games/slope.html">slope unblocked</a><br>
+				<a href="unbloked/y8/www.y8.com/games/subway_surfers_world_tour_houston.html">subway surfers unblocked</a><br>
+			</div>
+			<hr>
+		</div>
+		<div class="broken category">
+			<h2>Broken stuff (2)</h2>
+			<div class="buttons">
+				<a href="nvidia-gaugan/gaugan.org/gaugan2">nvidia gaugan</a><br>
+				<a href="word-generator">Word generator</a><br>
+			</div>
+			<hr>
+		</div>
 	</body>
 </html>

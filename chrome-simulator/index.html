@@ -1,14 +1,70 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Chromebook</title>
+		<title>Google Chrome</title>
 		<style>
+			body {
+				margin: 0px;
+			}
 			#topBar {
-				background-image: url();
+				background-image: url(https://giantbooley.github.io/chrome-simulator/img/top_bar.png);
+				width: 100%;
+				height: 103px;
+				background-size: cover;
+				background-repeat: no-repeat;
+			}
+			#searchBar {
+				border: none;
+				outline: none:
+				-webkit-border-radius: 100px;
+				-moz-border-radius: 100px;
+				border-radius: 100px;
+				background-color: #f1f3f4;
+				position: relative;
+				top: 38px;
+				left: 10.2%;
+				width: 46.5%;
+				height: 25px;
+			}
+			#searchBar:focus {
+				background-color: white;
+				outline: 2px solid blue;
+			}
+			#page {
+				border: none;
+				outline: none;
+				width: 100%;
+				height: calc(100vh - 153px);
+				position: absolute;
+				top: 103px;
+				bottom: 50px;
+			}
+			#bottomBar {
+				width: 100%;
+				height: 50px;
+				position: absolute;
+				bottom: 0px;
+				background-image: url(https://giantbooley.github.io/chrome-simulator/img/bottom_bar.png);
 			}
 		</style>
+		<script>
+			function searchBarKeyPress(e) {
+				if (e.code == "Enter") {
+					document.getElementById("page").src = document.getElementById("searchBar").value;
+				};
+			};
+			var loop = setInterval(function(){
+				if (document.activeElement !== document.getElementById("searchBar")) {
+					document.getElementById("searchBar").value = document.getElementById("page").contentWindow.location.href;
+				};
+			}, 10);
+		</script>
 	</head>
 	<body>
 		<div id="topBar">
+			<input id="searchBar" value="https://www.bing.com/" onkeypress="searchBarKeyPress(event);">
+		</div>
+		<iframe id="page" src="https://www.bing.com/"></iframe>
+		<div id="bottomBar"></div>
 	</body>
 </html>

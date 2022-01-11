@@ -4,6 +4,9 @@
 	<head>
 		<title>HTML viewer</title>
 		<style>
+			* {
+				box-sizing: border-box;
+			}
 			body::-webkit-scrollbar {
 				display: none;
 			}
@@ -27,23 +30,28 @@
 				display: block;
 				border: none;
 				float: left;
+				font-weight: bold;
 			}
 			.border:hover {
 				background-color: gray;
 			}
-			iframe {
+			#embed {
 				border: none;
 				display: block;
 				margin: 0px;
 				padding: 0px;
 				outline: none;
+				border: none;
+				background-color: white;
+				width: 100%;
+				height: 100vh;
 			}
 			textarea {
 				resize: vertical;
 				border: none;
 				border-radius: 0px;
 				white-space: pre;
-				width: calc(100% - 4px);
+				width: 100%;
 				float: left;
 				transition-duration: 0.2s;
 				overflow: auto;
@@ -72,12 +80,17 @@
 			#title {
 				background-color: lightgray;
 				border: 2px solid slategray;
-				width: calc(100% - 4px);
+				width: 100%;
 				height: 20px;
-				display: inline-block;
 				float: left;
 				overflow-x: auto;
 				white-space: nowrap;
+			}
+			.verticalBar {
+				width: 1px;
+				height: 2em;
+				display: inline;
+				border: 1px ridge gray;
 			}
 		</style>
 		<script>
@@ -100,14 +113,17 @@
 				document.body.removeChild(element);
 			};
 			function downloadHTML() {
-				download("index.html",document.getElementById("input").value);
+				download("index.html", document.getElementById("input").value);
 			};
 			window.onbeforeunload = function() {
 				if (document.getElementById("input").value !== localStorage.getItem('HTMLSAVE')) {
 					return 'Are you sure you want to leave?';
 				};
 			};
-			function updateAsHTML() {
+			function UpdateHTML() {
+				if (document.getElementById("saveOnUpdate").checked) {
+					save();
+				};
 				document.getElementById("title").innerHTML = "Title: ";
 				document.getElementById("embed").srcdoc=document.getElementById("input").value;
 				setTimeout(() => {
@@ -173,21 +189,24 @@
 			<h1>HTML viewer</h1>
 			<hr>
 			<label>Settings:</label>
-			<input id="darkmode" type="checkbox" onclick="darkMode();">Dark mode |</input>
-			<button onclick="save(); alert('HTML input saved to local storage.');">Save</button>
+			<input id="darkmode" type="checkbox" onclick="darkMode();">Dark mode</input>
+			<div class="verticalBar"></div>
+			<button onclick="save(); this.innerHTML = 'Saved';" onmouseleave="this.innerHTML = 'Save';">Save</button>
+			<div class="verticalBar"></div>
+			<input type="checkbox" id="saveOnUpdate">Save on update</input>
+			<div class="verticalBar"></div>
+			<input type="checkbox" id="UpdateOnType">Update on type</input>
 			<hr>
-			<textarea style="background-color:white;color:black;height:350px;" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
-			<textarea style="background-color:white;color:black;height:100px;" onfocus="jsInputFocus();" onfocusout="jsInputFocusOut();" placeholder="Type javascript" id="jsinput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
-			<button class="border border-top" style="width:100%;" onclick="updateAsHTML();"><strong>Update HTML</strong></button><br><br>
+			<textarea onkeyup="if (document.getElementById('UpdateOnType').checked) {UpdateHTML();};" style="background-color:white;color:black; height: 30em;" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
+			<textarea style="background-color:white;color:black; height: 2.8em;" onfocus="jsInputFocus();" onfocusout="jsInputFocusOut();" placeholder="Type javascript" id="jsinput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
+			<button class="border border-top" style="width:100%;" onclick="UpdateHTML();">Update HTML</button><br><br>
 			<div id="title">Title: </div>
-			<button class="border" style="width:25%;" onclick="downloadHTML();"><strong>Download</strong></button>
-			<button class="border" style="width:25%;" onclick="unloadHTML();"><strong>Unload HTML</strong></button>
-			<button class="border" style="width:25%;" onclick="runJavascript();"><strong>Run javascript</strong></button>
-			<button class="border" style="width:25%;" onclick="toggleFullScreen();"><strong>Fullscreen</strong></button><br>
+			<button class="border" style="width:25%;" onclick="downloadHTML();">Download</button>
+			<button class="border" style="width:25%;" onclick="unloadHTML();">Unload HTML</button>
+			<button class="border" style="width:25%;" onclick="runJavascript();">Run javascript</button>
+			<button class="border" style="width:25%;" onclick="toggleFullScreen();">Fullscreen</button><br>
 		</div>
 	</body>
-	<div style="background-color:white">
-			<button style="display: none;" class="exitfull" onclick="toggleFullScreen()">Exit fullscreen</button>
-			<iframe id="embed" srcdoc="<p>type in text box and press update html</p>" width="100%" height="617"></iframe>
-	</div>
+	<button style="display: none;" class="exitfull" onclick="toggleFullScreen()">Exit fullscreen</button>
+	<iframe id="embed" srcdoc="<p>type in text box and press update html</p>"></iframe>
 </html>

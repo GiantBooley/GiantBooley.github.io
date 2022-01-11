@@ -21,9 +21,9 @@
 				let input = document.getElementById("input").value;
 				for (let i = 0; i < input.length; i++) {
 					input = input.replaceAll('\n','');
-					input = input.replaceAll('	','');
+					input = input.replaceAll('\t','');
 				};
-				document.getElementById("output").value = "javascript:(()=>{"+input+"})();";
+				document.getElementById("output").value = encodeURIComponent("javascript:(()=>{"+input+"})();");
 			};
 		</script>
 	</head>

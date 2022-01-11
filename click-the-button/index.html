@@ -3,7 +3,7 @@
 	<head>
 		<title>dont use touchscreen</title>
 		<style>
-			#button {
+			button {
 				position: absolute;
 				top: 50%;
 				left: 50%;
@@ -17,21 +17,18 @@
 			}
 		</style>
 		<script>
-			function move() {
+			function move(which) {
 				setTimeout(function() {
-					document.getElementById("button").style.top=(Math.random()*89)+"%";
-					document.getElementById("button").style.left=(Math.random()*89)+"%";
-				}, 100);
+					which.style.top=(Math.random()*89)+"%";
+					which.style.left=(Math.random()*89)+"%";
+				}, 200);
 			};
-			function clickButton() {
-				alert("HOW DOD YOU CLIKC THE BUTTON HACKER PERSON");
-				var interval = setInterval(function() {
-					move();
-				},50);
+			function clickButton(which) {
+				document.body.appendChild(which.cloneNode(true));
 			};
 		</script>
 	</head>
 	<body>
-		<button id="button" onmouseover="move();" onclick="clickButton()">CLICK ME</button>
+		<button onmouseover="move(this);" onclick="clickButton(this)">CLICK ME</button>
 	</body>
 </html>

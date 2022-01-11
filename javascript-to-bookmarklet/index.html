@@ -23,7 +23,7 @@
 					input = input.replaceAll('\n','');
 					input = input.replaceAll('\t','');
 				};
-				document.getElementById("output").value = encodeURIComponent("javascript:(()=>{"+input+"})();");
+				document.getElementById("output").value = encodeURI("javascript:(()=>{"+input+"})();");
 			};
 		</script>
 	</head>

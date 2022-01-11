@@ -24,6 +24,7 @@
 		<a href="javascript:(()=%3E%7Bdocument.body.style.transitionDuration=%221s%22;document.body.style.transform%20=%20%22rotateY(180deg)%22;%7D)();">Flip page</a><br>
 		<a href="javascript:(function()%7Bfunction%20invert(o,t)%7Bvar%20r=o.split(%22(%22),n=r%5B1%5D.split(%22)%22)%5B0%5D.split(%22,%22);return%20n.forEach(function(o,r)%7Br%3C3&&(n%5Br%5D=%22color%22==t&&255-parseInt(o)%3C50?120:255-parseInt(o))%7D),n=n.join(%22,%22),r%5B0%5D+%22(%22+n+%22)%22%7Ddocument.querySelectorAll(%22*:not(%5BinvTouch%5D)%22).forEach(function(o)%7Bvar%20t=window.getComputedStyle(o);o.style.backgroundColor=invert(t.backgroundColor,%22back%22),o.style.color=invert(t.color,%22color%22),o.setAttribute(%22invTouch%22,%22true%22)%7D);%7D)();">Dark mode</a><br>
 		<a href="javascript:(()=%3E%7Bdocument.body.style.transitionDuration%20=%20%220s%22;%20var%20mousex;%20var%20mousey;%20document.body.style.perspective%20=%20%22100px%22;%20document.addEventListener(%22mousemove%22,%20()%20=%3E%20%7B%20mousex%20=%20event.clientX;%20mousey%20=%20event.clientY;%20document.body.style.transform%20=%20%22perspective(1000px)%20rotateX(%22%20+%20((mousey-300)/-2)%20+%20%22deg)%20rotateY(%22%20+%20((mousex-660)/4)%20+%20%22deg)%22;%20%7D);%7D)();">move page with mouse</a><br>
+		<a href="javascript:(()=%3E%7Balert(eval.call(window,%20prompt(%22what%20command%22)%20??%20%22%22))%7D)();">run command with output</a><br>
 		<hr>
 	</body>
 </html>

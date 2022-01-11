@@ -30,7 +30,7 @@
 	<body>
 		<h1>Javascript to bookmarklet</h1>
 		<hr>
-		<textarea id="input" placeholder="type javascript but you cant do comments"></textarea>
+		<textarea id="input" placeholder="type javascript but you cant do comments" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
 		<button onclick="clickbutton();">click to convert</button>
 		<textarea id="output" rows="5" readonly></textarea>
 	</body>

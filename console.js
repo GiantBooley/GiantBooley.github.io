@@ -61,6 +61,7 @@ bobcon.onkeydown = function(e){
 			};
 		};
 		bobconout.innerHTML = `${bobconout.innerHTML}» ${bobcon.value}<br>🡸 ${bobconcomout}<hr>`;
+		bobconout.scrollTo(0, bobconout.scrollHeight);
 		bobconhistpos = -1;
 		bobconhist.unshift(bobcon.value);
 		bobcon.value="";
@@ -84,7 +85,7 @@ bobcon.onkeydown = function(e){
 		};
 	} else if (e.code == "Tab") {
 		e.preventDefault();
-		bobcon.value = bobcon.value.substring(0,bobcon.selectionStart)+"	"+bobcon.value.substring(bobcon.selectionStart,bobcon.value.length);
+		bobcon.value = bobcon.value.substring(0,bobcon.selectionStart)+"\t"+bobcon.value.substring(bobcon.selectionStart,bobcon.value.length);
 	};
 };
 bobcon.style = "width: 100%; position: absolute; resize: none; bottom: 0px; left: 0px;";

@@ -1,12 +1,12 @@
-var bobconhist = [];
-var bobconhistpos = -1;
-var bobconhisttem = "";
+var bobconhist = bobconhist ?? [];
+var bobconhistpos = bobconhistpos ?? -1;
+var bobconhisttem = bobconhisttem ?? "";
 var bobconcon = document.createElement("div");
 var bobcon = document.createElement("textarea");
 var bobconx = document.createElement("button");
 var bobconbar = document.createElement("div");
 var bobconout = document.createElement("div");
-var bobconcomout = "";
+var bobconcomout = bobconcomout ?? "";
 bobcon.setAttribute("spellcheck", "false");
 bobconout.style="width: 100%; height: 180px; border: none; position: absolute; text-align: left; top: 26px; font-family: monospace; overflow: auto;";
 bobconbar.style="position: absolute; top: 0px; width: 100%; height: 26px; border: 1px solid black;";

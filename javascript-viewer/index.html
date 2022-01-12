@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -47,7 +48,16 @@
 <script>
 	document.getElementById("output").srcdoc = '<body style="background-color: black; color: white; font-family: consolas;">Bob tom fred mike</body>';
 	function runJavascript() {
-		document.getElementById("output").srcdoc = '<body style="background-color: black; color: white; font-family: consolas;">> '+document.getElementById("input").value.substr(0, document.getElementById("input").value.indexOf("\n") ?? document.getElementById("input").value.length)+'...\n</body>';
+		let output = document.getElementById("output");
+		output.srcdoc = '<body style="background-color: black; color: white; font-family: consolas;">> '+document.getElementById("input").value.substr(0, 25)+'...\n</body>';
+		output.contentWindow.console.log = function(value){
+			output.contentWindow.document.body.innerHTML += "\n"+value
+		};
+		try {
+			output.contentWindow.eval.call(window, document.getElementById("input").value);
+		} catch (error) {
+			console.log(error);
+		};
 	};
 </script>
 </html>

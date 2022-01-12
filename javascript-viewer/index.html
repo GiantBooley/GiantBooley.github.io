@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Javascript viewer</title>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+		@font-face {
+			font-family: consolas;
+			src: url(consolas.ttf);
+		}
+		body {
+			background-color: cornsilk;
+			margin: 0px;
+		}
+		#input {
+			width: 45%;
+			height: calc(100vh - 100px);
+			float: left;
+		}
+		#runButton { 
+			font-size: 25px;
+			width: calc(100vh - 100px);
+			height: 10%;
+			transform-origin: bottom left;
+			transform: translate(0%, -100%) rotate(90deg);
+			float: left;
+		}
+		#output {
+			border: none;
+			outline: none;
+			height: calc(100vh - 100px);
+			width: 52.7%;
+			position: absolute;
+			right: 0px;
+		}
+	</style>
+</head>
+<body>
+	<h1>Javascript viewer</h1>
+	<hr>
+	<textarea id="input"></textarea>
+	<button id="runButton" onclick="runJavascript();">Run javascript</button>
+	<iframe id="output" frameborder="0"></iframe>
+</body>
+<script>
+	document.getElementById("output").srcdoc = '<body style="background-color: black; color: white; font-family: consolas;">Bob tom fred mike</body>';
+	function runJavascript() {
+		document.getElementById("output").srcdoc = '<body style="background-color: black; color: white; font-family: consolas;">> '+document.getElementById("input").value.substr(0, document.getElementById("input").value.indexOf("\n") ?? document.getElementById("input").value.length)+'...\n</body>';
+	};
+</script>
+</html>

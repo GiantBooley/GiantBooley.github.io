@@ -39,14 +39,22 @@ console.clear = function(){
 		bobconout.innerHTML = "<hr>Console was cleared.<hr>";
 	}, 10);
 };
+var bobconerr = 0;
 bobcon.onkeydown = function(e){
 	if ((e.code == "Enter") && !e.shiftKey) {
-		e.preventDefault();  
-		bobconcomout = eval.call(window, bobcon.value);
-		if ((typeof bobconcomout) == "string") {
+		bobconerr = 0;
+		e.preventDefault();
+		try {
+			bobconcomout = eval.call(window, bobcon.value);
+		}
+		catch (error) {
+			bobconcomout = '<span style="color: red">'+error+'</span>';
+			bobconerr = 1;
+		}
+		if ((typeof bobconcomout) == "string" && bobconerr == 0) {
 			bobconcomout = "\""+bobconcomout+"\"";
 		} else if ((typeof bobconcomout) == "object") {
-			if (bobconcomout.isArray()) {
+			if (Array.isArray(bobconcomout)) {
 				bobconcomout = "Array("+bobconcomout.length+") "+JSON.stringify(bobconcomout);
 			} else {
 				bobconcomout = "Object "+JSON.stringify(bobconcomout);

@@ -64,7 +64,9 @@
 			"hack": "Command: hack, Syntax: hack <name>, Use: to hack someone.",
 			"print": "Command: print, Syntax: print <what to say>, Use: to say something",
 			"font": "Command: font, Syntax: font [get|list|set <font>], Use: to set or get font type.",
-			"code": "Command: code, Syntax: code, Use: to code a hack."
+			"code": "Command: code, Syntax: code, Use: to code a hack.",
+			"javascript": "Command: javascript, Syntax: javascript <what to run>, Use: to run javascript.",
+			"clear": "Command: clear, Syntax: clear, Use: to clear the console."
 		};
 		
 		hacks.value = "Bob console v2.0\n>";
@@ -85,6 +87,9 @@
 		};
 		function getArgAfter(index) {
 			return currentLine().substr(currentLine().split(" ", index).join(" ").length+1, currentLine().length);
+		};
+		function bottom() {
+			hacks.scrollTo(hacks.scrollHeight);
 		};
 		function keyPress(e) {
 			if (coding) {
@@ -131,18 +136,24 @@
 						case "print":
 							show(secondArg() ?? "");
 						break;
+						
 						case "code":
-							coding = 0;
+							coding = false;
 							showMid("Downloading the Bob API...");
-							let times = 10;
-							var repeat = setInterval(function(){
-								showMid(codeParts[Math.floor(Math.random()*codeParts.length)]);
-								if (times <= 0) {
-									clearInterval(repeat);
-								};
-							}, 10);
-							show("HACK CODED");
+							setTimeout(function(){
+								let times = 500;
+								var repeat = setInterval(function(){
+									showMid(codeParts[Math.floor(Math.random()*codeParts.length)]);
+									times--;
+									if (times <= 0) {
+										clearInterval(repeat);
+										show("500 LINES CODED");
+										coding = true;
+									};
+								}, 10);
+							}, 3000);
 						break;
+						
 						case "exit":
 							var exitElement = document.createElement("a");
 							exitElement.href="javascript:close();";
@@ -151,6 +162,7 @@
 							exitElement.remove();
 							show("Failed to exit");
 						break;
+						
 						case "font":
 							if (commandArg(1) == "set") {
 								hacks.style.fontFamily = getArgAfter(2);
@@ -163,6 +175,19 @@
 								show("Syntax error: expected get, set, or list");
 							};
 						break;
+						
+						case "javascript":
+							try {
+								show(eval.call(window, secondArg()));
+							} catch (error) {
+								show(error);
+							};
+						break;
+						
+						case "clear":
+							hacks.value = "Bob console v2.0\n>";
+						break;
+						
 						default:
 							show(`Unknown command: "${commandArg(0)}", type help for a list of commands.`);
 						break;

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+		@font-face { font-family: Consolas; src: url('https://giantbooley.github.io/fake-terminal/CONSOLA.TTF'); }
+		body {
+			margin: 0px;
+			padding: 0px;
+			overflow: hidden;
+		}
+		* {
+			box-sizing: border-box;
+		}
+		::-webkit-scrollbar {
+			width: 0px;
+		}
+		textarea {
+			font-family: Consolas;
+			color: #15C60D;
+			resize: none;
+			border: none;
+			outline: none;
+			width: 100%;
+			padding: 3px;
+			background-color: black;
+			height: 100vh;
+			scrollbar-width: none;
+		}
+		</style>
+	</head>
+	<body>
+		<textarea id="hacks" onkeypress="keyPress(event);">loading...</textarea>
+	</body>
+	<script>
+		var passwordLetters = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "+", "=", "~", "[", "]", "{", "}"]
+		var hacks = document.getElementById("hacks");
+		var coding = true;
+		var help = {
+			"help": "Command: help, Syntax: help <command (optional)>",
+			"hack": "Command: hack, Syntax: hack <name>",
+			"print": "Command: print, Syntax: print <what to say>"
+		};
+		
+		hacks.value = "Bob console v2.0\n>";
+		function currentLine() {
+			return hacks.value.substr(hacks.value.lastIndexOf("\n")+1, hacks.value.length);
+		};
+		function commandArg(number) {
+			return currentLine().substr(1, currentLine().length).split(" ")[number];
+		};
+		function secondArg() {
+			return currentLine().substr(currentLine().indexOf(" ")+1, currentLine().length);
+		};
+		function show(it) {
+			hacks.value+=`\n${it}\n>`;
+		};
+		function showMid(it) {
+			hacks.value+=`\n${it}`;
+		};
+		function keyPress(e) {
+			if (coding) {
+				if (e.code == "Enter") {
+					e.preventDefault();
+					switch (commandArg(0)) {
+						
+						case "hack":
+							if (typeof commandArg(1) == "undefined") {
+								show("Syntax error: expected a name.")
+							} else {
+								coding = false;
+								showMid(`Hacking ${commandArg(1)}...`);
+								setTimeout(function(){
+									showMid("Recombobulating bisectors...");
+									setTimeout(function(){
+										showMid("Password: ");
+										let uncovered = 0;
+										let budget = "";
+										for (let i = 0; i < 100; i++) {
+											hacks.value+=passwordLetters[Math.floor(Math.random()*81)];
+										};
+										let repeating = 100;
+										var hwon = setInterval(function(){
+											repeating = repeating-1;
+											hacks.value = hacks.value.substr(0, hacks.value.length-repeating);
+											for (let i = 0; i < repeating; i++) {
+												hacks.value+=passwordLetters[Math.floor(Math.random()*81)];
+											};
+											if (repeating == 0) {
+												clearInterval(hwon);
+												show("ACCESS GRANTED");
+												coding = true;
+											};
+										}, 100);
+									}, 2000);
+								}, 3000);
+							};
+						break;
+						
+						case "help":
+							show(help[commandArg(1)] ?? `${Object.values(help).join("\n")}`);
+						break;
+						
+						case "print":
+							show(secondArg() ?? "");
+						break;
+						case "bob":
+							show("bob\u200btom")
+						break;
+						default:
+							show(`Unknown command: "${commandArg(0)}", type help for a list of commands.`);
+						break;
+					};
+				};
+			} else {
+				e.preventDefault();
+			};
+		};
+		var loop = setInterval(function(){
+			hacks.selectionStart = hacks.value.length;
+			hacks.selectionEnd = hacks.value.length;
+			if (coding && currentLine().charAt(0) !== ">") {
+				hacks.value+=">";
+			};
+		}, 10);
+	</script>
+</html>

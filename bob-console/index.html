@@ -35,10 +35,36 @@
 		var passwordLetters = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "+", "=", "~", "[", "]", "{", "}"]
 		var hacks = document.getElementById("hacks");
 		var coding = true;
+		var codeParts = [
+			"bob Bob = new Bob();",
+			"if (mikeNum.length >= document.body.getNumberOfStuff) {",
+			"enum.docsEnabler = true;",
+			"};",
+			"function hackBob(val) {",
+			"document.getElementById(\"index\") = atlasNumber.toString(5.3);",
+			"public void onExplosion(final class_2664 explosionPacket, final CallbackInfo ci) {",
+			"at com.strobel.decompiler.languages.java.ast.AstBuilder.createTypeCore(AstBuilder.java:519);",
+			"at com.strobel.decompiler.ast.TypeAnalysis.inferCall(TypeAnalysis.java:2438);",
+			"java.lang.IllegalStateException: Invalid BootstrapMethods attribute entry: 2 additional arguments required for method java/lang/invoke/StringConcatFactory.makeConcatWithConstants, but only 1 specified.",
+			"}}}}}}}}}}}}}}}]]}}}}]]};",
+			"let list = {text: mapper.nodeNumber, frustum: none};",
+			"var bisectorType = \"binary\";",
+			"for (let i = 0; i < 43; i++) {",
+			"EncryptionDataset.forgeInformation();",
+			"if (binaryBlock[0] == binaryBlock.blocks) {",
+			"}]",
+			"]",
+			"let sets = 0;",
+			"addNode();",
+			"function hackerEnabler(val) {",
+			"console.log(`HTMLDOM.enumDocsEnabler: ${enum.docsEnabler}, 43 bits overwritten`);"
+		];
 		var help = {
-			"help": "Command: help, Syntax: help <command (optional)>",
-			"hack": "Command: hack, Syntax: hack <name>",
-			"print": "Command: print, Syntax: print <what to say>"
+			"help": "Command: help, Syntax: help <command (optional)>, Use: to get help.",
+			"hack": "Command: hack, Syntax: hack <name>, Use: to hack someone.",
+			"print": "Command: print, Syntax: print <what to say>, Use: to say something",
+			"font": "Command: font, Syntax: font [get|list|set <font>], Use: to set or get font type.",
+			"code": "Command: code, Syntax: code, Use: to code a hack."
 		};
 		
 		hacks.value = "Bob console v2.0\n>";
@@ -57,6 +83,9 @@
 		function showMid(it) {
 			hacks.value+=`\n${it}`;
 		};
+		function getArgAfter(index) {
+			return currentLine().substr(currentLine().split(" ", index).join(" ").length+1, currentLine().length);
+		};
 		function keyPress(e) {
 			if (coding) {
 				if (e.code == "Enter") {
@@ -68,26 +97,25 @@
 								show("Syntax error: expected a name.")
 							} else {
 								coding = false;
-								showMid(`Hacking ${commandArg(1)}...`);
+								let name = secondArg();
+								showMid(`Hacking ${secondArg()}...`);
 								setTimeout(function(){
 									showMid("Recombobulating bisectors...");
 									setTimeout(function(){
-										showMid("Password: ");
-										let uncovered = 0;
-										let budget = "";
+										showMid(`\nUsername: Xx_${name}_xX\nPassword: `);
+										let times = 100;
 										for (let i = 0; i < 100; i++) {
 											hacks.value+=passwordLetters[Math.floor(Math.random()*81)];
 										};
-										let repeating = 100;
-										var hwon = setInterval(function(){
-											repeating = repeating-1;
-											hacks.value = hacks.value.substr(0, hacks.value.length-repeating);
-											for (let i = 0; i < repeating; i++) {
+										var repeat = setInterval(function(){
+											times--;
+											hacks.value = hacks.value.substr(0, hacks.value.length-times);
+											for (let i = 0; i < times; i++) {
 												hacks.value+=passwordLetters[Math.floor(Math.random()*81)];
 											};
-											if (repeating == 0) {
-												clearInterval(hwon);
-												show("ACCESS GRANTED");
+											if (times <= 0) {
+												clearInterval(repeat);
+												show("\nACCESS GRANTED");
 												coding = true;
 											};
 										}, 100);
@@ -103,8 +131,37 @@
 						case "print":
 							show(secondArg() ?? "");
 						break;
-						case "bob":
-							show("bob\u200btom")
+						case "code":
+							coding = 0;
+							showMid("Downloading the Bob API...");
+							let times = 10;
+							var repeat = setInterval(function(){
+								showMid(codeParts[Math.floor(Math.random()*codeParts.length)]);
+								if (times <= 0) {
+									clearInterval(repeat);
+								};
+							}, 10);
+							show("HACK CODED");
+						break;
+						case "exit":
+							var exitElement = document.createElement("a");
+							exitElement.href="javascript:close();";
+							document.body.appendChild(exitElement);
+							exitElement.click();
+							exitElement.remove();
+							show("Failed to exit");
+						break;
+						case "font":
+							if (commandArg(1) == "set") {
+								hacks.style.fontFamily = getArgAfter(2);
+								show(`Font set to "${getArgAfter(2)}"`);
+							} else if (commandArg(1) == "get") {
+								show(`Current font: "${hacks.style.fontFamily || "consolas"}"`)
+							} else if (commandArg(1) == "list") {
+								show("font will be here");
+							} else {
+								show("Syntax error: expected get, set, or list");
+							};
 						break;
 						default:
 							show(`Unknown command: "${commandArg(0)}", type help for a list of commands.`);

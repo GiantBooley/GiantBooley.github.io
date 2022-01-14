@@ -165,8 +165,7 @@
 				document.body.removeChild(element);
 			};
 			function downloadHTML() {
-				alert(document.getElementById("embed").contentWindow.document.getElementsByTagName("title")[0].innerText);
-				download(document.getElementById("embed").contentWindow.document.getElementsByTagName("title")[0].innerText || "index.html", document.getElementById("input").value);
+				download("index.html", document.getElementById("input").value);
 			};
 			window.onbeforeunload = function(){
 				if (document.getElementById("input").value !== localStorage.getItem("HTMLSAVE")) {
@@ -300,7 +299,7 @@
 				<div class="setting"><label for="tabSizeInput">Tab size:</label><input type="number" value="4" min="1" max="64" onkeyup="updateTabSize();" onclick="updateTabSize();" id="tabSizeInput"></div>
 				<div class="setting"><label for="importFile">Import file:</label><input type="file" id="importFile"><button onclick="loadFile();">Load file</button></div>
 				<div class="setting"><label for="websiteInput">Load file from website:</label><input id="websiteInput" placeholder="https://barb.gov/tom/index.html"><button onclick="loadFromWebsite();">Load</button></div>
-				<div class="setting"><button onclick="copyInput(); this.innerText = 'Copied';" onmouseleave="this.innerText='copy';">Copy</button></div>
+				<div class="setting"><button onclick="copyInput(); this.innerText = 'Copied';" onmouseleave="this.innerText='Copy';">Copy</button></div>
 			</div>
 			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="input" spellcheck="false" onkeypress="inputKeyPress(event);" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
 			<textarea onfocus="jsInputFocus();" onfocusout="jsInputFocusOut();" placeholder="Type javascript" id="jsInput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>

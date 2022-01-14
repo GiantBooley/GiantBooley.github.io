@@ -1,5 +1,6 @@
 
 
+
 <!DOCTYPE html>
 <html>
 	<head>
@@ -59,6 +60,7 @@
 				transition-duration: 0.2s;
 				overflow: auto;
 				outline: none;
+				tab-size: 4;
 			}
 			#input {
 				background-color: white;
@@ -120,6 +122,9 @@
 				border-top: 2px solid gray;
 				border-bottom: 2px solid gray;
 				height: 34px;
+			}
+			#tabSizeInput {
+				width: 3em;
 			}
 		</style>
 		<script>
@@ -235,6 +240,14 @@
 					document.querySelector("h1").style.display = "none";
 				};
 			};
+			function updateTabSize() {
+				if (document.getElementById("tabSizeInput").value > 64) {
+					document.getElementById("tabSizeInput").value = 64;
+				} else if (document.getElementById("tabSizeInput").value < 1) {
+					document.getElementById("tabSizeInput").value = 1;
+				};
+				[...document.getElementsByTagName("textarea")].forEach(txtarea => txtarea.style.tabSize = document.getElementById("tabSizeInput").value);
+			};
 		</script>
 	</head>
 	<body>
@@ -247,6 +260,7 @@
 				<div class="setting"><input type="checkbox" id="updateOnType">Update on type</input></div>
 				<div class="setting"><button onclick="newHTML();">New</button></div>
 				<div class="setting"><input type="checkbox" onclick="toggleTitle();">Hide title</input></div>
+				<div class="setting"><label for="tabSizeInput">Tab size:</label><input type="number" value="4" min="1" max="64" onkeyup="updateTabSize();" onclick="updateTabSize();" id="tabSizeInput"></div>
 			</div>
 			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
 			<textarea onfocus="jsInputFocus();" onfocusout="jsInputFocusOut();" placeholder="Type javascript" id="jsInput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>

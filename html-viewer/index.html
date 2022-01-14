@@ -94,7 +94,7 @@
 			}
 			#title {
 				background-color: lightgray;
-				border: 2px solid slategray;
+				border: 2px solid dimgray;
 				width: 100%;
 				height: 20px;
 				float: left;
@@ -110,7 +110,8 @@
 			.setting {
 				background-color: lightgray;
 				padding: 2px;
-				border: 1px solid gray;
+				border-left: 1px solid gray;
+				border-right: 1px solid gray;
 				float: left;
 				height: 30px;
 			}
@@ -173,14 +174,16 @@
 			};
 			var darkModeOn = false;
 			function darkMode() {
-				if (darkModeOn == true) {
+				if (darkModeOn) {
 					darkModeOn = false;
 					document.getElementById("input").style.backgroundColor = "white";
 					document.getElementById("input").style.color = "black";
 					document.getElementById("jsInput").style.backgroundColor = "white";
 					document.getElementById("jsInput").style.color = "black";
 					document.body.style = "background-color: cornsilk; color: black";
-					document.getElementById("title").style.color = "black";
+					document.getElementById("title").style.backgroundColor = "lightgray";
+					[...document.getElementsByClassName("setting")].forEach(element=>element.style.backgroundColor = "lightgray");
+					document.getElementById("settings").style.backgroundColor = "lightgray";
 				} else {
 					darkModeOn = true;
 					document.getElementById("input").style.backgroundColor = "darkslategray";
@@ -188,7 +191,9 @@
 					document.getElementById("jsInput").style.backgroundColor = "darkslategray";
 					document.getElementById("jsInput").style.color = "white";
 					document.body.style = "background-color: #000723; color: white";
-					document.getElementById("title").style.color = "black";
+					document.getElementById("title").style.backgroundColor = "gray";
+					[...document.getElementsByClassName("setting")].forEach(element=>element.style.backgroundColor = "dimgray");
+					document.getElementById("settings").style.backgroundColor = "dimgray";
 				};
 			};
 			function unloadHTML() {

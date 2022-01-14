@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html>
 	<head>
@@ -8,6 +5,12 @@
 		<style>
 			* {
 				box-sizing: border-box;
+			}
+			html {
+				scroll-behavior: smooth;
+			}
+			h1 {
+				transition-duration: 0.2s;
 			}
 			body::-webkit-scrollbar {
 				display: none;
@@ -109,37 +112,51 @@
 				display: inline;
 				border: 1px ridge gray;
 			}
-			.setting {
+			#settings div {
 				background-color: lightgray;
 				padding: 2px;
 				border-left: 1px solid gray;
 				border-right: 1px solid gray;
-				float: left;
+				margin: 0px;
 				height: 30px;
+				display: inline-block;
+				font-size: 1rem;
 			}
 			#settings {
 				background-color: darkgray;
 				border-top: 2px solid gray;
 				border-bottom: 2px solid gray;
 				height: 34px;
+				overflow: auto;
+				white-space: nowrap;
+				font-size: 0;
+				-ms-overflow-style: none;
+				scrollbar-width: none;
+			}
+			#settings::-webkit-scrollbar {
+				display: none;
 			}
 			#tabSizeInput {
 				width: 3em;
 			}
 		</style>
 		<script>
-			function save() {
-				localStorage.setItem('HTMLSAVE', document.getElementById("input").value);
+			var reader = new FileReader();
+			reader.onload = function (e) {
+				document.getElementById("input").value = e.target.result;
 			};
-			window.onload = function() {
-				document.getElementById("input").value = localStorage.getItem('HTMLSAVE');
+			function save() {
+				localStorage.setItem("HTMLSAVE", document.getElementById("input").value);
+			};
+			window.onload = function(){
+				document.getElementById("input").value = localStorage.getItem("HTMLSAVE");
 			};
 			function download(filename, text) {
-				var element = document.createElement('a');
-				element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-				element.setAttribute('download', filename);
+				var element = document.createElement("a");
+				element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text));
+				element.setAttribute("download", filename);
 				
-				element.style.display = 'none';
+				element.style.display = "none";
 				document.body.appendChild(element);
 
 				element.click();
@@ -150,8 +167,8 @@
 				download("index.html", document.getElementById("input").value);
 			};
 			window.onbeforeunload = function(){
-				if (document.getElementById("input").value !== localStorage.getItem('HTMLSAVE')) {
-					return 'Are you sure you want to leave?';
+				if (document.getElementById("input").value !== localStorage.getItem("HTMLSAVE")) {
+					return "Are you sure you want to leave?";
 				};
 			};
 			function updateHTML() {
@@ -222,10 +239,9 @@
 			};
 			function inputKeyPress(e) {
 				let input = document.getElementById("input");
-				if (e.code == "Enter" && input.value.charAt(input.selectionStart-1) == "{" && input.value.charAt(input.selectionEnd) == "}") {
-					let input = document.getElementById("input");
-					e.preventDefault();
-					input.value = input.value.substr(0, input.selectionStart)+"\n\n"+input.value.substr(input.selectionEnd, input.value.length);
+				if (e.code == "Enter" && e.ctrlKey) {
+					updateHTML();
+					window.scrollTo(0, document.body.scrollHeight);
 				};
 			};
 			function newHTML() {
@@ -236,8 +252,14 @@
 			function toggleTitle() {
 				if (document.querySelector("h1").style.display == "none") {
 					document.querySelector("h1").style.display = "block";
+					setTimeout(function(){
+						document.querySelector("h1").style.opacity = "1";
+					}, 200);
 				} else {
-					document.querySelector("h1").style.display = "none";
+					document.querySelector("h1").style.opacity = "0";
+					setTimeout(function(){
+						document.querySelector("h1").style.display = "none";
+					}, 200);
 				};
 			};
 			function updateTabSize() {
@@ -248,21 +270,31 @@
 				};
 				[...document.getElementsByTagName("textarea")].forEach(txtarea => txtarea.style.tabSize = document.getElementById("tabSizeInput").value);
 			};
+			function loadFile() {
+				reader.readAsText(document.getElementById("importFile").files[0]);
+			};
+			function loadFromWebsite() {
+				fetch(document.getElementById("websiteInput").value).then((resp) => resp.text()).then(function(data) {
+					document.getElementById("input").value = data;
+				});
+			};
 		</script>
 	</head>
 	<body>
 		<div id="nonfullscreen">
 			<h1>HTML viewer</h1>
 			<div id="settings">
-				<div class="setting"><input id="darkmode" type="checkbox" onclick="darkMode();">Dark mode</input></div>
-				<div class="setting"><button onclick="save(); this.innerHTML = 'Saved';" onmouseleave="this.innerHTML = 'Save';">Save</button></div>
-				<div class="setting"><input type="checkbox" id="saveOnUpdate">Save on update</input></div>
-				<div class="setting"><input type="checkbox" id="updateOnType">Update on type</input></div>
-				<div class="setting"><button onclick="newHTML();">New</button></div>
-				<div class="setting"><input type="checkbox" onclick="toggleTitle();">Hide title</input></div>
-				<div class="setting"><label for="tabSizeInput">Tab size:</label><input type="number" value="4" min="1" max="64" onkeyup="updateTabSize();" onclick="updateTabSize();" id="tabSizeInput"></div>
+				<div><input id="darkmode" type="checkbox" onclick="darkMode();">Dark mode</input></div>
+				<div><button onclick="save(); this.innerHTML = 'Saved';" onmouseleave="this.innerHTML = 'Save';">Save</button></div>
+				<div><input type="checkbox" id="saveOnUpdate">Save on update</input></div>
+				<div><input type="checkbox" id="updateOnType">Update on type</input></div>
+				<div><button onclick="newHTML();">New</button></div>
+				<div><input type="checkbox" onclick="toggleTitle();">Hide title</input></div>
+				<div><label for="tabSizeInput">Tab size:</label><input type="number" value="4" min="1" max="64" onkeyup="updateTabSize();" onclick="updateTabSize();" id="tabSizeInput"></div>
+				<div><label for="importFile">Import file:</label><input type="file" id="importFile"><button onclick="loadFile();">Load file</button></div>
+				<div><label for="websiteInput">Load file from website:</label><input id="websiteInput" placeholder="https://barb.gov/tom/index.html"><button onclick="loadFromWebsite();">Load</button></div>
 			</div>
-			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="input" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
+			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="input" spellcheck="false" onkeypress="inputKeyPress(event);" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
 			<textarea onfocus="jsInputFocus();" onfocusout="jsInputFocusOut();" placeholder="Type javascript" id="jsInput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
 			<button class="border border-top" style="width: 100%;" onclick="updateHTML();">Update HTML</button><br><br>
 			<div id="title">Title: </div>

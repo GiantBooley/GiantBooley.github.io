@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,25 +31,16 @@
 			border-radius: 10%;
 			background-color: gray;
 		}
-		button {
+		#switch {
 			position: absolute;
 			top: 80%;
 			left: 70%;
 			background-color: gray;
-			border: 5px outset blue;
-			width: 200px;
-			height: 100px;
+			outline: 5px outset blue;
 			font-family: arial;
-			font-size: 40px;
-			cursor: pointer;
+			font-size: 60px;
 			transition-duration: 0.3s;
-		}
-		button:active {
-			border-style: inset;
-		}
-		button:hover {
-			background-color: skyblue;
-			box-shadow: 0 0 10px midnightblue;
+			pointer-events: none;
 		}
 		#overlay {
 			background-color: black;
@@ -58,6 +50,16 @@
 			height: 100vh;
 			z-index: 5;
 			pointer-events: none;
+		}
+		#switchButton {
+			left: 0px;
+			height: 70px;
+			width: 50%;
+			position: absolute;
+			cursor: pointer;
+			pointer-events: auto;
+			transition-duration: 0.05s;
+			transition-timing-function: ease-in;
 		}
 	</style>
 	<script>
@@ -78,7 +80,8 @@
 				document.getElementById("bulb").style.boxShadow = "none";
 				document.getElementById("overlay").style.backgroundColor = "black";
 				document.getElementById("overlay").style.boxShadow = "none";
-				document.getElementById("overlay").style.opacity = "0.95";
+				document.getElementById("overlay").style.opacity = "0.9";
+				document.getElementById("switchButton").style.transform = "translateX(0%)";
 				sounds.on.pause();
 				sounds.on.currentTime = 0;
 				sounds.loop.pause();
@@ -87,10 +90,11 @@
 			} else {
 				on = true;
 				document.getElementById("bulb").style.backgroundColor = "yellow";
-				document.getElementById("bulb").style.boxShadow = "0 0 100px yellow";
+				document.getElementById("bulb").style.boxShadow = "0 0 300px 50px yellow";
 				document.getElementById("overlay").style.backgroundColor = "transparent";
 				document.getElementById("overlay").style.boxShadow = "inset 0 0 500px 100px black";
 				document.getElementById("overlay").style.opacity = "1";
+				document.getElementById("switchButton").style.transform = "translateX(100%)";
 				sounds.on.play();
 			};
 		};
@@ -99,7 +103,7 @@
 <body>
 	<div id="bulb"></div>
 	<div id="base"></div>
-	<button onclick="toggle();">ON/OFF</button>
+	<div id="switch"><button id="switchButton" onclick="toggle();"></button>ON <small>OFF</small></div>
 	<div id="overlay"></div>
 </body>
 </html>

@@ -26,21 +26,23 @@
 			function shortenNumber() {
 				document.getElementById("output").innerHTML = "overflow";
 				if (outputType.value == "zeros") {
-					shortenedNumber = returnShortenedNumber(Math.floor((input.valueAsNumber/3)-1));
-					document.getElementById("output").innerHTML = `shortened number: ${shortenedNumber}<br>latin prefix number: ${Math.floor((input.valueAsNumber/3)-1)}<br>zeros: ${Math.floor(input.valueAsNumber)}`;
+					shortenedNumber = returnShortenedNumber(Math.floor(input.valueAsNumber/3)-1);
+					document.getElementById("output").innerHTML = `shortened number: ${shortenedNumber}<br>prefix number: ${Math.floor((input.valueAsNumber/3)-1)}<br>zeros: ${Math.floor(input.valueAsNumber)}`;
 				} else if (outputType.value == "zeroGroups") {
 					shortenedNumber = returnShortenedNumber(Math.floor(input.valueAsNumber-1));
-					document.getElementById("output").innerHTML = `shortened number: ${shortenedNumber}<br>latin prefix number: ${Math.floor(input.valueAsNumber-1)}<br>zeros: ${Math.floor(input.valueAsNumber*3)}`; 
-				} else if (outputType.value == "latinPrefix") {
+					document.getElementById("output").innerHTML = `shortened number: ${shortenedNumber}<br>prefix number: ${Math.floor(input.valueAsNumber-1)}<br>zeros: ${Math.floor(input.valueAsNumber*3)}`; 
+				} else if (outputType.value == "prefix") {
 					shortenedNumber = returnShortenedNumber(Math.floor(input.valueAsNumber));
-					document.getElementById("output").innerHTML = `shortened number: ${shortenedNumber}<br>latin prefix number: ${Math.floor(input.valueAsNumber)}<br>zeros: ${Math.floor((input.valueAsNumber+1)*3)}`; 
+					document.getElementById("output").innerHTML = `shortened number: ${shortenedNumber}<br>prefix number: ${Math.floor(input.valueAsNumber)}<br>zeros: ${Math.floor((input.valueAsNumber+1)*3)}`; 
+				} else if (outputType.value == "realNumber") {
+					shortenedNumber = returnShortenedNumber(Math.floor(Math.log10(input.valueAsNumber)/3)-1);
+					document.getElementById("output").innerHTML = `shortened number: ${shortenedNumber}<br>prefix number: ${Math.floor(Math.log10(input.valueAsNumber)/3)-1}<br>zeros: ${Math.floor(Math.log10(input.valueAsNumber))}`; 
 				};
 			};
 			var interval = setInterval(function() {
 				outputType = document.getElementById("outputType");
 				input = document.getElementById("input");
 				if (outputType.value == "zeros") {
-					input.placeholder="ex. 93 => trigintillion";
 					if (Math.floor(input.valueAsNumber) > 30002 || Math.floor(input.valueAsNumber) < 33) {
 						input.style.backgroundColor = "darkorange";
 					} else {
@@ -53,7 +55,7 @@
 					} else {
 						input.style.backgroundColor = "white";
 					};
-				} else if (outputType.value == "latinPrefix") {
+				} else if (outputType.value == "prefix") {
 					input.placeholder="ex. 30 => trigintillion";
 					if (Math.floor(input.valueAsNumber) > 9999 || Math.floor(input.valueAsNumber) < 10) {
 						input.style.backgroundColor = "darkorange";
@@ -72,7 +74,8 @@
 		<select id="outputType">
 			<option value="zeros">Zeros</option>
 			<option value="zeroGroups">Zero groups</option>
-			<option value="latinPrefix">Latin prefix number</option>
+			<option value="prefix">Prefix number</option>
+			<option value="realNumber">Real number</option>
 		</select>
 		<input type="number" id="input" placeholder="ex. 6 => million" size="50">
 		<button type="button" onclick="shortenNumber();">Shorten number</button>

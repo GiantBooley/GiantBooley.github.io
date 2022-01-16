@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>bulb</title>
+	<style>
+		body {
+			padding: 0px;
+			margin: 0px;
+			background-color: darkslategray;
+		}
+		#bulb {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			width: 300px;
+			height: 300px;
+			border-radius: 50%;
+			background-color: darkgray;
+		}
+		#base {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, 130%);
+			z-index: -1;
+			width: 130px;
+			height: 100px;
+			border-radius: 10%;
+			background-color: gray;
+		}
+		button {
+			position: absolute;
+			top: 80%;
+			left: 70%;
+			background-color: gray;
+			border: 5px outset blue;
+			width: 200px;
+			height: 100px;
+			font-family: arial;
+			font-size: 40px;
+			cursor: pointer;
+			transition-duration: 0.3s;
+		}
+		button:active {
+			border-style: inset;
+		}
+		button:hover {
+			background-color: skyblue;
+			box-shadow: 0 0 10px midnightblue;
+		}
+		#overlay {
+			background-color: black;
+			opacity: 1;
+			position: absolute;
+			width: 100vw;
+			height: 100vh;
+			z-index: 5;
+			pointer-events: none;
+		}
+	</style>
+	<script>
+		var onSound = new Audio("https://www.fesliyanstudios.com/soundeffects-download.php?id=4898");
+		var on = false;
+		function toggle() {
+			if (on) {
+				on = false;
+				document.getElementById("bulb").style.backgroundColor = "darkgray";
+				document.getElementById("bulb").style.boxShadow = "none";
+				document.getElementById("overlay").style.backgroundColor = "black";
+				document.getElementById("overlay").style.boxShadow = "none";
+				document.getElementById("overlay").style.opacity = "1";
+				onSound.pause();
+				onSound.currentTime = 0;
+			} else {
+				onSound.play();
+				setTimeout(function(){
+					on = true;
+					document.getElementById("bulb").style.backgroundColor = "yellow";
+					document.getElementById("bulb").style.boxShadow = "0 0 100px yellow";
+					document.getElementById("overlay").style.backgroundColor = "transparent";
+					document.getElementById("overlay").style.boxShadow = "inset 0 0 500px 100px black";
+					document.getElementById("overlay").style.opacity = "1";
+			};
+		};
+	</script>
+</head>
+<body>
+	<div id="bulb"></div>
+	<div id="base"></div>
+	<button onclick="toggle();">BOB</button>
+	<div id="overlay"></div>
+</body>
+</html>

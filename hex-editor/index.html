@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Hex editor</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				background-color: cornsilk;
+				margin: 0;
+				overflow: hidden;
+			}
+			textarea {
+				width: 50%;
+				resize: none;
+				height: calc(100vh - 140px);
+			}
+			#hex {
+				float: left;
+			}
+		</style>
+		<script>
+			function import() {
+				var file = document.getElementById("import").files[0];
+				if (file) {
+					var reader = new FileReader();
+					reader.readAsText(file, "UTF-8");
+					reader.onload = function (evt) {
+						document.getElementById("ascii").innerHTML = evt.target.result;
+					}
+					reader.onerror = function (evt) {
+						document.getElementById("ascii").innerHTML = "error reading file";
+					};
+				};
+			};
+		</script>
+	</head>
+	<body>
+		<h1>Hex editor</h1>
+		<hr>
+		<input type="file" id="import">
+		<button onclick="import();">Import</button>
+		<button onclick="export();">Export</button>
+		<hr>
+		<div>
+			<textarea id="hex"></textarea>
+			<textarea id="ascii"></textarea>
+		</div>
+	</body>
+</html>

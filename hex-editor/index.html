@@ -8,7 +8,7 @@
 			}
 			body {
 				background-color: cornsilk;
-				margin: 0;
+				margin: 0px;
 				overflow: hidden;
 			}
 			textarea {
@@ -21,16 +21,41 @@
 			}
 		</style>
 		<script>
-			function import() {
+			String.prototype.hexEncode = function(){
+				var hex, i;
+				var result = "";
+				for (i=0; i<this.length; i++) {
+					hex = this.charCodeAt(i).toString(16);
+					result += ("000"+hex).slice(-4);
+				};
+				return result;
+			};
+			String.prototype.hexDecode = function(){
+				var j;
+				var hexes = this.match(/.{1,4}/g) || [];
+				var back = "";
+				for(j = 0; j<hexes.length; j++) {
+					back += String.fromCharCode(parseInt(hexes[j], 16));
+				};
+				return back;
+			};
+			function asciiToHex() {
+				document.getElementById("hex").value = document.getElementById("ascii").value.hexEncode().match(/.{1,2}/g).join(" ");
+			};
+			function hexToAscii() {
+				document.getElementById("ascii").value = document.getElementById("hex").value.hexDecode().replaceAll(" ", "");
+			};
+			function importFile() {
 				var file = document.getElementById("import").files[0];
 				if (file) {
 					var reader = new FileReader();
 					reader.readAsText(file, "UTF-8");
 					reader.onload = function (evt) {
-						document.getElementById("ascii").innerHTML = evt.target.result;
+						document.getElementById("ascii").value = evt.target.result;
+						asciiToHex();
 					}
 					reader.onerror = function (evt) {
-						document.getElementById("ascii").innerHTML = "error reading file";
+						document.getElementById("hex").value = "error reading file";
 					};
 				};
 			};
@@ -40,12 +65,12 @@
 		<h1>Hex editor</h1>
 		<hr>
 		<input type="file" id="import">
-		<button onclick="import();">Import</button>
+		<button onclick="importFile();">Import</button>
 		<button onclick="export();">Export</button>
 		<hr>
 		<div>
-			<textarea id="hex"></textarea>
-			<textarea id="ascii"></textarea>
+			<textarea onkeyup="hexToAscii();" id="hex"></textarea>
+			<textarea onkeyup="asciiToHex();" id="ascii"></textarea>
 		</div>
 	</body>
 </html>

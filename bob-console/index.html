@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 	<head>
@@ -81,15 +82,17 @@
 		};
 		function show(it) {
 			hacks.value+=`\n${it}\n>`;
+			bottom();
 		};
 		function showMid(it) {
 			hacks.value+=`\n${it}`;
+			bottom();
 		};
 		function getArgAfter(index) {
 			return currentLine().substr(currentLine().split(" ", index).join(" ").length+1, currentLine().length);
 		};
 		function bottom() {
-			hacks.scrollTo(hacks.scrollHeight);
+			hacks.scrollTo(0, hacks.scrollHeight);
 		};
 		function keyPress(e) {
 			if (coding) {
@@ -99,7 +102,7 @@
 						
 						case "hack":
 							if (typeof commandArg(1) == "undefined") {
-								show("Syntax error: expected a name.")
+								show("Syntax error: expected a name.");
 							} else {
 								coding = false;
 								let name = secondArg();

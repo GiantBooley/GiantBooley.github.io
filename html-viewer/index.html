@@ -65,13 +65,13 @@
 				outline: none;
 				tab-size: 4;
 			}
-			#input {
+			#HTMLInput {
 				background-color: white;
 				color: black;
 				height: 30em;
 				border-bottom: 1px solid black
 			}
-			#jsInput {
+			#consoleInput {
 				background-color: white;
 				color: black;
 				height: 2.8em;
@@ -80,6 +80,7 @@
 			textarea:focus {
 				border: none;
 				box-shadow: 0px 5px 10px gray;
+				opacity: 0.2;
 			}
 			.exitfull {
 				position: fixed;
@@ -115,21 +116,25 @@
 			.setting {
 				background-color: lightgray;
 				padding: 2px;
-				border-left: 1px solid gray;
-				border-right: 1px solid gray;
+				border: 1px solid gray;
 				margin: 0px;
 				height: 30px;
 				display: inline-block;
 				font-size: 1rem;
+				flex: 1
 			}
 			#settings {
 				background-color: darkgray;
 				border-top: 2px solid gray;
 				border-bottom: 2px solid gray;
-				height: 34px;
-				overflow: auto;
-				white-space: nowrap;
 				font-size: 0;
+				/*display: flex;
+				align-items: stretch;
+				justify-content: center;
+				align-content: stretch;
+				flex-wrap: wrap;
+				flex-direction: row;*/
+				
 				-ms-overflow-style: none;
 				scrollbar-width: none;
 			}
@@ -144,13 +149,13 @@
 			var newFile = "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\t\u003chead\u003e\n\t\t\u003cstyle\u003e\n\t\t\t\n\t\t\u003c/style\u003e\n\t\t\u003cscript\u003e\n\t\t\t\n\t\t\u003c/script\u003e\n\t\u003c/head\u003e\n\t\u003cbody\u003e\n\t\t\n\t\u003c/body\u003e\n\u003c/html\u003e";
 			var reader = new FileReader();
 			reader.onload = function (e) {
-				document.getElementById("input").value = e.target.result;
+				document.getElementById("HTMLInput").value = e.target.result;
 			};
 			function save() {
-				localStorage.setItem("HTMLSAVE", document.getElementById("input").value);
+				localStorage.setItem("HTMLSAVE", document.getElementById("HTMLInput").value);
 			};
 			window.onload = function(){
-				document.getElementById("input").value = localStorage.getItem("HTMLSAVE") ?? newFile;
+				document.getElementById("HTMLInput").value = localStorage.getItem("HTMLSAVE") ?? newFile;
 			};
 			function download(filename, text) {
 				var element = document.createElement("a");
@@ -165,10 +170,10 @@
 				document.body.removeChild(element);
 			};
 			function downloadHTML() {
-				download("index.html", document.getElementById("input").value);
+				download("index.html", document.getElementById("HTMLInput").value);
 			};
 			window.onbeforeunload = function(){
-				if (document.getElementById("input").value !== localStorage.getItem("HTMLSAVE")) {
+				if (document.getElementById("HTMLInput").value !== localStorage.getItem("HTMLSAVE")) {
 					return "Are you sure you want to leave?";
 				};
 			};
@@ -177,7 +182,7 @@
 					save();
 				};
 				document.getElementById("title").innerHTML = "Title: ";
-				document.getElementById("embed").srcdoc=document.getElementById("input").value;
+				document.getElementById("embed").srcdoc=document.getElementById("HTMLInput").value;
 				setTimeout(() => {
 					document.getElementById("title").innerText = "Title: "+document.getElementById("embed").contentWindow.document.getElementsByTagName("title")[0].innerText;
 				}, 100);
@@ -199,20 +204,20 @@
 			function darkMode() {
 				if (darkModeOn) {
 					darkModeOn = false;
-					document.getElementById("input").style.backgroundColor = "white";
-					document.getElementById("input").style.color = "black";
-					document.getElementById("jsInput").style.backgroundColor = "white";
-					document.getElementById("jsInput").style.color = "black";
+					document.getElementById("HTMLInput").style.backgroundColor = "white";
+					document.getElementById("HTMLInput").style.color = "black";
+					document.getElementById("consoleInput").style.backgroundColor = "white";
+					document.getElementById("consoleInput").style.color = "black";
 					document.body.style = "background-color: cornsilk; color: black";
 					document.getElementById("title").style.backgroundColor = "lightgray";
 					[...document.getElementsByClassName("setting")].forEach(element=>element.style.backgroundColor = "lightgray");
 					document.getElementById("settings").style.backgroundColor = "lightgray";
 				} else {
 					darkModeOn = true;
-					document.getElementById("input").style.backgroundColor = "darkslategray";
-					document.getElementById("input").style.color = "white";
-					document.getElementById("jsInput").style.backgroundColor = "darkslategray";
-					document.getElementById("jsInput").style.color = "white";
+					document.getElementById("HTMLInput").style.backgroundColor = "darkslategray";
+					document.getElementById("HTMLInput").style.color = "white";
+					document.getElementById("consoleInput").style.backgroundColor = "darkslategray";
+					document.getElementById("consoleInput").style.color = "white";
 					document.body.style = "background-color: #000723; color: white";
 					document.getElementById("title").style.backgroundColor = "gray";
 					[...document.getElementsByClassName("setting")].forEach(element=>element.style.backgroundColor = "dimgray");
@@ -224,22 +229,22 @@
 				document.getElementById("title").innerHTML = "Title: ";
 			};
 			function runJavascript() {
-				document.getElementById("embed").contentWindow.eval.call(window, document.getElementById("jsInput").value);
+				document.getElementById("embed").contentWindow.eval.call(window, document.getElementById("consoleInput").value);
 			};
 			function inputFocus() {
-				document.getElementById("input").style.overflow = "auto";
+				document.getElementById("HTMLInput").style.overflow = "auto";
 			};
 			function inputFocusOut() {
-				document.getElementById("input").style.overflow = "hidden";
+				document.getElementById("HTMLInput").style.overflow = "hidden";
 			};
-			function jsInputFocus() {
-				document.getElementById("jsInput").style.overflow = "auto";
+			function consoleInputFocus() {
+				document.getElementById("consoleInput").style.overflow = "auto";
 			};
-			function jsInputFocusOut() {
-				document.getElementById("jsInput").style.overflow = "hidden";
+			function consoleInputFocusOut() {
+				document.getElementById("consoleInput").style.overflow = "hidden";
 			};
 			function inputKeyPress(e) {
-				let input = document.getElementById("input");
+				let input = document.getElementById("HTMLInput");
 				if (e.code == "Enter" && e.ctrlKey) {
 					updateHTML();
 					window.scrollTo(0, document.body.scrollHeight);
@@ -247,7 +252,7 @@
 			};
 			function newHTML() {
 				if (confirm("Do you want to make a new thing")) {
-					document.getElementById("input").value = newFile;
+					document.getElementById("HTMLInput").value = newFile;
 				};
 			};
 			function toggleTitle() {
@@ -276,13 +281,13 @@
 			};
 			function loadFromWebsite() {
 				fetch(document.getElementById("websiteInput").value).then((resp) => resp.text()).then(function(data) {
-					document.getElementById("input").value = data;
+					document.getElementById("HTMLInput").value = data;
 				});
 			};
 			function copyInput() {
-				document.getElementById("input").select();
-				document.getElementById("input").setSelectionRange(0, 99999);
-				navigator.clipboard.writeText(document.getElementById("input").value);
+				document.getElementById("HTMLInput").select();
+				document.getElementById("HTMLInput").setSelectionRange(0, 99999);
+				navigator.clipboard.writeText(document.getElementById("HTMLInput").value);
 			};
 		</script>
 	</head>
@@ -301,8 +306,8 @@
 				<div class="setting"><label for="websiteInput">Load file from website:</label><input id="websiteInput" placeholder="https://barb.gov/tom/index.html"><button onclick="loadFromWebsite();">Load</button></div>
 				<div class="setting"><button onclick="copyInput(); this.innerText = 'Copied';" onmouseleave="this.innerText='Copy';">Copy</button></div>
 			</div>
-			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="input" spellcheck="false" onkeypress="inputKeyPress(event);" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
-			<textarea onfocus="jsInputFocus();" onfocusout="jsInputFocusOut();" placeholder="Type javascript" id="jsInput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
+			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="HTMLInput" spellcheck="false" onkeypress="inputKeyPress(event);" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
+			<textarea onfocus="consoleInputFocus();" onfocusout="consoleInputFocusOut();" placeholder="Type javascript" id="consoleInput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
 			<button class="border border-top" style="width: 100%;" onclick="updateHTML();">Update HTML</button><br><br>
 			<div id="title">Title: </div>
 			<button class="border" style="width:25%;" onclick="downloadHTML();">Download</button>

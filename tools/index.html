@@ -3,37 +3,38 @@
 	<title>Tools</title>
 	<head>
 		<style>
-body {
-  background-color: #FFF8DC;
-  color: black;
-}
-
-.dark-mode {
-  background-color: #000723;
-  color: white;
-}
+			body {
+				background-color: #FFF8DC;
+				color: black;
+				margin: 0px;
+				text-align: left;
+			}
+			.dark-mode {
+				background-color: #000723;
+				color: white;
+			}
 		</style>
 		<script>
+			Array.prototype.getRandom = function(){
+				return this[Math.floor(Math.random()*this.length)];
+			};
 			var darkMode = false;
 			function toggleDarkMode() {
-				if (darkMode == true) {
-					document.body.style.backgroundColor="cornsilk";
-					document.body.style.color="black";
-					darkMode=false;
+				if (darkMode) {
+					document.body.style.backgroundColor = "cornsilk";
+					document.body.style.color = "black";
+					darkMode = false;
 				} else {
-					document.body.style.backgroundColor="#000723";
-					document.body.style.color="white";
-					darkMode=true;
+					document.body.style.backgroundColor = "#000723";
+					document.body.style.color = "white";
+					darkMode = true;
 				};
 			};
-			var centered = false;
 			function toggleCentered() {
-				if (centered == true) {
-					document.body.style.textAlign="";
-					centered=false;
+				if (document.body.style.textAlign == "center") {
+					document.body.style.textAlign = "left";
 				} else {
-					document.body.style.textAlign="center";
-					centered=true;
+					document.body.style.textAlign = "center";
 				};
 			};
 			function getRandomInt(min, max) {
@@ -41,15 +42,14 @@ body {
 				max = Math.floor(max)+1;
 				return Math.floor(Math.random() * (max - min) + min);
 			};
-			function arrayRandom(itdotlength) {
-				return getRandomInt(0,itdotlength-1);
-			};
 			// eightBall
 			const eightBallResponses = ["It is certain.","It is decidedly so.","Without a doubt.","Yes definitely.","You may rely on it.","As i see it, yes.","Most likely.","Outlook good.","Yes.","Signs point to yes.","Reply hazy, try again.","Ask again later.","Better not tell you now.","Cannot predict now.","Concentrate and ask again.","Don\'t count on it.","My reply is no.","My sources say no.","Outlook not so good.","Very doubtful."];
 			function eightBallButtonClick() {
-				// if ( document.getElementById("eightBallInput").textLength > 0) {
-					document.getElementById("eightBallOutput").innerHTML=eightBallResponses[getRandomInt(0,eightBallResponses.length-1)];
-				// };
+				if ( document.getElementById("eightBallInput").value.length > 0) {
+					document.getElementById("eightBallOutput").innerHTML = eightBallResponses.getRandom();
+				} else {
+					document.getElementById("eightBallOutput").innerHTML = ["Type something in the box.", "<b onclick=\"location.href = '../bob-chatbot';\">Bob</b> knows what you just said.", "Type a question.", "Ask something."].getRandom();
+				};
 			};
 			// eightBall
 			
@@ -60,26 +60,24 @@ body {
 			// dice
 			
 			// coin
-			const coinFlipTypes = ["heads","tails"];
 			function coinFlip() {
-				document.getElementById("coinOutput").innerHTML=coinFlipTypes[Math.round(Math.random())];
+				document.getElementById("coinOutput").innerHTML = ["heads","tails"].getRandom();
 			};
 			// coin
 			
 			// rng
 			function rngGenerate() {
 				if (document.getElementById("rngInput2").valueAsNumber > document.getElementById("rngInput1").valueAsNumber) {
-					document.getElementById("rngOutput").innerHTML=getRandomInt(document.getElementById("rngInput1").valueAsNumber,document.getElementById("rngInput2").valueAsNumber)
+					document.getElementById("rngOutput").innerHTML = getRandomInt(document.getElementById("rngInput1").valueAsNumber,document.getElementById("rngInput2").valueAsNumber);
 				} else {
-					document.getElementById("rngOutput").innerHTML="Error";
+					document.getElementById("rngOutput").innerHTML = "Error";
 				};
 			};
 			// rng
 			
 			// dreidel
-			const dreidelSpinTypes = ["Nun","Shin","Hay","Gimel"];
 			function dreidelSpin() {
-				document.getElementById("dreidelOutput").innerHTML=dreidelSpinTypes[getRandomInt(0,3)];
+				document.getElementById("dreidelOutput").innerHTML = ["Nun","Shin","Hay","Gimel"].getRandom();
 			};
 			// dreidel
 			
@@ -87,7 +85,7 @@ body {
 			const plantGenPrefixes = ["brain","wrinkle","crunch","puff","slime","tangle","crumble","moist","squish","spore"];
 			const plantGenSuffixes = ["bulb","shroom","stalk","vine","weed","berry","fungus","puff","gill"];
 			function plantGenGenerate() {
-				document.getElementById("plantGenOutput").innerHTML=plantGenPrefixes[getRandomInt(0,plantGenPrefixes.length-1)]+plantGenSuffixes[getRandomInt(0,plantGenSuffixes.length-1)];
+				document.getElementById("plantGenOutput").innerHTML = plantGenPrefixes.getRandom() + plantGenSuffixes.getRandom();
 			};
 			// plantgen
 			
@@ -99,7 +97,7 @@ body {
 			// var storyGenStory = [""];
 			function storyGenGenerate() {
 				document.getElementById("storyGenOutput").style.display="block";
-				document.getElementById("storyGenOutput").value = `${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} ${storyGenStoryActions[arrayRandom(storyGenStoryActions.length)]} ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} and ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} got ${storyGenStoryFeelings[arrayRandom(storyGenStoryFeelings.length)]} at ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} because ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} got ${storyGenStoryActions[arrayRandom(storyGenStoryActions.length)]}. ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} thought that ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} got ${storyGenStoryActions[arrayRandom(storyGenStoryActions.length)]} by ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]}, but ${storyGenStoryNames[arrayRandom(storyGenStoryNames.length)]} thought otherwise.`;
+				document.getElementById("storyGenOutput").value = `${storyGenStoryNames.getRandom()} ${storyGenStoryActions.getRandom()} ${storyGenStoryNames.getRandom()} and ${storyGenStoryNames.getRandom()} got ${storyGenStoryFeelings.getRandom()} at ${storyGenStoryNames.getRandom()} because ${storyGenStoryNames.getRandom()} got ${storyGenStoryActions.getRandom()}. ${storyGenStoryNames.getRandom()} thought that ${storyGenStoryNames.getRandom()} got ${storyGenStoryActions.getRandom()} by ${storyGenStoryNames.getRandom()}, but ${storyGenStoryNames.getRandom()} thought otherwise.`;
 			};
 			// storygen
 			
@@ -109,17 +107,17 @@ body {
 			var multiplierInfinityDigits = 8.98846567431158;
 			var multiplierInfinityZeros = 307;
 			function multiplierReset() {
-				multiplierNumber=1;
+				multiplierNumber = 1;
 				multiplierInfinity = false;
 				multiplierInfinityDigits = 8.98846567431158;
 				multiplierInfinityZeros = 307;
-				document.getElementById("multiplierOutput").innerHTML=multiplierNumber;
+				document.getElementById("multiplierOutput").innerHTML = multiplierNumber;
 			};
 			function multiplierMultiply() {
 				if (multiplierNumber.toString() == "8.98846567431158e+307") {
 					multiplierInfinity = true;
 				};
-				if (multiplierInfinity == true) {
+				if (multiplierInfinity) {
 					multiplierInfinityDigits = multiplierInfinityDigits*2;
 					if (multiplierInfinityDigits >= 10) {
 						multiplierInfinityDigits = multiplierInfinityDigits-10;
@@ -129,7 +127,7 @@ body {
 				} else {
 					multiplierNumber=multiplierNumber*2;
 				};
-				document.getElementById("multiplierOutput").innerHTML=multiplierNumber;
+				document.getElementById("multiplierOutput").innerHTML = multiplierNumber;
 			};
 			// multiplier
 		</script>

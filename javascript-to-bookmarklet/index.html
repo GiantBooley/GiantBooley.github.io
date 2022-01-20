@@ -37,7 +37,7 @@
 		</style>
 		<script>
 			setTimeout(function(){
-				document.getElementById("input").innerText = localStorage.getItem("jsSave");
+				document.getElementById("input").value = localStorage.getItem("jsSave");
 			}, 100);
 			function save() {
 				localStorage.setItem("jsSave", document.getElementById("input").value)

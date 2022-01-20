@@ -35,6 +35,12 @@
 			}
 		</style>
 		<script>
+			setTimeout(function(){
+				document.getElementById("input").innerText = localStorage.getItem("jsSave");
+			}, 100);
+			function save() {
+				localStorage.setItem("jsSave", document.getElementById("input").value)
+			};
 			function convert() {
 				let input = document.getElementById("input").value;
 				for (let i = 0; i < input.length; i++) {
@@ -54,7 +60,7 @@
 		</script>
 	</head>
 	<body>
-		<h1>Javascript to bookmarklet</h1>
+		<h1>Javascript to bookmarklet <button onclick="save();">Save</button></h1>
 		<hr>
 		<textarea id="input" placeholder="type javascript but you cant do comments" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
 		<textarea id="output" rows="5" readonly></textarea>

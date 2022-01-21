@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			body {
+				margin: 0px;
+				background-color: cornsilk;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			textarea {
+				width: 50%;
+				height: calc(100vh - 100px);
+				font-family: sans-serif;
+				font-size: 1.5rem;
+			}
+			#input {
+				float: left;
+			}
+			#output {
+				
+			}
+		</style>
+		<script>
+			var converted = {
+				"A": "Α",
+				"B": "Β",
+				"E": "Ε",
+				"Z": "Ζ",
+				"H": "Η",
+				"I": "Ι",
+				"K": "Κ",
+				"M": "Μ",
+				"N": "Ν",
+				"O": "Ο",
+				"P": "Ρ",
+				"T": "Τ",
+				"Y": "Υ",
+				"X": "Χ",
+				"a": "а",
+				"c": "с",
+				"d": "ԁ",
+				"e": "е",
+				"h": "һ",
+				"i": "і",
+				"j": "ј",
+				"l": "ӏ",
+				// "n": "ո",
+				"o": "о",
+				"p": "р",
+				// "u": "ս",
+				"x": "х",
+				"y": "у"
+			};
+			function convert() {
+				document.getElementById("output").value = document.getElementById("input").value.split("").map(item=>converted[item] ?? item).join("");
+			};
+		</script>
+	</head>
+	<body>
+		<h1>Letter lookalike generator</h1>
+		<hr>
+		<textarea id="input" placeholder="Type stuff" onkeyup="convert();"></textarea>
+		<textarea id="output" readonly></textarea>
+	</body>
+</html>

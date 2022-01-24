@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,10 +5,6 @@
 	<style>
 		* {
 			box-sizing: border-box;
-		}
-		@font-face {
-			font-family: consolas;
-			src: url(consolas.ttf);
 		}
 		body {
 			background-color: cornsilk;
@@ -19,6 +14,7 @@
 			width: 45%;
 			height: calc(100vh - 100px);
 			float: left;
+			resize: none;
 		}
 		#runButton { 
 			font-size: 25px;
@@ -46,18 +42,21 @@
 	<iframe id="output" frameborder="0"></iframe>
 </body>
 <script>
-	document.getElementById("output").srcdoc = '<body style="background-color: black; color: white; font-family: consolas;">Bob tom fred mike</body>';
+	var outputStart = '<!DOCTYPE html><html><head><style>@font-face {font-family: consolas; src: url(https://giantbooley.github.io/javascript-viewer/consolas.ttf);} * {box-sizing: border-box; margin: 0; width: 100%; height: 100%;} textarea,textarea:focus {border: none; outline: none; background-color: black; color: lightgray; font-family: consolas, monospace;}</style></head><body style="overflow: hidden;"><textarea readonly>> node it</textarea></body></html>';
+	document.getElementById("output").srcdoc = outputStart;
 	function runJavascript() {
 		let output = document.getElementById("output");
-		output.srcdoc = '<body style="background-color: black; color: white; font-family: consolas;">> '+document.getElementById("input").value.substr(0, 25)+'...\n</body>';
-		output.contentWindow.console.log = function(value){
-			output.contentWindow.document.body.innerHTML += "\n"+value
+		output.srcdoc = outputStart;
+		output.contentWindow.console.log = output.contentWindow.console.warn = output.contentWindow.console.error = function(value){
+			output.contentWindow.document.querySelector("textarea").value += "\n"+value;
 		};
-		try {
-			output.contentWindow.eval.call(window, document.getElementById("input").value);
-		} catch (error) {
-			console.log(error);
-		};
+		setTimeout(function(){
+			try {
+				output.contentWindow.document.querySelector("textarea").value += "\n"+output.contentWindow.eval.call(window, document.getElementById("input").value);
+			} catch (error) {
+				output.contentWindow.document.querySelector("textarea").value = "> node it\nERROR: "+error;
+			};
+		}, 100);
 	};
 </script>
 </html>

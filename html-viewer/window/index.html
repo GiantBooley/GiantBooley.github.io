@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+			iframe {
+				width: 100vw;
+				height: 100vh;
+				border: none;
+				outline: none;
+			}
+		</style>
+	</head>
+	<body>
+		<iframe frameborder="0" srcdoc="" onload="loadDocument();" id="it"></iframe>
+	</body>
+	<script>
+		document.getElementById("it").srcdoc = decodeURIComponent(location.search.substring(location.search.lastIndexOf("?html=")+1, location.search.length));
+	</script>
+</html>

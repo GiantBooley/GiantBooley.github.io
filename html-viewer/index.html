@@ -305,6 +305,8 @@
 				<div class="setting"><label for="importFile">Import file:</label><input type="file" id="importFile"><button onclick="loadFile();">Load file</button></div>
 				<div class="setting"><label for="websiteInput">Load file from website:</label><input id="websiteInput" placeholder="https://barb.gov/tom/index.html"><button onclick="loadFromWebsite();">Load</button></div>
 				<div class="setting"><button onclick="copyInput(); this.innerText = 'Copied';" onmouseleave="this.innerText='Copy';">Copy</button></div>
+				<div class="setting"><input id="openInWindowCheckbox" type="checkbox"><label for="openInWindowCheckbox">Open in window</label></button></div>
+				<div class="setting"><label for="windowSettings">Window settings</label><input id="windowSettings" value="location=no,status=yes,menubar=no,scrollbars=yes,resizable=yes,width=500,height=500,modal=yes,dependent=yes"></div>
 			</div>
 			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="HTMLInput" spellcheck="false" onkeypress="inputKeyPress(event);" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
 			<textarea onfocus="consoleInputFocus();" onfocusout="consoleInputFocusOut();" placeholder="Type javascript" id="consoleInput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>

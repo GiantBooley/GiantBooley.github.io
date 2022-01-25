@@ -182,7 +182,7 @@
 					save();
 				};
 				document.getElementById("title").innerHTML = "Title: ";
-				document.getElementById("embed").srcdoc=document.getElementById("HTMLInput").value;
+				document.getElementById("embed").srcdoc = document.getElementById("HTMLInput").value.replaceAll("./", document.getElementById("rootURL").value);
 				setTimeout(() => {
 					document.getElementById("title").innerText = "Title: "+document.getElementById("embed").contentWindow.document.getElementsByTagName("title")[0].innerText;
 				}, 100);

@@ -1,59 +1,121 @@
+
+
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Word generator</title>
 		<style>
-			body {
-				background-color: cornsilk;
-				margin: 0px;
+			* {
+				box-sizing: border-box;
 			}
-			textarea {
-				height: 450px;
-				width: 49%;
+			#input,#output {
+				width: 50%;
+				height: calc(100vh - 420px);
+				resize: none;
+			}
+			#input {
+				float: left;
 			}
 			#output {
-				position: absolute;
-				right: 10px;
-				top: 125px;
+				float: right;
 			}
-			button {
-				width: 99%;
-				border-radius: 10px;
+			#data {
+				width: 100%;
+				height: calc(100vh - 410px);
+				float: left;
 			}
-			div {
-				width: 49%;
-				height: 480px;
-				overflow: auto;
-				border: 3px inset gray;
-				position: absolute;
-				background-color: white;
-				right: 4px;
-				bottom: 7px;
+			#storyLength {
+				width: 100px;
+			}
+			#generateButton {
+				width: 50%;
+			}
+			body {
+				background-color: cornsilk;
+				margin: 0;
+				white-space: nowrap;
+			}
+			#startingWord {
+				width: 20%;	
+				resize: none;
 			}
 		</style>
 		<script>
-			var words = new Array();
-			var lengths = new Array();
-			var length = new Number();
+			Array.prototype.getRandom = function(){
+				return this[Math.floor(Math.random()*this.length)];
+			};
 			function generate() {
-				length = 0;
-				lengths = [];
-				words = [];
-				let input = document.getElementById("input").value.split("\n");
+				let input = document.getElementById("data").value;
+				var bogreg = new regExp(`/\\s|\\S{${document.getElementById("segmentLength").valueAsNumber}}/g`);
+				input = input.match(bogreg);
+				document.querySelector("h1").innerHTML = (bogreg);
+				
+				let afters = {};
+				let output = "";
+				let previousWord = "";
+				
 				for (let i = 0; i < input.length; i++) {
-					words[input[i]] = input[i] ?? new String();
-					
+					afters[input[i]] = [];
 				};
-				document.getElementById("output").innerText = input;
+				
+				for (let i = 0; i < input.length; i++) {
+					if (i == input.length-1) {
+						afters[input[i]].push(input[0]);
+					} else {
+						afters[input[i]].push(input[i+1]);
+					};
+				};
+				
+				if (document.getElementById("input").value == "") {
+					previousWord = input.getRandom();
+				} else {
+					previousWord = document.getElementById("startingWord").value;
+				};
+				
+				output = previousWord+document.getElementById("inputType").value;
+				
+				for (let i = 0; i < document.getElementById("outputLength").valueAsNumber; i++) {
+					previousWord = afters[previousWord].getRandom();
+					output+=previousWord+document.getElementById("inputType").value;
+				};
+				document.getElementById("output").value = output
+			};
+			function loadFile(filename) {
+				fetch(filename).then((resp) => resp.text()).then(function(data) {
+					document.getElementById("data").value = data;
+				});
+			};
+			function inputKeyUp() {
+				if (document.getElementById("updateOnTypeCheckbox").checked) {
+					generate();
+				};
 			};
 		</script>
 	</head>
 	<body>
 		<h1>Word generator</h1>
-		<p>type words on each line and it will generate a word like them</p>
 		<hr>
-		<textarea id="input" placeholder="type words"></textarea><br>
-		<button onclick="generate();">Generate</button>
-		<textarea id="output" readonly></textarea>
+		<label>Datasets:</label>
+			<button onclick="loadFile('./datasets/bob.txt');">Bob</button>
+			<button onclick="loadFile('./datasets/do_now.txt');">Do now</button>
+			<button onclick="loadFile('./datasets/html.txt');">HTML</button>
+			<button onclick="loadFile('./datasets/essay.txt');">Essay</button>
+			<button onclick="loadFile('./datasets/quotes.txt');">Quotes</button>
+		<hr>
+		<label>Settings:</label>
+			<input type="checkbox" id="updateOnTypeCheckbox" checked>
+			<label for="updateOnTypeCheckbox">Update on type</label>
+			<label>|</label>
+			<label for="inputType">Input type:</label>
+			<label>|</label>
+			<label for="segmentLength">Segment length:</label>
+			<input type="number" id="segmentLength" value=2>
+		<hr>
+
+		<textarea id="data" placeholder="type data stuff"></textarea><br>
+		<textarea id="input" onkeyup="inputKeyUp();" placeholder="type stuff"></textarea>
+		<textarea id="output" readonly></textarea><br>
+		<label for="storyLength">Output length (letters):</label>
+		<input type="number" id="outputLength" value=100>
+		<button onclick="generate();" id="generateButton">Generate</button>
 	</body>
 </html>

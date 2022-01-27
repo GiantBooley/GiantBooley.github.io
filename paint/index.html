@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html>
 	<head>
@@ -44,16 +45,6 @@
 				z-index: -3;
 				transform: translate(-50%, -50%);
 			}
-			#colors {
-				float: right;
-				background-color: #FF5555;
-				outline: 1px solid black;
-			}
-			#brushSizeContainer {
-				background-color: #DDDDDD;
-				outline: 1px solid black;
-				float: right;
-			}
 			#brushSize {
 				width: 400px;
 			}
@@ -69,7 +60,7 @@
 				z-index: -1;
 			}
 			#canvas {
-				background-color: blue;
+				background-color: white;
 			}
 		</style>
 	</head>
@@ -78,15 +69,22 @@
 		<div id="canvas"></div>
 		<div id="topBar"></div>
 			<button onclick="clearDots();">Clear</button>
-			<div id="brushSizeContainer">
-				<label for="brushSize">Brush size:</label>
-				<input type="range" min="1" max="500" onmouseup="brushSize = this.value; document.getElementById('cursor').style.width = brushSize+'px'; document.getElementById('cursor').style.height = brushSize+'px';" id="brushSize" value="50">
-			</div>
 			<div id="coords">coords loading...</div>
-			<div id="colors"><label for="brushColor">Color:</label><input type="color" id="brushColor" onblur="document.getElementById('cursor').style.backgroundColor = this.value;" value="#FF0000"></div>
+			<label for="brushSize">Brush size:</label>
+			<input type="range" min="1" max="500" onmouseup="brushSize = this.value; document.getElementById('cursor').style.width = brushSize+'px'; document.getElementById('cursor').style.height = brushSize+'px';" id="brushSize" value="50">
+			<label for="brushColor">Color:</label><input type="color" id="brushColor" onblur="document.getElementById('cursor').style.backgroundColor = this.value;" value="#FF0000">
+			<button onclick="exportit();">Export</button>
+			<input type="file" id="importFile">
+			<button onclick="loadFile();">Import</button>
+			<input type="checkbox" onclick="toggleEraser();" id="eraserCheckbox">
+			<label for="eraserCheckbox">Eraser</label>
 		</div>
 	</body>
 	<script>
+		var reader = new FileReader();
+		reader.onload = function (e) {
+			document.getElementById("canvas").innerHTML = e.target.result;
+		};
 		var drawable = true;
 		var mouseX = 0;
 		var mouseY = 0;
@@ -94,7 +92,7 @@
 		var loop = setInterval(function(){
 			document.getElementById("cursor").style.left = mouseX+"px";
 			document.getElementById("cursor").style.top = mouseY+"px";
-			if (mouseDown && drawable) {
+			if (mouseDown && drawable && !document.getElementById("eraserCheckbox").checked) {
 				drawDot(mouseX, mouseY);
 			};
 			document.getElementById("coords").innerHTML = `x: ${mouseX}, y: ${mouseY}`;
@@ -111,6 +109,11 @@
 				drawable = true;
 			} else {
 				drawable = false;
+			};
+		});
+		document.body.addEventListener("click", function(){
+			if (document.getElementById("eraserCheckbox").checked && drawable) {
+				document.elementFromPoint(mouseX, mouseY).remove();
 			};
 		});
 		var oldXY = "start";
@@ -136,6 +139,30 @@
 				};
 			};
 			oldXY = [x, y];
+		};
+		function exportit() {
+			download("nft.txt", document.getElementById("canvas").innerHTML);
+		};
+		function download(filename, text) {
+			var element = document.createElement("a");
+			element.setAttribute("href", "data:text/plain;charset=utf-8," + encodeURIComponent(text));
+			element.setAttribute("download", filename);
+			
+			element.style.display = "none";
+			document.body.appendChild(element);
+			element.click();
+		
+			document.body.removeChild(element);
+		};
+		function loadFile() {
+			reader.readAsText(document.getElementById("importFile").files[0]);
+		};
+		function toggleEraser() {
+			if (document.getElementById("cursor").style.display == "none") {
+				document.getElementById("cursor").style.display = "block";
+			} else {
+				document.getElementById("cursor").style.display = "none";
+			};
 		};
 	</script>
 </html>																																																																																												

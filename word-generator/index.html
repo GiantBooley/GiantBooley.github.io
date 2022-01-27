@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html>
 	<head>
@@ -7,36 +5,34 @@
 			* {
 				box-sizing: border-box;
 			}
+			body,html {
+				width: 100%;
+				height: 100%;
+			}
 			#input,#output {
 				width: 50%;
-				height: calc(100vh - 420px);
-				resize: none;
-			}
-			#input {
+				height: 40vh;
+				resize: horizontal;
 				float: left;
-			}
-			#output {
-				float: right;
+				height: 40vh;
 			}
 			#data {
 				width: 100%;
-				height: calc(100vh - 410px);
+				height: 40vh;
 				float: left;
+				resize: vertical;
 			}
 			#storyLength {
 				width: 100px;
 			}
 			#generateButton {
-				width: 50%;
+				width: 100%;
+				float: left;
+				height: 5vh;
 			}
 			body {
 				background-color: cornsilk;
 				margin: 0;
-				white-space: nowrap;
-			}
-			#startingWord {
-				width: 20%;	
-				resize: none;
 			}
 		</style>
 		<script>
@@ -44,10 +40,7 @@
 				return this[Math.floor(Math.random()*this.length)];
 			};
 			function generate() {
-				let input = document.getElementById("data").value;
-				var bogreg = new regExp(`/\\s|\\S{${document.getElementById("segmentLength").valueAsNumber}}/g`);
-				input = input.match(bogreg);
-				document.querySelector("h1").innerHTML = (bogreg);
+				let input = document.getElementById("data").value.match(new RegExp(`(\\s|\\S){${document.getElementById("segmentLength").valueAsNumber}}`, "g"));
 				
 				let afters = {};
 				let output = "";
@@ -68,16 +61,16 @@
 				if (document.getElementById("input").value == "") {
 					previousWord = input.getRandom();
 				} else {
-					previousWord = document.getElementById("startingWord").value;
+					previousWord = document.getElementById("input").value.match(new RegExp(`(\\s|\\S){${document.getElementById("segmentLength").valueAsNumber}}`, "g")).at(-1);
 				};
 				
-				output = previousWord+document.getElementById("inputType").value;
+				output = document.getElementById("input").value.substring(0, document.getElementById("input").value.length-document.getElementById("segmentLength").valueAsNumber)+previousWord;
 				
-				for (let i = 0; i < document.getElementById("outputLength").valueAsNumber; i++) {
+				for (let i = 0; i < document.getElementById("outputLength").valueAsNumber/document.getElementById("segmentLength").valueAsNumber; i++) {
 					previousWord = afters[previousWord].getRandom();
-					output+=previousWord+document.getElementById("inputType").value;
+					output+=previousWord;
 				};
-				document.getElementById("output").value = output
+				document.getElementById("output").value = output;
 			};
 			function loadFile(filename) {
 				fetch(filename).then((resp) => resp.text()).then(function(data) {
@@ -109,13 +102,14 @@
 			<label>|</label>
 			<label for="segmentLength">Segment length:</label>
 			<input type="number" id="segmentLength" value=2>
+			<label>|</label>
+			<label for="outputLength">Output length (letters):</label>
+			<input type="number" id="outputLength" value=100>
 		<hr>
-
-		<textarea id="data" placeholder="type data stuff"></textarea><br>
-		<textarea id="input" onkeyup="inputKeyUp();" placeholder="type stuff"></textarea>
-		<textarea id="output" readonly></textarea><br>
-		<label for="storyLength">Output length (letters):</label>
-		<input type="number" id="outputLength" value=100>
-		<button onclick="generate();" id="generateButton">Generate</button>
+		<div id="textboxes">
+			<textarea id="data" placeholder="type data stuff" onkeyup="inputKeyUp();"></textarea><br>
+			<button onclick="generate();" id="generateButton">Generate</button><br>
+			<textarea id="input" onkeyup="inputKeyUp();" placeholder="type stuff"></textarea>
+			<textarea id="output" readonly></textarea>
 	</body>
 </html>

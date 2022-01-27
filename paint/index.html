@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 	<head>
@@ -8,6 +9,7 @@
 			body {
 				margin: 0;
 				cursor: default;
+				overflow: hidden;
 			}
 			body,html {
 				width: 100%;
@@ -20,11 +22,11 @@
 				position: absolute;
 				pointer-events: none;
 				opacity: 0.5;
-				z-index: 10;
 				border-radius: 50%;
 				transform: translate(-50%, -50%);
 				left: 50%;
 				top: 50%;
+				z-index: -2;
 			}
 			#coords {
 				background-color: orange;
@@ -39,23 +41,60 @@
 				background-color: red;
 				border-radius: 50%;
 				pointer-events: none;
+				z-index: -3;
 				transform: translate(-50%, -50%);
+			}
+			#colors {
+				float: right;
+				background-color: #FF5555;
+				outline: 1px solid black;
+			}
+			#brushSizeContainer {
+				background-color: #DDDDDD;
+				outline: 1px solid black;
+				float: right;
+			}
+			#brushSize {
+				width: 400px;
+			}
+			#topBar {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 100%;
+				height: 10vh;
+				background-color: #F5F5F5;
+				cursor: default;
+				box-shadow: 0px 0px 10px black;
+				z-index: -1;
+			}
+			#canvas {
+				background-color: blue;
 			}
 		</style>
 	</head>
 	<body onmousedown="mouseDown = true;" onmouseup="mouseDown = false;">
-		<button onclick="clearDots();">Clear</button>
-		<div id="coords">coords loading...</div>
 		<div id="cursor"></div>
+		<div id="canvas"></div>
+		<div id="topBar"></div>
+			<button onclick="clearDots();">Clear</button>
+			<div id="brushSizeContainer">
+				<label for="brushSize">Brush size:</label>
+				<input type="range" min="1" max="500" onmouseup="brushSize = this.value; document.getElementById('cursor').style.width = brushSize+'px'; document.getElementById('cursor').style.height = brushSize+'px';" id="brushSize" value="50">
+			</div>
+			<div id="coords">coords loading...</div>
+			<div id="colors"><label for="brushColor">Color:</label><input type="color" id="brushColor" onblur="document.getElementById('cursor').style.backgroundColor = this.value;" value="#FF0000"></div>
+		</div>
 	</body>
 	<script>
+		var drawable = true;
 		var mouseX = 0;
 		var mouseY = 0;
 		var mouseDown = false;
 		var loop = setInterval(function(){
 			document.getElementById("cursor").style.left = mouseX+"px";
 			document.getElementById("cursor").style.top = mouseY+"px";
-			if (mouseDown) {
+			if (mouseDown && drawable) {
 				drawDot(mouseX, mouseY);
 			};
 			document.getElementById("coords").innerHTML = `x: ${mouseX}, y: ${mouseY}`;
@@ -68,14 +107,23 @@
 		document.addEventListener("mousemove", function(e) {
 			mouseX = e.clientX;
 			mouseY = e.clientY;
+			if (e.clientY > 60) {
+				drawable = true;
+			} else {
+				drawable = false;
+			};
 		});
 		var oldXY = "start";
+		var brushSize = 50;
 		function drawDot(x, y) {
 			let dot = document.createElement("div");
 			dot.className = "dot";
+			dot.style.backgroundColor = document.getElementById("brushColor").value;
 			dot.style.left = x+"px";
 			dot.style.top = y+"px";
-			document.body.appendChild(dot);
+			dot.style.width = brushSize+"px";
+			dot.style.height = brushSize+"px";
+			document.getElementById("canvas").appendChild(dot);
 		};
 		function paintDot(x, y) {
 			if (oldXY == "start") {

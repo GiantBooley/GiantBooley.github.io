@@ -3,15 +3,25 @@
 	<title>Tools</title>
 	<head>
 		<style>
+			body,h2 {
+				margin: 0;
+			}
+			* {
+				box-sizing: border-box;
+			}
 			body {
 				background-color: #FFF8DC;
 				color: black;
-				margin: 0px;
 				text-align: left;
 			}
 			.dark-mode {
 				background-color: #000723;
 				color: white;
+			}
+			.tool {
+				box-shadow: 2px 2px 10px black;
+				margin: 10px;
+				padding: 3px;
 			}
 		</style>
 		<script>
@@ -136,19 +146,20 @@
 		<h1>Tools</h1>
 		<hr>
 		<label>Settings:</label>
-		<button type="button" onclick="toggleDarkMode();">Toggle dark mode</button>
+		<button onclick="toggleDarkMode();">Toggle dark mode</button>
 		<label>|</label>
-		<button type="button" onclick="toggleCentered();">Toggle centered</button>
+		<button onclick="toggleCentered();">Toggle centered</button>
 		<hr>
-		<div id="eightBall">
+		<div class="tool">
 			<h2>Magic 8 ball</h2>
+			<hr>
 			<input type="text" id="eightBallInput">
-			<button type="button" onclick="eightBallButtonClick()">Shake magic 8 ball</button>
+			<button onclick="eightBallButtonClick()">Shake magic 8 ball</button>
 			<b id="eightBallOutput"></b>
 		</div>
-		<hr>
-		<div id="dice">
+		<div class="tool">
 			<h2>Roll a die</h2>
+			<hr>
 			<label for="diceSides">Select amount of sides:</label>
 			<select id="diceSides">
 				<option value=6>6 (hexahedron)</option>
@@ -197,50 +208,49 @@
 				<option value=49>49</option>
 				<option value=50>50</option>
 			</select>
-			<button type="button" onclick="diceRoll();">Roll die</button>
+			<button onclick="diceRoll();">Roll die</button>
 			<b id="diceOutput"></b>
 		</div>
-		<hr>
-		<div id="coin">
+		<div class="tool">
 			<h2>Flip a coin</h2>
-			<button type="button" onclick="coinFlip();">Flip coin</button>
+			<hr>
+			<button onclick="coinFlip();">Flip coin</button>
 			<b id="coinOutput"></b>
 		</div>
-		<hr>
-		<div id="rng">
+		<div class="tool">
 			<h2>Random number generator</h2>
+			<hr>
 			<label>min:</label>
 			<input type="number" id="rngInput1">
 			<label>max:</label>
 			<input type="number" id="rngInput2">
-			<button type="button" onclick="rngGenerate();">Generate number</button>
+			<button onclick="rngGenerate();">Generate number</button>
 			<b id="rngOutput"></b>
 		</div>
-		<hr>
-		<div id="dreidel">
+		<div class="tool">
 			<h2>Spin a dreidel</h2>
-			<button type="button" onclick="dreidelSpin();">Spin dreidel</button>
+			<hr>
+			<button onclick="dreidelSpin();">Spin dreidel</button>
 			<b id="dreidelOutput"></b>
 		</div>
-		<hr>
-		<div id="plantGen">
+		<div class="tool">
 			<h2>Plant generator</h2>
-			<button type="button" onclick="plantGenGenerate();">Generate</button>
+			<hr>
+			<button onclick="plantGenGenerate();">Generate</button>
 			<b id="plantGenOutput"></b>
 		</div>
-		<hr>
-		<div id="storyGen">
+		<div class="tool">
 			<h2>Story generator</h2>
-			<button type="button" onclick="storyGenGenerate();">Generate</button><br>
+			<hr>
+			<button onclick="storyGenGenerate();">Generate</button><br>
 			<textarea readonly style="resize:none;display:none;" id="storyGenOutput" rows="15" cols="75"></textarea>
 		</div>
-		<hr>
-		<div id="multiplier">
+		<div class="tool">
 			<h2>Multiplier</h2>
-			<button type="button" onclick="multiplierReset();">Reset</button>
-			<button type="button" onclick="multiplierMultiply();">Multiply</button>
+			<hr>
+			<button onclick="multiplierReset();">Reset</button>
+			<button onclick="multiplierMultiply();">Multiply</button>
 			<b id="multiplierOutput">1</b>
 		</div>
-		<hr>
 	</body>
 </html>

@@ -61,6 +61,11 @@
 			}
 			#canvas {
 				background-color: white;
+				position: absolute;
+				bottom: 0px;
+				width: 100vw;
+				height: 100vh;
+				z-index: -5;
 			}
 		</style>
 	</head>
@@ -78,6 +83,8 @@
 			<button onclick="loadFile();">Import</button>
 			<input type="checkbox" onclick="toggleEraser();" id="eraserCheckbox">
 			<label for="eraserCheckbox">Eraser</label>
+			<label for="canvasBackground">Background:</label>
+			<input value="white" id="canvasBackground" onkeyup="document.getElementById('canvas').style.background = this.value">
 		</div>
 	</body>
 	<script>
@@ -92,8 +99,12 @@
 		var loop = setInterval(function(){
 			document.getElementById("cursor").style.left = mouseX+"px";
 			document.getElementById("cursor").style.top = mouseY+"px";
-			if (mouseDown && drawable && !document.getElementById("eraserCheckbox").checked) {
-				drawDot(mouseX, mouseY);
+			if (mouseDown && drawable) {
+				if (document.getElementById("eraserCheckbox").checked) {
+					alert(e.target)
+				} else {
+					drawDot(mouseX, mouseY);
+				};
 			};
 			document.getElementById("coords").innerHTML = `x: ${mouseX}, y: ${mouseY}`;
 		}, 10);
@@ -109,11 +120,6 @@
 				drawable = true;
 			} else {
 				drawable = false;
-			};
-		});
-		document.body.addEventListener("click", function(){
-			if (document.getElementById("eraserCheckbox").checked && drawable) {
-				document.elementFromPoint(mouseX, mouseY).remove();
 			};
 		});
 		var oldXY = "start";

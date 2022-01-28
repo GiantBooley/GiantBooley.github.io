@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -10,7 +11,7 @@
 			*,*::after,*::before {
 				box-sizing: border-box;
 				white-space: nowrap;
-				font-size: 1.8vh;
+				font-size: 16px;
 			}
 			button {
 				border: 3px outset gold;
@@ -36,7 +37,7 @@
 			}
 			#machines {
 				width: 30%;
-				height: calc(100% - 6.75em);
+				height: calc(100% - 88px);
 				bottom: 0px;
 				right: 0px;
 				overflow-x: hidden;
@@ -185,13 +186,16 @@
 			}
 			#settings {
 				width: 15%;
-				height: calc(85% - 6.75em);
+				height: calc(85% - 88px);
 				bottom: 15%;
 				left: 0px;
 			}
 			.setting {
 				text-align: center;
 				width: 100%;
+			}
+			.settingInput {
+				width: calc(100% - 4em);
 			}
 		</style>
 		<script>
@@ -345,7 +349,7 @@
 				document.getElementById("dynamiteStats").innerHTML = `Dynamite level: ${Game.machines.mineshaft.level}<br>Dynamite ore per second: ${Game.machines.mineshaft.ops}`;
 				document.getElementById("dynamiteButton").innerHTML = `Upgrade dynamite ${cost(Math.ceil(Game.machines.dynamite.cost))}`;
 
-				document.getElementById("quarryTruckStats").innerHTML = `Quarry truck level: ${Game.machines.quarryTruck.level}<br>Dynamite ore per second: ${Game.machines.quarryTruck.ops}`;
+				document.getElementById("quarryTruckStats").innerHTML = `Quarry truck level: ${Game.machines.quarryTruck.level}<br>Quarry truck ore per second: ${Game.machines.quarryTruck.ops}`;
 				document.getElementById("quarryTruckButton").innerHTML = `Upgrade quarry truck ${cost(Math.ceil(Game.machines.quarryTruck.cost))}`;
 
 				document.getElementById("megadrillStats").innerHTML = `Megadrill level: ${Game.machines.megadrill.level}<br>Megadrill ore per second: ${Game.machines.megadrill.ops}`;
@@ -492,7 +496,9 @@
 		</div>
 		<div id="settings" class="container">
 			<button class="setting" onclick="confirmWipeSave();" id="wipeSaveButton">Wipe save</button><br>
-			<button class="setting" onclick="save(); this.innerHTML = 'Saved';" onmouseleave="this.innerHTML = 'Save';">Save</button>
+			<button class="setting" onclick="save(); this.innerHTML = 'Saved';" onmouseleave="this.innerHTML = 'Save';">Save</button><br>
+			<label for="fontSizeInput">Font size:</label>
+			<input class="setting settingInput" id="fontSizeInput" onkeyup="document.querySelectorAll('*:not(.gold)').forEach(it=>it.style.fontSize = this.value);" value="16px">
 			<!--<input type="checkbox" id="rightClickCheckbox">right click</input>-->
 		</div>
 	</body>

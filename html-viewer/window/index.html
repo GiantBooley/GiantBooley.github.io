@@ -18,6 +18,6 @@
 		<iframe frameborder="0" srcdoc="" id="it"></iframe>
 	</body>
 	<script>
-		document.getElementById("it").srcdoc = decodeURIComponent(location.search.substring(location.search.lastIndexOf("?html=")+6, location.search.length));
+		document.getElementById("it").srcdoc = location.search.substring(location.search.lastIndexOf("?html=")+6, location.search.length).split("").map(item=>decodeURIComponent(item)).join("");
 	</script>
 </html>

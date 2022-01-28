@@ -4,6 +4,7 @@
 		<style>
 			body {
 				margin: 0;
+				overflow: hidden;
 			}
 			iframe {
 				width: 100vw;
@@ -14,7 +15,7 @@
 		</style>
 	</head>
 	<body>
-		<iframe frameborder="0" srcdoc="" onload="loadDocument();" id="it"></iframe>
+		<iframe frameborder="0" srcdoc="" id="it"></iframe>
 	</body>
 	<script>
 		document.getElementById("it").srcdoc = decodeURIComponent(location.search.substring(location.search.lastIndexOf("?html=")+6, location.search.length));

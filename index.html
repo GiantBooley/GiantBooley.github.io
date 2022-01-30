@@ -23,6 +23,15 @@
 				transition-duration: 0.1s;
 				user-select: none;
 			}
+			a:not(:visited):not(.external)::after {
+				content: "NEW";
+				background-color: red;
+				border-radius: 3px;
+				border: 2px solid white;
+				padding: 1px;
+				font-family: sans-serif;
+				margin-left: 3px;
+			}
 			a:hover {
 				color: #00FFFF;
 				background-color: #888888;
@@ -54,7 +63,7 @@
 	</head>
 	<body>
 		<h1>GiantBooley's website</h1>
-		<p>friends github: <a href="https://WyattNewman.github.io/">wyattnewman.github.io (this is my website)</a></p>
+		<p>friends github: <a href="https://wyattnewman.github.io/" class="external">wyattnewman.github.io (this is my website)</a></p>
 		<hr>
 		<div class="stuff category">
 			<h2>Random stuff (15)</h2>

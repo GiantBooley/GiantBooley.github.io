@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Commentifier</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0px;
+				background-color: cornsilk;
+			}
+			textarea {
+				width: 50%;
+				height: calc(100vh - 100px);
+				resize: none;
+			}
+			#input {
+				float: left;
+			}
+		</style>
+		<script>
+			'_____________________________'
+			/* _________________________ *\
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|                         |*|
+			|*|_________________________|*|
+			\*___________________________*/
+			
+			function doLetter(letter, howmany) {
+				let it = "";
+				for (let i = 0; i < howmany; i++) {
+					it+=letter;
+				};
+				return it;
+			};
+			function maxLineLength(it) {
+				let max = 0;
+				for (let i = 0; i < it.split("\n").length; i++) {
+					if (it.split("\n")[i].length > max) {
+						max = it.split("\n")[i].length;
+					};
+				};
+				return max;
+			};
+			var comments = {};
+			function doit(inp) {
+				comments = {
+					line: `/*\\\n|*| ${inp.replaceAll("\n", "\n|*| ")}\n\\*/`,
+					block: `'${doLetter("_", maxLineLength(inp)+4)}'\n/* ${doLetter("_", maxLineLength(inp))} *\\\n|*|${inp.replaceAll("\n", "|*|\n|*|")}`
+				};
+				document.getElementById("output").value = comments.block;
+			};
+		</script>
+	</head>
+	<body>
+		<h1>Commentifier</h1>
+		<hr>
+		<textarea id="input" placeholder="" onkeyup="doit(this.value);"></textarea>
+		<textarea id="output" placeholder="" readonly></textarea>
+	</body>
+</html>

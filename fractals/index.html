@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>sir pinski</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			:root {
+				--start-zoom: 100%;
+				--end-zoom: 200%;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				background-color: gray;
+			}
+			#flexdiv {
+				width: 100%;
+				height: 100%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				pointer-events: none;
+			}
+			#image {
+				background-image: url("./img/sierpinski_triangle.png");
+				width: 100vh;
+				height: 100vh;
+				background-size: 100% 100%;
+				animation: zoom 1s infinite ease-in;
+				background-position: bottom right;
+				pointer-events: all;
+			}
+			@keyframes zoom {
+				0% {
+					background-size: var(--start-zoom) var(--start-zoom);
+				}
+				100% {
+					background-size: var(--end-zoom) var(--end-zoom);
+				}
+			}
+			#animation {
+				width: 200px;
+			}
+		</style>
+		<script>
+			var imageData = {
+				anchor: "bottom left",
+				animation: "zoom 1s infinite ease-in",
+				zoom: "100% 200%",
+				image: "sierpinski_triangle.png"
+			};
+
+			function update() {
+				document.getElementById("image").style.backgroundImage = `url("./img/${imageData.image}")`;
+				document.getElementById("anchor").value = imageData.anchor;
+				document.getElementById("image").style.backgroundPosition = imageData.anchor;
+				document.getElementById("zoom").value = imageData.zoom;
+				document.documentElement.style.setProperty("--start-zoom", imageData.zoom.substring(0, imageData.zoom.indexOf(" ")));
+				document.documentElement.style.setProperty("--end-zoom", imageData.zoom.substring(imageData.zoom.indexOf(" ")+1, imageData.zoom.length));
+				document.getElementById("animation").value = imageData.animation;
+				document.getElementById("image").style.animation = imageData.animation;
+			};
+
+			function changeFractal(it) {
+				switch (it) {
+					case "sierpinski triangle":
+						if (document.getElementById("lores").checked) {
+							document.getElementById("image").style.backgroundImage = 'url("./img/sierpinski_triangle_budget.png")';
+						} else {
+							document.getElementById("image").style.backgroundImage = 'url("./img/sierpinski_triangle.png")';
+						};
+						document.getElementById("anchor").value = "bottom right";
+						document.getElementById("image").style.backgroundPosition = "bottom right";
+						document.getElementById("zoom").value = "100% 200%";
+						document.documentElement.style.setProperty("--start-zoom", "100%");
+						document.documentElement.style.setProperty("--end-zoom", "200%");
+					break;
+					case "mandelbrot set":
+						document.getElementById("image").style.backgroundImage = 'url("./img/mand.jpeg")';
+						document.getElementById("anchor").value = "left";
+						document.getElementById("image").style.backgroundPosition = "left";
+					break;
+					case "menger sponge":
+						if (document.getElementById("lores").checked) {
+							document.getElementById("image").style.backgroundImage = 'url("./img/menger_sponge_budget.png")';
+						} else {
+							document.getElementById("image").style.backgroundImage = 'url("./img/menger_sponge.png")';
+						};
+						document.getElementById("anchor").value = "50% 25%";
+						document.getElementById("image").style.backgroundPosition = "50% 25%";
+						document.getElementById("zoom").value = "100% 900%";
+						document.documentElement.style.setProperty("--start-zoom", "100%");
+						document.documentElement.style.setProperty("--end-zoom", "900%");
+					break;
+				};
+			};
+		</script>
+	</head>
+	<body>
+		<label for="anchor">Anchor:</label>
+		<input id="anchor" onkeyup="document.getElementById('image').style.backgroundPosition = this.value;" value="bottom right"><br>
+		<label for="animation">Animation:</label>
+		<input id="animation" value="zoom 1s infinite ease-in" onkeyup="document.getElementById('image').style.animation = this.value"><br>
+		<label for="fractalType">Fractal:</label>
+		<select id="fractalType" onchange="changeFractal(this.value);">
+			<option value="sierpinski triangle" selected="selected">Sierpinski triangle</option>
+			<!-- <option value="mandelbrot set">Mandelbrot set</option> -->
+			<option value="menger sponge">Menger sponge</option>
+		</select><br>
+		<label for="zoom">Zoom:</label>
+		<input id="zoom" onkeyup="document.documentElement.style.setProperty('--start-zoom', this.value.substring(0, this.value.indexOf(' '))); document.documentElement.style.setProperty('--end-zoom', this.value.substring(this.value.indexOf(' ')+1, this.value.length));" value="100% 200%"><br>
+		<input type="checkbox" id="lores">
+		<label for="lores">Lo res</label>
+		<div id="flexdiv">
+			<div id="image"></div>
+		</div>
+	</body>
+</html>

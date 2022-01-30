@@ -23,7 +23,7 @@
 				transition-duration: 0.1s;
 				user-select: none;
 			}
-			/*a:not(:visited):not(.external)::after {
+			a.new::after {
 				content: "NEW";
 				background-color: red;
 				border-radius: 3px;
@@ -131,4 +131,21 @@
 			</div>
 		</div>
 	</body>
+	<script>
+		if (localStorage.getItem("visitedLinks") == null) {
+			localStorage.setItem("visitedLinks", "[]");
+		};
+		var visited = JSON.parse(localStorage.getItem("visitedLinks"));
+		document.querySelectorAll("a:not(.external)").forEach((element)=>{
+			element.addEventListener("click", function(){
+				if (!visited.includes(element.href)) {
+					visited.push(element.href);
+					localStorage.setItem("visitedLinks", JSON.stringify(visited));
+				};
+			});
+			if (!visited.includes(element.href)) {
+				element.classList.add("new");
+			};
+		});
+	</script>
 </html>

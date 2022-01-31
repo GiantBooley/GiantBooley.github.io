@@ -140,6 +140,13 @@
 				document.getElementById("multiplierOutput").innerHTML = multiplierNumber;
 			};
 			// multiplier
+			
+			// capitalifier
+				var capitalifier = {};
+				capitalifier.capitalify = function(){
+					document.getElementById("capitalifierOutput").innerText = document.getElementById("capitalifierInput").value.split("").map(it=>{switch(Math.round(Math.random())){case 0:return it.toLowerCase();break;case 1:return it.toUpperCase()}}).join("");
+				};
+			// capitalifier
 		</script>
 	</head>
 	<body>
@@ -251,6 +258,13 @@
 			<button onclick="multiplierReset();">Reset</button>
 			<button onclick="multiplierMultiply();">Multiply</button>
 			<b id="multiplierOutput">1</b>
+		</div>
+		<div class="tool">
+			<h2>Capitalifier</h2>
+			<hr>
+			<input style="width: 30%;" id="capitalifierInput">
+			<button onclick="capitalifier.capitalify();">Capitalify</button>
+			<b id="capitalifierOutput"></b>
 		</div>
 	</body>
 </html>

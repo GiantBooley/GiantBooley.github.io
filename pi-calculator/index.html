@@ -27,34 +27,33 @@
 			label {
 				font-family: monospace;
 			}
-			#steps {
+			input {
 				font-family: monospace;
-				width: calc(100% - 7ch)
+			}
+			#steps {
+				width: calc(100% - 7ch);
+			}
+			#atonce {
+				width: calc(100% - 9ch);
 			}
 		</style>
 		<script>
-			var pibud = 0;
-			var numerator = 2;
-			var denominator = 3;
-			var addn = 1;
-			var addd = 0;
-			var i = 0;
 			var interval;
-			var atonce = 3;
 			
 			function calculate() {
 				document.getElementById("calculateButton").disabled = true;				
-				pi = 0;
-				numerator = 2;
-				denominator = 3;
-				addn = 1;
-				addd = 0;
-				i = 0;
+				let pi = 0;
+				let numerator = 2;
+				let denominator = 3;
+				let addn = 1;
+				let addd = 0;
+				let i = 0;
+				let oldPi;
 				document.getElementById("output").value = "";
 				
 				pi = 4*(numerator/denominator);
 				interval = setInterval(function(){
-					for (let ibudget = 0; ibudget < atonce; ibudget++) {
+					for (let ibudget = 0; ibudget < document.getElementById("atonce").valueAsNumber; ibudget++) {
 						addn++;
 						addd++;
 						if (addn >= 2) {
@@ -65,8 +64,12 @@
 							addd = 0;
 							denominator+=2;
 						};
+						oldPi = pi;
 						pi = 4*((pi/4)*(numerator/denominator));
-						document.getElementById("output").value = `${Math.floor(((i*atonce)/document.getElementById("steps").valueAsNumber)*10000)/100}%,\t${pi}\n`;
+						document.getElementById("output").value = `${Math.floor(((i*document.getElementById("atonce").valueAsNumber)/document.getElementById("steps").valueAsNumber)*10000)/100}%\nold: ${oldPi}\nnew: ${pi}\nAverage: ${(pi+oldPi)/2}\n`;
+						//if (document.getElementById("output").value.match(/\n/g).length > 3) {
+						//	document.getElementById("output").value = document.getElementById("output").value.substring(document.getElementById("output").value.indexOf("\n")+1, document.getElementById("output").value.length);
+						//};
 						document.getElementById("output").scrollTo(0, document.getElementById("output").scrollHeight);
 					};
 					i++;
@@ -82,7 +85,9 @@
 		<h1>Pi calculator</h1>
 		<hr>
 		<label for="steps">Steps:</label>
-		<input id="steps" type="number" value="100000">
+		<input id="steps" type="number" value="1000000"><br>
+		<label for="atonce">At once:</label>
+		<input id="atonce" type="number" value="100">
 		<button id="calculateButton" onclick="calculate();">Calculate</button>
 		<button onclick="clearInterval(interval); document.getElementById('calculateButton').disabled = false;">Stop</button>
 		<textarea id="output" readonly></textarea>

@@ -3,6 +3,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<title>Giantbooley</title>
 		<style>
 			* {
 				box-sizing: border-box;
@@ -25,7 +26,7 @@
 			}
 			a.new::after {
 				content: "NEW";
-				background-image: radial-gradient(orange, red);
+				background-image: radial-gradient(orange, #FF0000);
 				border-radius: 3px;
 				border: 3px double white;
 				padding: 1px;
@@ -33,7 +34,18 @@
 				margin-left: 3px;
 				font-size: 0.6rem;
 				display: inline;
-			}*/
+				position: absolute;
+				transform: translate(10px, 3px);
+				box-shadow: 2px 2px 2px gray, inset 5px 5px 10px #DD0000;
+				text-shadow: 0px 0px 10px white;
+				pointer-events: none;
+				text-align: center;
+				width: 3%;
+				height: 2em;
+			}
+			a.new:hover::after {
+				color: white;
+			}
 			a:hover {
 				color: #00FFFF;
 				background-color: #888888;

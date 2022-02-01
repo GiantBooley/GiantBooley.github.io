@@ -1,21 +1,55 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<title>File downloader</title>
 		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%:
+				height: 100%;
+			}
+			body {
+				margin: 0px;
+				background-color: cornsilk;
+			}
 			input {
 				width: 100%;
 			}
 			button {
 				padding: 50px 100px; 
-				border-radius:5000px;
+				border-radius: 5000px;
 				font-size: 50px;
 				color: white;
 				background-color: green;
+				transition-duration: 0.3s;
+				border: 15px outset limegreen;
+				box-shadow: 10px 20px 20px tan;
+				cursor: pointer;
 			}
 			button:hover {
-				box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
 				background-color: darkgreen;
-				color: white;
+				box-shadow: inset 5px 10px 20px black;
+				color: gold;
+				text-shadow: 0px 0px 10px gold;
+			}
+			button:active {
+				border-style: inset;
+			}
+			textarea {
+				width: 100vw;
+				height: 100vh;
+				border-radius: 5px;
+				border: none;
+			}
+			textarea:focus {
+				border: none;
+				outline: none;
+				box-shadow: 0px 0px 5px tan;
+			}
+			#downloadicon {
+				text-decoration: underline;
 			}
 		</style>
 		<script>
@@ -36,12 +70,12 @@
 			};
 		</script>
 	</head>
-	<body style="background-color:cornsilk">
+	<body>
 		<h1>File downloader</h1><hr>
 		<label for="filenameinput">file name:</label>
 		<input type="text" id="filenameinput" placeholder="type name">
 		<p>type contents</p>
-		<textarea id="input" placeholder="type here" rows="50" cols="150"></textarea><br>
-		<button onclick="downloadfile();">Download</button>
+		<textarea id="input" placeholder="type here"></textarea><br>
+		<button onclick="downloadfile();">DOWNLOAD <span id="downloadicon">↓</span></button>
 	</body>
 </html>

@@ -8,6 +8,7 @@
 	<style>
 		* {
 			box-sizing: border-box;
+			user-select: none;
 		}
 		html,body {
 			width: 100%;
@@ -22,13 +23,76 @@
 			height: 100px;
 			cursor: move;
 			background-color: red;
-			border: 5px outset red;
 			position: absolute;
 			top: 200px;
 			left: 200px;
 		}
 		#box:active {
 			box-shadow: 5px 5px 20px gray;
+		}
+		.edge-resizer {
+			position: absolute;
+			background-color: darkred;
+			border: 1px solid black;
+		}
+		.corner-resizer {
+			position: absolute;
+			background-color: darkred;
+			border: 1px solid black;
+			width: 10px;
+			height: 10px;
+		}
+		#rstl {
+			top: 0px;
+			left: 0px;
+			cursor: nwse-resize;
+		}
+		#rst {
+			top: 0px;
+			left: 50%;
+			width: calc(100% - 20px);
+			height: 10px;
+			transform: translateX(-50%);
+			cursor: ns-resize;
+		}
+		#rstr {
+			top: 0px;
+			right: 0px;
+			cursor: nesw-resize;
+		}
+		#rsl {
+			top: 50%;
+			left: 0px;
+			width: 10px;
+			height: calc(100% - 20px);
+			transform: translateY(-50%);
+			cursor: ew-resize;
+		}
+		#rsr {
+			top: 50%;
+			right: 0px;
+			width: 10px;
+			height: calc(100% - 20px);
+			transform: translateY(-50%);
+			cursor: ew-resize;
+		}
+		#rsbl {
+			bottom: 0px;
+			left: 0px;
+			cursor: nesw-resize;
+		}
+		#rsb {
+			bottom: 0px;
+			left: 50%;
+			width: calc(100% - 20px);
+			height: 10px;
+			transform: translateX(-50%);
+			cursor: ns-resize;
+		}
+		#rsbr {
+			bottom: 0px;
+			right: 0px;
+			cursor: nwse-resize;
 		}
 	</style>
 	<script>
@@ -40,7 +104,9 @@
 			x: 0,
 			y: 0
 		};
+		var targetId;
 		var mouseDown = false;
+		var startingRect;
 		function mouseMove(e) {
 			let box = document.getElementById("box");
 			mouse = {
@@ -48,23 +114,80 @@
 				y: e.clientY
 			};
 			if (mouseDown) {
-				box.style.left = mouse.x + offset.x + "px";
-				if (box.getBoundingClientRect().left < 0) {
-					box.style.left = "0px";
-				} else if (box.getBoundingClientRect().right > window.innerWidth) {
-					box.style.left = `${window.innerWidth - box.getBoundingClientRect().width}px`;
-				};
-				box.style.top = mouse.y + offset.y + "px";
-				if (box.getBoundingClientRect().top < 0) {
-					box.style.top = "0px";
-				} else if (box.getBoundingClientRect().bottom > window.innerHeight) {
-					box.style.top = `${window.innerHeight - box.getBoundingClientRect().height}px`;
+				switch (targetId) {
+					case "box":
+						box.style.left = mouse.x + offset.x + "px";
+						if (box.getBoundingClientRect().left < 0) {
+							box.style.left = "0px";
+							//updateOffset();
+						} else if (box.getBoundingClientRect().right > window.innerWidth) {
+							box.style.left = `${window.innerWidth - box.getBoundingClientRect().width}px`;
+							//updateOffset();
+						};
+						box.style.top = mouse.y + offset.y + "px";
+						if (box.getBoundingClientRect().top < 0) {
+							box.style.top = "0px";
+							//updateOffset();
+						} else if (box.getBoundingClientRect().bottom > window.innerHeight) {
+							box.style.top = `${window.innerHeight - box.getBoundingClientRect().height}px`;
+							//updateOffset();
+						};
+					break;
+					case "rst":
+						box.style.height = startingRect.bottom - mouse.y + "px";
+						box.style.top = (startingRect.bottom - box.getBoundingClientRect().height) + "px";
+					break;
+					case "rsl":
+						box.style.width = startingRect.right - mouse.x + "px";
+						box.style.left = (startingRect.right - box.getBoundingClientRect().width) + "px";
+					break;
+					case "rsr":
+						box.style.width = mouse.x - box.getBoundingClientRect().left + "px";
+					break;
+					case "rsb":
+						box.style.height = mouse.y - box.getBoundingClientRect().top + "px";
+					break;
+					case "rstl":
+						box.style.height = startingRect.bottom - mouse.y + "px";
+						box.style.top = (startingRect.bottom - box.getBoundingClientRect().height) + "px";
+						box.style.width = startingRect.right - mouse.x + "px";
+						box.style.left = (startingRect.right - box.getBoundingClientRect().width) + "px";
+					break;
+					case "rstr":
+						box.style.height = startingRect.bottom - mouse.y + "px";
+						box.style.top = (startingRect.bottom - box.getBoundingClientRect().height) + "px";
+						box.style.width = mouse.x - box.getBoundingClientRect().left + "px";
+					break;
+					case "rsbl":
+						box.style.height = mouse.y - box.getBoundingClientRect().top + "px";
+						box.style.width = startingRect.right - mouse.x + "px";
+						box.style.left = (startingRect.right - box.getBoundingClientRect().width) + "px";
+					break;
+					case "rsbr":
+						box.style.height = mouse.y - box.getBoundingClientRect().top + "px";
+						box.style.width = mouse.x - box.getBoundingClientRect().left + "px";
+					break;
 				};
 			};
 		};
+		function updateOffset() {
+			let box = document.getElementById("box");
+			offset = {
+				x: box.getBoundingClientRect().left - mouse.x,
+				y: box.getBoundingClientRect().top - mouse.y
+			};
+		};
+		function say(it) {
+			document.getElementById("da").innerText = it;
+		};
 	</script>
 </head>
-<body onmouseup="mouseDown = false;" onmousemove="mouseMove(event)">
-	<div id="box" onmousedown="mouseDown=true;offset={x:this.getBoundingClientRect().left-mouse.x,y:this.getBoundingClientRect().top-mouse.y}"></div>
+<body onmouseup="mouseDown = false;" onmousemove="mouseMove(event)" onmousedown="mouseDown = true; startingRect = document.getElementById('box').getBoundingClientRect(); targetId = event.target.id; updateOffset();">
+	<p id="da"></p>
+	<div id="box">
+		<div class="corner-resizer" id="rstl"></div> <div class="edge-resizer" id="rst"></div> <div class="corner-resizer" id="rstr"></div>
+		<div class="edge-resizer" id="rsl"></div>                                               <div class="edge-resizer" id="rsr"></div>
+		<div class="corner-resizer" id="rsbl"></div> <div class="edge-resizer" id="rsb"></div> <div class="corner-resizer" id="rsbr"></div>
+	</div>
 </body>
 </html>

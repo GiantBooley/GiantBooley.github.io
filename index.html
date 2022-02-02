@@ -1,91 +1,170 @@
+
+
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>pibud</title>
+		<title>Giantbooley</title>
 		<style>
 			* {
 				box-sizing: border-box;
 			}
-			html,body {
-				width: 100%;
-				height: 100%:
-			}
 			body {
+				background-color: cornsilk;
 				margin: 0px;
 			}
-			#wall {
-				width: 100px;
-				height: 100vh;
-				background-color: darkgray;
+			a {
+				background-color: #AAAAAA;
+				color: white;
+				padding: 5px;
+				text-decoration: none;
+				width: 50px;
+				border-radius: 5px;
+				border: 3px ridge #666666;
+				box-shadow: 2px 2px 2px gray, inset 5px 5px 10px #666666;
+				transition-duration: 0.1s;
+				user-select: none;
 			}
-			#floor {
-				width: 100%;
-				height: 100px;
-				background-color: darkgray;
+			a.new::after {
+				content: "NEW";
+				background-image: radial-gradient(orange, #FF0000);
+				border-radius: 3px;
+				border: 3px double white;
+				padding: 1px;
+				font-family: sans-serif;
+				margin-left: 3px;
+				font-size: 0.6rem;
+				display: inline;
 				position: absolute;
-				bottom: 0px;
+				transform: translate(10px, 3px);
+				box-shadow: 2px 2px 2px gray, inset 5px 5px 10px #DD0000;
+				text-shadow: 0px 0px 10px white;
+				pointer-events: none;
+				text-align: center;
+				width: 3%;
+				height: 2em;
 			}
-			#box {
-				width: 100px;
-				height: 100px;
-				background-color: gray;
-				position: absolute;
-				top: 100px;
-				left: 200px;
+			a.new:hover::after {
+				color: white;
+			}
+			a:hover {
+				color: #00FFFF;
+				background-color: #888888;
+				text-shadow: 0px 0px 3px #00FFFF;
+			} 
+			a:active {
+				background-color: #777777;
+			}
+			.unbloked {
+				display: none;
+			}
+			.buttons {
+				line-height: 2.25;
+			}
+			.broken {
+				opacity: 0.5;
+			}
+			h2 {
+				margin: 0;
+			}
+			.category {
+				margin: 10px;
+				padding: 3px;
+				box-shadow: 2px 2px 10px black;
+				border: 3px ridge #666666;
+				border-radius: 5px;
 			}
 		</style>
-		<script>
-			HTMLElement.prototype.isTouching = function(id) {
-				let rect1 = this.getBoundingClientRect();
-				let rect2 = document.getElementById(id).getBoundingClientRect();
-				return (rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x && rect1.y < rect2.y + rect2.height && rect1.y + rect1.height > rect2.y);
-			};
-			var isDown = {
-				ArrowUp: false,
-				ArrowDown: false,
-				ArrowLeft: false,
-				ArrowRight: false
-			};
-			var box = {
-				xv: 0,
-				yv: 0,
-				x: 100,
-				y: 200
-			};
-			var loop = setInterval(function(){
-				let boxel = document.getElementById("box");
-				let boxrect = boxel.getBoundingClientRect();
-				if (isDown.KeyD) {
-					box.xv += 1;
-				};
-				if (isDown.KeyA) {
-					box.xv -= 1;
-				};
-				box.x += box.xv;
-				boxel.style.left = box.x+"px";
-				if (boxel.isTouching("wall") || boxel.isTouching("floor")) {
-					box.x -= box.xv;
-					box.xv = 0;
-					boxel.style.left = box.x+"px";
-				};
-				box.y += box.yv;
-				boxel.style.top = box.y+"px";
-				if (boxel.isTouching("wall") || boxel.isTouching("floor")) {
-					box.y -= box.yv;
-					box.yv = 0;
-					if (boxel.isTouching("floor") && isDown.KeyW) {
-						box.yv = -10;
-					};
-					boxel.style.top = box.y+"px";
-				};
-				box.yv += 0.3;
-				box.xv *= 0.9;
-			}, 10);
-		</script>
 	</head>
-	<body onkeydown="isDown[event.code] = true;" onkeydown="isDown[event.code] = true;" onkeyup="isDown[event.code] = false;">
-		<div id="wall"></div>
-		<div id="box"></div>
-		<div id="floor"></div>
+	<body>
+		<h1>GiantBooley's website</h1>
+		<p>friends github: <a href="https://wyattnewman.github.io/" class="external">wyattnewman.github.io (this is my website)</a></p>
+		<hr>
+		<div class="stuff category">
+			<h2>Random stuff (15)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./fake-terminal">Fake terminal</a><br>
+				<a href="./fake-hack-decimal">Fake hack decimal</a><br>
+				<a href="./fake-hack-binary">Fake hack binary</a><br>
+				<a href="./bookmarklets">Bookmarklets</a><br>
+				<a href="./fake-hack-code">Fake code hack</a><br>
+				<a href="./click-the-button">Click the button</a><br>
+				<a href="./mining-simulator">Mining simulator</a><br>
+				<a href="./snake">Snake</a><br>
+				<a href="./big-techifier">Big techifier</a><br>
+				<a href="./chrome-simulator">Chrome simulator</a><br>
+				<a href="./bob-console">Bob console</a><br>
+				<a href="./light-bulb">Light bulb</a><br>
+				<a href="./paint">Paint</a><br>
+				<a href="./3d-button">3D button</a><br>
+				<a href="./infinite">1000 tabs</a><br>
+				<a href="./fractals">Fractals</a><br>
+				<a href="./movable-box">Box</a><br>
+				<a href="./spinning-thing-with-a-perfect-fit">Spinning thing</a><br>
+				<a href="./platformer">Platformer</a><br>
+			</div>
+		</div>
+		<div class="ai category">
+			<h2>AI stuff (3)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./story-lengthener">Story lengthener</a><br>
+				<a href="./bob-chatbot">Bob chatbot</a><br>
+				<a href="./word-generator">Word generator</a><br>
+			</div>
+		</div>
+		<div class="tools category">
+			<h2>Tools stuff (10)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./tools">Other tools</a><br>
+				<a href="./url-encode-decode">URL encoder and decoder</a><br>
+				<a href="./number-shortener">Number shortener</a><br>
+				<a href="./javascript-tester">Javascript tester</a><br>
+				<a href="./upside-down-calculator">Upside down calculator generator</a><br>
+				<a href="./file-downloader">File downloader</a><br>
+				<a href="./html-viewer">HTML viewer</a><br>
+				<a href="./website-embedder">Website embedder</a><br>
+				<a href="./discord-text-emoji-generator">Discord text emoji generator</a><br>
+				<a href="./javascript-to-bookmarklet">Javascript to bookmarklet</a><br>
+				<a href="./letter-lookalike-generator">Letter lookalike generator</a><br>
+				<a href="./commentifier">Commentifier</a><br>
+				<a href="./pi-calculator">Pi calculator</a><br>
+			</div>
+		</div>
+		<div class="unbloked category">
+			<h2>Unbloked stuff (2)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./unbloked/y8/www.y8.com/games/slope.html">slope unbloked</a><br>
+				<a href="./unbloked/y8/www.y8.com/games/subway_surfers_world_tour_houston.html">subway surfers unbloked</a><br>
+			</div>
+		</div>
+		<div class="broken category">
+			<h2>Broken stuff (3)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./nvidia-gaugan/gaugan.org/gaugan2">nvidia gaugan</a><br>
+				<a href="./javascript-viewer">Javascript viewer</a><br>
+				<a href="./hex-editor">Hex editor</a><br>
+			</div>
+		</div>
 	</body>
+	<script>
+		if (localStorage.getItem("visitedLinks") == null) {
+			localStorage.setItem("visitedLinks", "[]");
+		};
+		var visited = JSON.parse(localStorage.getItem("visitedLinks"));
+		document.querySelectorAll("a:not(.external)").forEach((element)=>{
+			element.addEventListener("click", function(){
+				if (!visited.includes(element.href)) {
+					visited.push(element.href);
+					localStorage.setItem("visitedLinks", JSON.stringify(visited));
+				};
+			});
+			if (!visited.includes(element.href)) {
+				element.classList.add("new");
+			};
+		});
+	</script>
 </html>

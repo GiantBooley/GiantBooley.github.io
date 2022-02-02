@@ -1,6 +1,32 @@
 
 <!DOCTYPE html>
 <html>
+	<textarea id="newFile" readonly>
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Thing</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+			}
+		</style>
+		<script>
+			
+		</script>
+	</head>
+	<body>
+		
+	</body>
+</html>
+	</textarea>
 	<head>
 		<title>HTML viewer</title>
 		<style>
@@ -144,9 +170,12 @@
 			#tabSizeInput {
 				width: 3em;
 			}
+			#newFile {
+				display: none;
+			}
 		</style>
 		<script>
-			var newFile = "\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\t\u003chead\u003e\n\t\t\u003cstyle\u003e\n\t\t\t\n\t\t\u003c/style\u003e\n\t\t\u003cscript\u003e\n\t\t\t\n\t\t\u003c/script\u003e\n\t\u003c/head\u003e\n\t\u003cbody\u003e\n\t\t\n\t\u003c/body\u003e\n\u003c/html\u003e";
+			var newFile = document.getElementById("newFile").value; /* `\u003c!DOCTYPE html\u003e\n\u003chtml\u003e\n\t\u003chead\u003e\n\t\t\u003cstyle\u003e\n\t\t\t\n\t\t\u003c/style\u003e\n\t\t\u003cscript\u003e\n\t\t\t\n\t\t\u003c/script\u003e\n\t\u003c/head\u003e\n\t\u003cbody\u003e\n\t\t\n\t\u003c/body\u003e\n\u003c/html\u003e`; */
 			var reader = new FileReader();
 			reader.onload = function (e) {
 				document.getElementById("HTMLInput").value = e.target.result;
@@ -182,6 +211,9 @@
 					save();
 				};
 				document.getElementById("title").innerHTML = "Title: ";
+				if (document.getElementById("openInWindowCheckbox").checked) {
+					open(encodeURIComponent(document.getElementById("HTMLInput").value.replaceAll("./", document.getElementById("rootURL").value)), "w", document.getElementById("windowSettings").value);
+				};
 				document.getElementById("embed").srcdoc = document.getElementById("HTMLInput").value.replaceAll("./", document.getElementById("rootURL").value);
 				setTimeout(() => {
 					document.getElementById("title").innerText = "Title: "+document.getElementById("embed").contentWindow.document.getElementsByTagName("title")[0].innerText;
@@ -289,6 +321,15 @@
 				document.getElementById("HTMLInput").setSelectionRange(0, 99999);
 				navigator.clipboard.writeText(document.getElementById("HTMLInput").value);
 			};
+			function allowTab(e) {
+				if (e.code == "Tab") {
+					e.preventDefault();
+					let selectionStart = e.target.selectionStart;
+					e.target.value = e.target.value.substring(0, e.target.selectionStart) + "\t" + e.target.value.substring(e.target.selectionEnd, e.target.value.length);
+					e.target.selectionStart = selectionStart+1;
+					e.target.selectionEnd = selectionStart+1;
+				};
+			};
 		</script>
 	</head>
 	<body>
@@ -309,8 +350,8 @@
 				<div class="setting"><label for="windowSettings">Window settings:</label><input id="windowSettings" value="location=no,status=yes,menubar=no,scrollbars=yes,resizable=yes,width=500,height=500,modal=yes,dependent=yes"></div>
 				<div class="setting"><label for="rootURL">Root url:</label><input id="rootURL" value="./"></div>
 			</div>
-			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="HTMLInput" spellcheck="false" onkeypress="inputKeyPress(event);" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea><br>
-			<textarea onfocus="consoleInputFocus();" onfocusout="consoleInputFocusOut();" placeholder="Type javascript" id="consoleInput" spellcheck="false" onkeydown="if(event.keyCode===9){var v=this.value,s=this.selectionStart,e=this.selectionEnd;this.value=v.substring(0, s)+'\t'+v.substring(e);this.selectionStart=this.selectionEnd=s+1;return false;}"></textarea>
+			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="HTMLInput" spellcheck="false" onkeypress="inputKeyPress(event);" onkeydown="allowTab(event);"></textarea><br>
+			<textarea onfocus="consoleInputFocus();" onfocusout="consoleInputFocusOut();" placeholder="Type javascript" id="consoleInput" spellcheck="false" onkeydown="allowTab(event);"></textarea>
 			<button class="border border-top" style="width: 100%;" onclick="updateHTML();">Update HTML</button><br><br>
 			<div id="title">Title: </div>
 			<button class="border" style="width:25%;" onclick="downloadHTML();">Download</button>

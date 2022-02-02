@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>pibud</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%:
+			}
+			body {
+				margin: 0px;
+			}
+			#wall {
+				width: 100px;
+				height: 100vh;
+				background-color: darkgray;
+			}
+			#floor {
+				width: 100%;
+				height: 100px;
+				background-color: darkgray;
+				position: absolute;
+				bottom: 0px;
+			}
+			#box {
+				width: 100px;
+				height: 100px;
+				background-color: gray;
+				position: absolute;
+				top: 100px;
+				left: 200px;
+			}
+		</style>
+		<script>
+			HTMLElement.prototype.isTouching = function(id) {
+				let rect1 = this.getBoundingClientRect();
+				let rect2 = document.getElementById(id).getBoundingClientRect();
+				return (rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x && rect1.y < rect2.y + rect2.height && rect1.y + rect1.height > rect2.y);
+			};
+			var isDown = {
+				ArrowUp: false,
+				ArrowDown: false,
+				ArrowLeft: false,
+				ArrowRight: false
+			};
+			var box = {
+				xv: 0,
+				yv: 0,
+				x: 100,
+				y: 200
+			};
+			var loop = setInterval(function(){
+				let boxel = document.getElementById("box");
+				let boxrect = boxel.getBoundingClientRect();
+				if (isDown.KeyD) {
+					box.xv += 1;
+				};
+				if (isDown.KeyA) {
+					box.xv -= 1;
+				};
+				box.x += box.xv;
+				boxel.style.left = box.x+"px";
+				if (boxel.isTouching("wall") || boxel.isTouching("floor")) {
+					box.x -= box.xv;
+					box.xv = 0;
+					boxel.style.left = box.x+"px";
+				};
+				box.y += box.yv;
+				boxel.style.top = box.y+"px";
+				if (boxel.isTouching("wall") || boxel.isTouching("floor")) {
+					box.y -= box.yv;
+					box.yv = 0;
+					if (boxel.isTouching("floor") && isDown.KeyW) {
+						box.yv = -10;
+					};
+					boxel.style.top = box.y+"px";
+				};
+				box.yv += 0.3;
+				box.xv *= 0.9;
+			}, 10);
+		</script>
+	</head>
+	<body onkeydown="isDown[event.code] = true;" onkeydown="isDown[event.code] = true;" onkeyup="isDown[event.code] = false;">
+		<div id="wall"></div>
+		<div id="box"></div>
+		<div id="floor"></div>
+	</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Giant number</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0px;
+				background-color: cornsilk;
+			}
+			#number {
+				width: 100%;
+				resize: none;
+				height: 60%;
+			}
+		</style>
+		<script>
+			var number = 0n;
+			function update() {
+				document.getElementById("number").value = number;
+			};
+		</script>
+	</head>
+	<body>
+		<h1>Giant number</h1>
+		<hr>
+		<div onclick="update();">
+			<button onclick="number = number + 1n">Add 1</button>
+			<button onclick="number = number * 2n">Times 2</button>
+			<button onclick="number = number ** 2n">Square</button>
+		</div>
+		<textarea id="number" readonly>0</textarea>
+	</body>
+</html>

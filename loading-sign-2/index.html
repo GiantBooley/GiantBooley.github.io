@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>it</title>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+		html,body {
+			width: 100%;
+			height: 100%;
+		}
+		body {
+			margin: 0;
+		}
+		#red {
+			width: 200px;
+			height: 200px;
+			background-color: red;
+			position: absolute;
+			top: 50%;
+			right: 50%;
+			transform-origin: top right;
+		}
+		#blue {
+			width: 200px;
+			height: 200px;
+			background-color: blue;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform-origin: top left;
+		}
+	</style>
+	<script>
+		var turn = "red";
+		degrees = {
+			"red": 0,
+			"blue": 0
+		};
+		var howmany = 0;
+		var loop = setInterval(function(){
+			degrees[turn] += 5;
+			document.getElementById(turn).style.transform = `rotate(${degrees[turn]}deg)`;
+			if (degrees[turn] == 360) {
+				degrees[turn] = 0;
+			};
+			if (degrees[turn] == 0 || degrees[turn] == 180) {
+				if (turn == "red") {
+					turn = "blue";
+				} else {
+					turn = "red";
+				};
+			};
+		}, 10);
+	</script>
+</head>
+<body>
+	<div id="red"></div>
+	<div id="blue"></div>
+</body>
+</html>

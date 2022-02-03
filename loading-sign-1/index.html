@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>load</title>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+		html,body {
+			width: 100%;
+			height: 100%;
+		}
+		body {
+			margin: 0px;
+			overflow: hidden;
+		}
+		#center {
+			width: 150px;
+			height: 150px;
+			background-color: black;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+		#box {
+			width: 150px;
+			height: 150px;
+			background-color: red;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -150%);
+			transform-origin: bottom right;
+		}
+	</style>
+	<script>
+		var degrees = 0;
+		var origin = "bottom right";
+		var posit = "-50%, -150%";
+		var loop = setInterval(function(){
+			let box = document.getElementById("box");
+			box.style.transformOrigin = origin;
+			box.style.transform = `translate(${posit}) rotate(${degrees}deg)`;
+			//say(degrees);
+			degrees+=5;
+			if (degrees == 180) {
+				degrees = 360;
+				origin = "bottom left";
+				posit = "50%, -50%";
+			};
+			if (degrees == 540) {
+				degrees = 720;
+				origin = "top left";
+				posit = "-50%, 50%";
+			};
+			if (degrees == 900) {
+				degrees = 1080;
+				origin = "top right";
+				posit = "-150%, -50%";
+			};
+			if (degrees == 1260) {
+				degrees = 0;
+				origin = "bottom right";
+				posit = "-50%, -150%";
+			};
+		}, 10);
+		const say=it=>document.getElementById("say").innerText=it;
+	</script>
+</head>
+<body>
+	<p id="say"></p>
+	<div id="center"></div>
+	<div id="box"></div>
+</body>
+</html>

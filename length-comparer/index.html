@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>len</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+			}
+			textarea {
+				width: 100%;
+				height: 80%;
+				white-space: pre;
+			}
+		</style>
+		<script>
+			function doit(el) {
+				document.getElementById("it").innerText = el.value.split("\n").map(it=>it.length).join(", ");
+			};
+		</script>
+	</head>
+	<body>
+		<textarea onkeyup="doit(this);"></textarea>
+		<b id="it"></b>
+	</body>
+</html>
+	

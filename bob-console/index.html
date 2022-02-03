@@ -16,10 +16,10 @@
 				width: 100%;
 				height: 100%;	
 			}
-			textarea::-webkit-scrollbar {
+			#hacks::-webkit-scrollbar {
 				width: 0px;
 			}
-			textarea {
+			#hacks {
 				font-family: Consolas;
 				color: #15C60D;
 				resize: none;
@@ -36,6 +36,7 @@
 					black 1px,
 					black 3px
 				);
+				cursor: progress;
 			}
 			#scanner {
 				width: 100%;
@@ -45,17 +46,24 @@
 				top: -30vh;
 				left: 0px;
 				animation: scan 3s infinite linear;
+				pointer-events: none;
 			}
 		</style>
 	</head>
 	<body>
-		<textarea id="hacks" onkeypress="keyPress(event);">loading...</textarea>
+		<textarea id="hacks" onkeypress="keyPress(event);" readonly>loading...</textarea>
 		<div id="scanner"></div>
 	</body>
 	<script>
+		Array.prototype.getRandom = function(){
+			return this[Math.floor(Math.random()*this.length)];
+		};
 		var passwordLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+=~[]{}]".split("");
 		var hacks = document.getElementById("hacks");
+		hacks.removeAttribute("readonly");
+		hacks.style.cursor = "default";
 		var coding = true;
+		var repeat;
 		var codeParts = [
 			"bob Bob = new Bob();",
 			"if (mikeNum.length >= document.body.getNumberOfStuff) {",
@@ -85,7 +93,7 @@
 			"hack": "Command: hack, Syntax: hack <name>, Use: to hack someone.",
 			"print": "Command: print, Syntax: print <what to say>, Use: to say something",
 			"font": "Command: font, Syntax: font [get|list|set <font>], Use: to set or get font type.",
-			"code": "Command: code, Syntax: code <lines>, Use: to code a hack.",
+			"code": "Command: code, Syntax: code, Use: to code a hack.",
 			"javascript": "Command: javascript, Syntax: javascript <what to run>, Use: to run javascript.",
 			"clear": "Command: clear, Syntax: clear, Use: to clear the console."
 		};
@@ -114,7 +122,18 @@
 		function bottom() {
 			hacks.scrollTo(0, hacks.scrollHeight);
 		};
+		var nameFormats = [
+			"`\nUsername: Xx_${name}_xX\nPassword: `",
+			"`\nUsername: ${name}_thegamer123\nPassword: `",
+			"`\nUsername: ${name}notfound\nPassword: `",
+			"`\nUsername: ${name}wastaken\nPassword: `",
+			"`\nUsername: ${name}\nPassword: `"
+		];
 		function keyPress(e) {
+			if (e.code == "KeyC" && e.ctrlKey) {
+				e.preventDefault();
+				alert(123);
+			};
 			if (coding) {
 				if (e.code == "Enter") {
 					e.preventDefault();
@@ -130,16 +149,16 @@
 								setTimeout(function(){
 									showMid("Recombobulating bisectors...");
 									setTimeout(function(){
-										showMid(`\nUsername: Xx_${name}_xX\nPassword: `);
+										showMid(eval(nameFormats.getRandom()));
 										let times = 100;
 										for (let i = 0; i < 100; i++) {
-											hacks.value+=passwordLetters[Math.floor(Math.random()*81)];
+											hacks.value += passwordLetters.getRandom()
 										};
-										var repeat = setInterval(function(){
+										repeat = setInterval(function(){
 											times--;
 											hacks.value = hacks.value.substr(0, hacks.value.length-times);
 											for (let i = 0; i < times; i++) {
-												hacks.value+=passwordLetters[Math.floor(Math.random()*81)];
+												hacks.value += passwordLetters.getRandom();
 											};
 											if (times <= 0) {
 												clearInterval(repeat);
@@ -166,8 +185,8 @@
 							let times = 0;
 							showMid("Downloading the Bob API...");
 							setTimeout(function(){
-								var repeat = setInterval(function(){
-									showMid(codeParts[Math.floor(Math.random()*codeParts.length)]);
+								repeat = setInterval(function(){
+									showMid(codeParts.getRandom());
 									times++;
 									if (times > initialTimes) {
 										clearInterval(repeat);
@@ -192,7 +211,7 @@
 								hacks.style.fontFamily = getArgAfter(2);
 								show(`Font set to "${getArgAfter(2)}"`);
 							} else if (commandArg(1) == "get") {
-								show(`Current font: "${hacks.style.fontFamily || "consolas"}"`)
+								show(`Current font: "${hacks.style.fontFamily || "consolas"}"`);
 							} else if (commandArg(1) == "list") {
 								show("font will be here");
 							} else {

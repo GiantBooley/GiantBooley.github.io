@@ -3,37 +3,57 @@
 <html>
 	<head>
 		<style>
-		@font-face { font-family: Consolas; src: url('https://giantbooley.github.io/fake-terminal/CONSOLA.TTF'); }
-		body {
-			margin: 0px;
-			padding: 0px;
-			overflow: hidden;
-		}
-		* {
-			box-sizing: border-box;
-		}
-		::-webkit-scrollbar {
-			width: 0px;
-		}
-		textarea {
-			font-family: Consolas;
-			color: #15C60D;
-			resize: none;
-			border: none;
-			outline: none;
-			width: 100%;
-			padding: 3px;
-			background-color: black;
-			height: 100vh;
-			scrollbar-width: none;
-		}
+			@font-face { font-family: Consolas; src: url('https://giantbooley.github.io/fake-terminal/CONSOLA.TTF'); }
+			body {
+				margin: 0px;
+				padding: 0px;
+				overflow: hidden;
+			}
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;	
+			}
+			textarea::-webkit-scrollbar {
+				width: 0px;
+			}
+			textarea {
+				font-family: Consolas;
+				color: #15C60D;
+				resize: none;
+				border: none;
+				outline: none;
+				width: 100%;
+				padding: 3px;
+				background-color: black;
+				height: 100vh;
+				scrollbar-width: none;
+				background-image: repeating-linear-gradient(
+					rgb(0, 64, 0),
+					rgb(0, 64, 0) 1px,
+					black 1px,
+					black 3px
+				);
+			}
+			#scanner {
+				width: 100%;
+				height: 50%;
+				background-image: linear-gradient(rgba(21, 198, 13, 0), rgba(21, 198, 13, 1));
+				position: absolute;
+				top: -30vh;
+				left: 0px;
+				animation: scan 3s infinite linear;
+			}
 		</style>
 	</head>
 	<body>
 		<textarea id="hacks" onkeypress="keyPress(event);">loading...</textarea>
+		<div id="scanner"></div>
 	</body>
 	<script>
-		var passwordLetters = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "_", "+", "=", "~", "[", "]", "{", "}"]
+		var passwordLetters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+=~[]{}]".split("");
 		var hacks = document.getElementById("hacks");
 		var coding = true;
 		var codeParts = [
@@ -65,7 +85,7 @@
 			"hack": "Command: hack, Syntax: hack <name>, Use: to hack someone.",
 			"print": "Command: print, Syntax: print <what to say>, Use: to say something",
 			"font": "Command: font, Syntax: font [get|list|set <font>], Use: to set or get font type.",
-			"code": "Command: code, Syntax: code, Use: to code a hack.",
+			"code": "Command: code, Syntax: code <lines>, Use: to code a hack.",
 			"javascript": "Command: javascript, Syntax: javascript <what to run>, Use: to run javascript.",
 			"clear": "Command: clear, Syntax: clear, Use: to clear the console."
 		};
@@ -142,15 +162,16 @@
 						
 						case "code":
 							coding = false;
+							let initialTimes = parseInt(commandArg(1));
+							let times = 0;
 							showMid("Downloading the Bob API...");
 							setTimeout(function(){
-								let times = 500;
 								var repeat = setInterval(function(){
 									showMid(codeParts[Math.floor(Math.random()*codeParts.length)]);
-									times--;
-									if (times <= 0) {
+									times++;
+									if (times > initialTimes) {
 										clearInterval(repeat);
-										show("500 LINES CODED");
+										show(initialTimes+" LINES CODED");
 										coding = true;
 									};
 								}, 10);
@@ -179,7 +200,7 @@
 							};
 						break;
 						
-						case "javascript":
+						case "javascript": case "js":
 							try {
 								show(eval.call(window, secondArg()));
 							} catch (error) {
@@ -200,11 +221,21 @@
 				e.preventDefault();
 			};
 		};
+		var scannerOpacity = 1;
+		document.getElementById("scanner").style.top = 0 - document.getElementById("scanner").getBoundingClientRect().height;
 		var loop = setInterval(function(){
 			hacks.selectionStart = hacks.value.length;
 			hacks.selectionEnd = hacks.value.length;
 			if (coding && currentLine().charAt(0) !== ">") {
-				hacks.value+=">";
+				hacks.value += ">";
+			};
+			let scanner = document.getElementById("scanner");
+			scanner.style.top = (scanner.getBoundingClientRect().top + 3) + "px";
+			scanner.style.opacity = scannerOpacity;
+			scannerOpacity -= (1 / window.innerHeight)*2;
+			if (scanner.getBoundingClientRect().top > window.innerHeight) {
+				scanner.style.top = (0 - scanner.getBoundingClientRect().height) + "px";
+				scannerOpacity = 1;
 			};
 		}, 10);
 	</script>

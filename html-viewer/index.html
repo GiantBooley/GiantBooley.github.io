@@ -321,14 +321,18 @@
 				document.getElementById("HTMLInput").setSelectionRange(0, 99999);
 				navigator.clipboard.writeText(document.getElementById("HTMLInput").value);
 			};
-			function allowTab(e) {
-				if (e.code == "Tab") {
+			function textareaKeyDown(e) {
+				let el = e.target;
+				if (e.code == "Tab" && !e.shiftKey) {
 					e.preventDefault();
-					let selectionStart = e.target.selectionStart;
-					e.target.value = e.target.value.substring(0, e.target.selectionStart) + "\t" + e.target.value.substring(e.target.selectionEnd, e.target.value.length);
-					e.target.selectionStart = selectionStart+1;
-					e.target.selectionEnd = selectionStart+1;
+					let selectionStart = el.selectionStart;
+					el.value = el.value.substring(0, el.selectionStart) + "\t" + el.value.substring(el.selectionEnd, el.value.length);
+					el.selectionStart = selectionStart+1;
+					el.selectionEnd = selectionStart+1;
 				};
+				//if (e.code == "Enter" && el.value.charAt(el.selectionStart-1) == "{" && el.value.charAt(el.selectionEnd) == "}") {
+				//	let tabs = el.value.substring(el.value.substring(0, el.selectionStart).lastIndexOf("\n")+1, el.value.substring(0, el.selectionStart).lastIndexOf("\t")).match("\t").length;
+				//};
 			};
 			function minify() {
 				let minifyInput = document.getElementById("HTMLInput").value;
@@ -370,8 +374,8 @@
 				<div class="setting"><input id="openInWindowCheckbox" type="checkbox"><label for="openInWindowCheckbox">Open in window</label></button></div>
 				<div class="setting"><label for="windowSettings">Window settings:</label><input id="windowSettings" value="location=no,status=yes,menubar=no,scrollbars=yes,resizable=yes,width=500,height=500,modal=yes,dependent=yes"></div>
 			</div>
-			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="HTMLInput" spellcheck="false" onkeypress="inputKeyPress(event);" onkeydown="allowTab(event);"></textarea><br>
-			<textarea onfocus="consoleInputFocus();" onfocusout="consoleInputFocusOut();" placeholder="Type javascript" id="consoleInput" spellcheck="false" onkeydown="allowTab(event);"></textarea>
+			<textarea onkeyup="if (document.getElementById('updateOnType').checked) {updateHTML();};" onfocus="inputFocus();" onfocusout="inputFocusOut();" placeholder="Type HTML" id="HTMLInput" spellcheck="false" onkeypress="inputKeyPress(event);" onkeydown="textareaKeyDown(event);"></textarea><br>
+			<textarea onfocus="consoleInputFocus();" onfocusout="consoleInputFocusOut();" placeholder="Type javascript" id="consoleInput" spellcheck="false" onkeydown="textareaKeyDown(event);"></textarea>
 			<button class="border border-top" style="width: 100%;" onclick="updateHTML();">Update HTML</button><br><br>
 			<div id="title">Title: </div>
 			<button class="border" style="width:25%;" onclick="downloadHTML();">Download</button>

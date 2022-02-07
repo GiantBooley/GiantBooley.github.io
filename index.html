@@ -161,12 +161,14 @@
 			localStorage.setItem("firstVisit", "false");
 			document.querySelectorAll("a:not(.external)").forEach((element) => {
 				visited.push(element.href);
+				localStorage.setItem("visitedLinks", JSON.stringify(visited));
 			});
 		};
 		document.querySelectorAll("a:not(.external)").forEach((element) => {
 			element.addEventListener("click", function(){
 				if (!visited.includes(element.href)) {
 					visited.push(element.href);
+					localStorage.setItem("visitedLinks", JSON.stringify(visited));
 				};
 			});
 			if (!visited.includes(element.href)) {

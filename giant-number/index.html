@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 	<head>
@@ -23,7 +24,12 @@
 		<script>
 			var number = 0n;
 			function update() {
-				document.getElementById("number").value = number;
+                let numberString = number.toString();
+                if (document.getElementById("shortenCheckbox").checked && numberString.length-1 >= 21) {
+			    	document.getElementById("number").value = `${numberString.charAt(0)}.${numberString.substring(1, 16)}e+${numberString.length-1}`; 
+                } else {
+			    	document.getElementById("number").value = numberString;
+                };
 			};
 		</script>
 	</head>
@@ -31,9 +37,16 @@
 		<h1>Giant number</h1>
 		<hr>
 		<div onclick="update();">
+            <input type="checkbox" id="shortenCheckbox">
+            <label for="shortenCheckbox">Shorten number</label>
+            <label>|</label>
 			<button onclick="number = number + 1n">Add 1</button>
 			<button onclick="number = number * 2n">Times 2</button>
+			<button onclick="number = number ** 0n">Dot</button>
+			<button onclick="number = number ** 1n">Line</button>
 			<button onclick="number = number ** 2n">Square</button>
+			<button onclick="number = number ** 3n">Cube</button>
+			<button onclick="number = number ** 4n">Tesseract</button>
 		</div>
 		<textarea id="number" readonly>0</textarea>
 	</body>

@@ -165,12 +165,12 @@
 			element.addEventListener("click", function(){
 				if (!visited.includes(element.href)) {
 					visited.push(element.href);
-					localStorage.setItem("visitedLinks", JSON.stringify(visited));
 				};
 			});
 			if (!visited.includes(element.href)) {
 				element.classList.add("new");
 			};
 		});
+		localStorage.setItem("visitedLinks", JSON.stringify(visited));
 	</script>
 </html>

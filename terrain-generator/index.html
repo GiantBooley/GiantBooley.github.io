@@ -66,17 +66,21 @@
 			document.querySelectorAll(".block").forEach(it=>it.remove());
 			document.documentElement.style.setProperty("--block-width", blockWidth + "px");
 			document.documentElement.style.setProperty("--block-height", blockHeight + "px");
-			var terrainHeight = randomNumber(15, 25);
+			var terrainHeight = randomNumber((window.innerHeight/blockHeight)/2.5, (window.innerHeight/blockHeight)/1.5);
 			for (let x = 0; x * blockWidth < window.innerWidth; x++) {
-				for (let y = 0; y < terrainHeight; y++) {
+				for (let y = 0; y < terrainHeight && y*blockHeight < window.innerHeight; y++) {
 					let block = document.createElement("div");
 					block.className = "block";
 					block.style.left = (x * blockWidth) + "px";
 					block.style.bottom = (y * blockHeight) + "px";
-					if (y+1 == terrainHeight) {
+					if (y+1 == terrainHeight) { //grass
 						block.style.background = `url("./img/blocks/grass.png")`;
-					} else if (y+1 == terrainHeight-1 || y+1 == terrainHeight-(randomNumber(1, 2))) {
+					} else if (y+1 == terrainHeight-1 || y+1 == terrainHeight-(randomNumber(1, 2))) { //dirt
 						block.style.background = `url("./img/blocks/dirt.png")`;
+					} else if (randomNumber(1,5) == 1) { //ore
+						block.style.background = `gray`;
+					} else { //stone
+						block.style.background = `url("./img/blocks/stone.png")`;
 					};
 					document.getElementById("blocks").appendChild(block);
 				};

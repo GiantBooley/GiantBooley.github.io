@@ -33,9 +33,26 @@
 				position: absolute;
 				bottom: 0px;
 			}
+			#generateButton {
+				font-size: 30px;
+				background-color: gold;
+				border: 5px solid black;
+				position: absolute;
+				border-radius: 10px;
+				top: 0px;
+				left: 50%;
+				transform: translateX(-50%);
+			}
+			#generateButton:hover {
+				background-color: orange;
+			}
+			#generateButton:active {
+				background-color: darkorange;
+			}
 		</style>
 	</head>
 	<body>
+		<button id="generateButton" onclick="generate();">Generate</button>
 		<div id="blocks"></div>
 	</body>
 	<script>
@@ -44,23 +61,26 @@
 		};
 		var blockWidth = 16;
 		var blockHeight = 16;
-		document.documentElement.style.setProperty("--block-width", blockWidth + "px");
-		document.documentElement.style.setProperty("--block-height", blockHeight + "px");
-		var terrainHeight = randomNumber(15, 25);
-		for (let x = 0; x * blockWidth < window.innerWidth; x++) {
-			for (let y = 0; y < terrainHeight; y++) {
-				let block = document.createElement("div");
-				block.className = "block";
-				block.style.left = (x * blockWidth) + "px";
-				block.style.bottom = (y * blockHeight) + "px";
-				if (y+1 == terrainHeight) {
-					block.style.background = `url("./img/blocks/grass.png")`;
-				} else if (y+1 == terrainHeight-1 || y+1 == terrainHeight-(randomNumber(1, 2))) {
-					block.style.background = `url("./img/blocks/dirt.png")`;
+		function generate() {
+			document.querySelectorAll(".block").forEach(it=>it.remove());
+			document.documentElement.style.setProperty("--block-width", blockWidth + "px");
+			document.documentElement.style.setProperty("--block-height", blockHeight + "px");
+			var terrainHeight = randomNumber(15, 25);
+			for (let x = 0; x * blockWidth < window.innerWidth; x++) {
+				for (let y = 0; y < terrainHeight; y++) {
+					let block = document.createElement("div");
+					block.className = "block";
+					block.style.left = (x * blockWidth) + "px";
+					block.style.bottom = (y * blockHeight) + "px";
+					if (y+1 == terrainHeight) {
+						block.style.background = `url("./img/blocks/grass.png")`;
+					} else if (y+1 == terrainHeight-1 || y+1 == terrainHeight-(randomNumber(1, 2))) {
+						block.style.background = `url("./img/blocks/dirt.png")`;
+					};
+					document.getElementById("blocks").appendChild(block);
 				};
-				document.getElementById("blocks").appendChild(block);
+				terrainHeight += randomNumber(-1, 1);
 			};
-			terrainHeight += randomNumber(-1, 1);
 		};
 	</script>
 </html>

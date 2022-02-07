@@ -154,13 +154,13 @@
 		if (localStorage.getItem("visitedLinks") == null) {
 			localStorage.setItem("visitedLinks", "[]");
 		};
+		var visited = JSON.parse(localStorage.getItem("visitedLinks"));
 		if (localStorage.getItem("firstVisit") == null) {
 			localStorage.setItem("firstVisit", "false");
 			document.querySelectorAll("a:not(.external)").forEach((element) => {
 				visited.push(element.href);
 			});
 		};
-		var visited = JSON.parse(localStorage.getItem("visitedLinks"));
 		document.querySelectorAll("a:not(.external)").forEach((element) => {
 			element.addEventListener("click", function(){
 				if (!visited.includes(element.href)) {

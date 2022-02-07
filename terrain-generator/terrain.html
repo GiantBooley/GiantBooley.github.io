@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>terrain generator</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+			}
+			:root {
+				--block-width: 16px;
+				--block-height: 16px;
+			}
+			#blocks {
+				width: 100%;
+				height: 100%;
+				background-color: skyblue;
+			}
+			.block {
+				width: var(--block-width);
+				height: var(--block-height);
+				background: url("./img/blocks/stone.png");
+				background-size: 100% 100%;
+				position: absolute;
+				bottom: 0px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="blocks"></div>
+	</body>
+	<script>
+		function randomNumber(min, max) {
+			return Math.floor(Math.random() * ((Math.floor(max) + 1) - Math.ceil(min)) + Math.ceil(min));
+		};
+		var blockWidth = 16;
+		var blockHeight = 16;
+		document.documentElement.style.setProperty("--block-width", blockWidth + "px");
+		document.documentElement.style.setProperty("--block-height", blockHeight + "px");
+		var terrainHeight = randomNumber(15, 25);
+		for (let x = 0; x * blockWidth < window.innerWidth; x++) {
+			for (let y = 0; y < terrainHeight; y++) {
+				let block = document.createElement("div");
+				block.className = "block";
+				block.style.left = (x * blockWidth) + "px";
+				block.style.bottom = (y * blockHeight) + "px";
+				if (y+1 == terrainHeight) {
+					block.style.background = `url("./img/blocks/grass.png")`;
+				} else if (y+1 == terrainHeight-1 || y+1 == terrainHeight-(randomNumber(1, 2))) {
+					block.style.background = `url("./img/blocks/dirt.png")`;
+				};
+				document.getElementById("blocks").appendChild(block);
+			};
+			terrainHeight += randomNumber(-1, 1);
+		};
+	</script>
+</html>

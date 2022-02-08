@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>it</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				background-color: black;
+			}
+			#box {
+				background-color: blue;
+				width: 200px;
+				height: 100px;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				border-radius: 10px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				color: white;
+				font-size: 1.5rem;
+				font-family: sans-serif;
+				user-select: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box">NO SIGNAL</div>
+	</body>
+	<script>
+		var x = 0;
+		var y = 0;
+		var xv = 1;
+		var yv = 1;
+		var move = setInterval(function(){
+			let box = document.getElementById("box");
+			x += xv;
+			update();
+			if (box.getBoundingClientRect().left < 0 || box.getBoundingClientRect().right > window.innerWidth) {
+				x -= xv;
+				update();
+				xv *= -1;
+			};
+			y += yv;
+			update();
+			if (box.getBoundingClientRect().top < 0 || box.getBoundingClientRect().bottom > window.innerHeight) {
+				y -= yv;
+				update();
+				yv *= -1;
+			};
+		}, 10);
+		function update() {
+			document.getElementById("box").style.left = x + "px";
+			document.getElementById("box").style.top = y + "px";
+		}
+	</script>
+</html>

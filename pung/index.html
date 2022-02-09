@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>ougj</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				background-color: green;
+				overflow: hidden;
+			}
+			.paddle {
+				background-color: blue;
+				width: 10px;
+				height: 100px;
+				position: absolute;
+			}
+			#player-1 {
+				left: 100px;
+			}
+			#player-2 {
+				right: 100px;
+			}
+			#ball {
+				width: 20px;
+				height: 20px;
+				background-color: black;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+			}
+			#message {
+				position: absolute;
+				left: 50%;
+				bottom: 0px;
+				transform: translateX(-50%);
+				font-family: sans-serif;
+				color: gold;
+				user-select: none;
+			}
+			#scoreboard {
+				position: absolute;
+				top: 0px;
+				left: 50%;
+				transform: translateX(-50%);
+				color: gold;
+				margin: 10px;
+				font-size: 3em;
+				user-select: none;
+				font-family: monospace;
+			}
+		</style>
+		<script>
+			function randomNumber(min, max) {
+				return Math.random() * (Math.floor(max) - Math.ceil(min)) + Math.ceil(min);
+			};
+			function isTouching(rect1, rect2) {
+				rect1 = rect1.getBoundingClientRect();
+				rect2 = rect2.getBoundingClientRect();
+				return (rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x && rect1.y < rect2.y + rect2.height && rect1.y + rect1.height > rect2.y);
+			};
+			var keysDown = {ArrowUp: false, ArrowDown: false};
+			var ballXV = -1;
+			var ballYV = 3;
+			var player2Speed = 0;
+			var playing = false;
+			var player1Score = 0;
+			var player2Score = 0;
+			var velRange = 8;
+			var loop = setInterval(function(){
+				if (playing) {
+					tick();
+				};
+			}, 10);
+			function tick() {
+				let speed = (keysDown.ArrowDown - keysDown.ArrowUp) * 2;
+				let player1 = document.getElementById("player-1");
+				let player2 = document.getElementById("player-2");
+				let ball = document.getElementById("ball");
+
+				/* MOVE PLAYER */
+				player1.style.top = (player1.getBoundingClientRect().top + speed) + "px";
+				if (player1.getBoundingClientRect().top < 0) {
+					player1.style.top = "0px";
+					speed = 0;
+				} else if (player1.getBoundingClientRect().bottom > window.innerHeight) {
+					player1.style.top = (window.innerHeight - player1.getBoundingClientRect().height) + "px";
+					speed = 0;
+				};
+
+				/* MOVE BALL */
+				ball.style.left = (ball.getBoundingClientRect().left + ballXV) + "px";
+				if (isTouching(ball, player1)) {
+					ball.style.left = (ball.getBoundingClientRect().left - ballXV) + "px";
+					ballXV *= -1;
+				};
+				if (isTouching(ball, player2)) {
+					ball.style.left = (ball.getBoundingClientRect().left - ballXV) + "px";
+					ballXV *= -1;
+				};
+				ball.style.top = (ball.getBoundingClientRect().top + ballYV) + "px";
+				if (ball.getBoundingClientRect().top < 0) {
+					ball.style.top = (ball.getBoundingClientRect().top - ballYV) - "px";
+					ballYV *= -1;
+				} else if (ball.getBoundingClientRect().bottom > window.innerHeight) {
+					ball.style.top = (ball.getBoundingClientRect().top - ballYV) - "px";
+					ballYV *= -1;
+				} else if (ball.getBoundingClientRect().left < 0) { /* YOU LOST */
+					playing = false;
+					player2Score++;
+					msg("YOU LOST (press space to start)");
+				} else if (ball.getBoundingClientRect().right > window.innerWidth) { /* YOU WON */
+					playing = false;
+					player1Score++;
+					msg("YOU WON (press space to start)");
+				};
+				document.getElementById("scoreboard").innerText = `${player1Score} | ${player2Score}`;
+				(ball.getBoundingClientRect().left < 0);
+				if (isTouching(ball, player1)) {
+					ball.style.top = ((ball.getBoundingClientRect().top - ballYV) + speed) + "px";
+					ballYV = (ballYV * -1) + speed;
+				};
+				if (isTouching(ball, player2)) {
+					ball.style.top = ((ball.getBoundingClientRect().top - ballYV) + player2Speed) + "px";
+					ballYV = (ballYV * -1) + player2Speed;
+				};
+				let ballY = (ball.getBoundingClientRect().bottom + ball.getBoundingClientRect().top) / 2;
+				let player2Y = (player2.getBoundingClientRect().bottom + player2.getBoundingClientRect().top) / 2;
+
+				/* MOVE ENUMY PERSOB */
+				player2Speed = 0;
+				if (player2Y > ballY) {
+					player2.style.top = (player2.getBoundingClientRect().top - 2) + "px";
+					player2Speed = -2;
+				} else if (player2Y < ballY) {
+					player2.style.top = (player2.getBoundingClientRect().top + 2) + "px";
+					player2Speed = 2;
+				};
+				if (player2.getBoundingClientRect().top < 0) {
+					player2.style.top = "0px";
+					player2Speed = 0;
+				} else if (player2.getBoundingClientRect().bottom > window.innerHeight) {
+					player2.style.top = (window.innerHeight - player2.getBoundingClientRect().height) + "px";
+					player2Speed = 0;
+				};
+			};
+			function msg(what) {
+				document.getElementById("message").innerHTML = what;
+			};
+			function reset() {
+				let ball = document.getElementById("ball");
+				ball.style.left = ((window.innerWidth / 2) - (ball.getBoundingClientRect().width / 2)) + "px";
+				ball.style.top = ((window.innerHeight / 2) - (ball.getBoundingClientRect().height / 2)) + "px";
+				ballXV = randomNumber(velRange * -1, velRange);
+				ballYV = randomNumber(velRange * -1, velRange);
+				msg("");
+				playing = true;
+			};
+		</script>
+	</head>
+	<body onkeypress="if(event.code=='Space'&&!playing){reset()}" onkeydown="keysDown[event.code]=true;" onkeyup="keysDown[event.code]=false">
+		<h1 id="message">Press space to start</button></h1>
+		<div class="paddle" id="player-1"></div>
+		<div class="paddle" id="player-2"></div>
+		<div id="ball"></div>
+		<h1 id="scoreboard">0 | 0</h1>
+	</body>
+</html>

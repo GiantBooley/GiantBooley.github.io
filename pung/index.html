@@ -58,6 +58,30 @@
 				user-select: none;
 				font-family: monospace;
 			}
+			#fake-ball {
+				width: 20px;
+				height: 20px;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+			}
+			.fake-ball-trail {
+				background-color: yellow;
+				width: 10px;
+				height: 10px;
+				border-radius: 50%;
+				position: absolute;
+				transform: translate(-50%, -50%);
+				opacity: 0.5;
+			}
+			#left-wall {
+				background-color: red;
+				width: 10px;
+				height: 100vh;
+				position: absolute;
+				left: 100px;
+				opacity: 0.1;
+			}
 		</style>
 		<script>
 			function randomNumber(min, max) {
@@ -68,6 +92,15 @@
 				rect2 = rect2.getBoundingClientRect();
 				return (rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x && rect1.y < rect2.y + rect2.height && rect1.y + rect1.height > rect2.y);
 			};
+			function XCenter(it) {
+				return (it.getBoundingClientRect().left + it.getBoundingClientRect().right) / 2;
+			};
+			function YCenter(it) {
+				return (it.getBoundingClientRect().bottom + it.getBoundingClientRect().top) / 2;
+			};
+			function clearTrail() {
+				document.querySelectorAll(".fake-ball-trail").forEach(it => it.remove());
+			};
 			var keysDown = {ArrowUp: false, ArrowDown: false};
 			var ballXV = -1;
 			var ballYV = 3;
@@ -76,25 +109,26 @@
 			var player1Score = 0;
 			var player2Score = 0;
 			var velRange = 8;
+
 			var loop = setInterval(function(){
 				if (playing) {
 					tick();
 				};
 			}, 10);
 			function tick() {
-				let speed = (keysDown.ArrowDown - keysDown.ArrowUp) * 2;
+				let player1Speed = (keysDown.ArrowDown - keysDown.ArrowUp) * 2;
 				let player1 = document.getElementById("player-1");
 				let player2 = document.getElementById("player-2");
 				let ball = document.getElementById("ball");
 
 				/* MOVE PLAYER */
-				player1.style.top = (player1.getBoundingClientRect().top + speed) + "px";
+				player1.style.top = (player1.getBoundingClientRect().top + player1Speed) + "px";
 				if (player1.getBoundingClientRect().top < 0) {
 					player1.style.top = "0px";
-					speed = 0;
+					player1Speed = 0;
 				} else if (player1.getBoundingClientRect().bottom > window.innerHeight) {
 					player1.style.top = (window.innerHeight - player1.getBoundingClientRect().height) + "px";
-					speed = 0;
+					player1Speed = 0;
 				};
 
 				/* MOVE BALL */
@@ -102,10 +136,41 @@
 				if (isTouching(ball, player1)) {
 					ball.style.left = (ball.getBoundingClientRect().left - ballXV) + "px";
 					ballXV *= -1;
+					clearTrail();
 				};
 				if (isTouching(ball, player2)) {
 					ball.style.left = (ball.getBoundingClientRect().left - ballXV) + "px";
 					ballXV *= -1;
+
+					/* TRAIL */
+					let fakeBallXV = ballXV * 2;
+					let fakeBallYV = ballYV * 2;
+					let fakeBall = document.getElementById("fake-ball");
+					fakeBall.style.left = ball.getBoundingClientRect().left + "px";
+					fakeBall.style.top = ball.getBoundingClientRect().top + "px";
+					playing = false;
+					var doPath = setInterval(function(){
+						fakeBall.style.left = (fakeBall.getBoundingClientRect().left + fakeBallXV) + "px";
+						fakeBall.style.top = (fakeBall.getBoundingClientRect().top + fakeBallYV) + "px";
+						if (fakeBall.getBoundingClientRect().top < 0) {
+							fakeBall.style.top = (fakeBall.getBoundingClientRect().top - fakeBallYV) - "px";
+							fakeBallYV *= -1;
+						} else if (fakeBall.getBoundingClientRect().bottom > window.innerHeight) {
+							fakeBall.style.top = (fakeBall.getBoundingClientRect().top - fakeBallYV) - "px";
+							fakeBallYV *= -1;
+						};
+					
+						let fakeBallTrail = document.createElement("div");
+						fakeBallTrail.className = "fake-ball-trail";
+						fakeBallTrail.style.left = XCenter(fakeBall) + "px";
+						fakeBallTrail.style.top = YCenter(fakeBall) + "px";
+						document.body.appendChild(fakeBallTrail);
+						if (!(fakeBall.getBoundingClientRect().left > player1.getBoundingClientRect().right)) {
+							clearInterval(doPath);
+							playing = true;
+						};
+					}, 1);
+
 				};
 				ball.style.top = (ball.getBoundingClientRect().top + ballYV) + "px";
 				if (ball.getBoundingClientRect().top < 0) {
@@ -124,27 +189,25 @@
 					msg("YOU WON (press space to start)");
 				};
 				document.getElementById("scoreboard").innerText = `${player1Score} | ${player2Score}`;
-				(ball.getBoundingClientRect().left < 0);
 				if (isTouching(ball, player1)) {
-					ball.style.top = ((ball.getBoundingClientRect().top - ballYV) + speed) + "px";
-					ballYV = (ballYV * -1) + speed;
+					ball.style.top = ((ball.getBoundingClientRect().top - ballYV) + player1Speed) + "px";
+					ballYV = (ballYV * -1) + player1Speed;
 				};
 				if (isTouching(ball, player2)) {
 					ball.style.top = ((ball.getBoundingClientRect().top - ballYV) + player2Speed) + "px";
 					ballYV = (ballYV * -1) + player2Speed;
 				};
-				let ballY = (ball.getBoundingClientRect().bottom + ball.getBoundingClientRect().top) / 2;
-				let player2Y = (player2.getBoundingClientRect().bottom + player2.getBoundingClientRect().top) / 2;
 
 				/* MOVE ENUMY PERSOB */
 				player2Speed = 0;
-				if (player2Y > ballY) {
-					player2.style.top = (player2.getBoundingClientRect().top - 2) + "px";
-					player2Speed = -2;
-				} else if (player2Y < ballY) {
-					player2.style.top = (player2.getBoundingClientRect().top + 2) + "px";
-					player2Speed = 2;
-				};
+				// if (YCenter(player2) > YCenter(ball)) {
+				// 	player2.style.top = (player2.getBoundingClientRect().top - 2) + "px";
+				// 	player2Speed = -2;
+				// } else if (YCenter(player2) < YCenter(ball)) {
+				// 	player2.style.top = (player2.getBoundingClientRect().top + 2) + "px";
+				// 	player2Speed = 2;
+				// };
+				player2.style.top = (YCenter(ball) - (player2.getBoundingClientRect().height / 2)) + "px";
 				if (player2.getBoundingClientRect().top < 0) {
 					player2.style.top = "0px";
 					player2Speed = 0;
@@ -164,6 +227,7 @@
 				ballYV = randomNumber(velRange * -1, velRange);
 				msg("");
 				playing = true;
+				clearTrail();
 			};
 		</script>
 	</head>
@@ -173,5 +237,7 @@
 		<div class="paddle" id="player-2"></div>
 		<div id="ball"></div>
 		<h1 id="scoreboard">0 | 0</h1>
+		<div id="fake-ball"></div>
+		<div id="left-wall"></div>
 	</body>
 </html>

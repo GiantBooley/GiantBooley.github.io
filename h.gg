@@ -1,1 +1,0 @@
-open("https://giantbooley.github.io/html-viewer/window/?html="+encodeURIComponent(document.querySelector("tbody").innerText), "_blank");

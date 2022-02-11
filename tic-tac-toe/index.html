@@ -47,31 +47,47 @@
 			}
 		</style>
 		<script>
+			Array.prototype.getRandom = function(){
+				return this[Math.floor(Math.random() * this.length)];
+			};
+			function randomNumber(min, max) {
+				return Math.floor(Math.random() * ((Math.floor(max) + 1) - Math.ceil(min)) + Math.ceil(min));
+			};
 			var checked = ["", "", "", "", "", "", "", "", ""];
 			function check(number) {
 				var boxes = document.getElementsByClassName("xoro");
 				checked[number] = "O";
 				boxes[number].innerHTML = checked[number];
 				boxes[number].disabled = true;
+				let open = [];
+				checked.forEach((it, what) => {
+					if (it == "") {
+						open.push(what);
+					};
+				});
+				let budget = open.getRandom();
+				checked[budget] = "X";
+				boxes[budget].innerHTML = "X";
+				boxes[budget].disabled = true;
 			};
 		</script>
 	</head>
 	<body>
 		<table>
 			<tr>
-				<td><button class="xoro" onclick="check(0)"></button></td>
-				<td><button class="xoro" onclick="check(1)"></button></td>
-				<td><button class="xoro" onclick="check(2)"></button></td>
+				<td><button class="xoro" onclick="check(0);"></button></td>
+				<td><button class="xoro" onclick="check(1);"></button></td>
+				<td><button class="xoro" onclick="check(2);"></button></td>
 			</tr>
 			<tr>
-				<td><button class="xoro" onclick="check(3)"></button></td>
-				<td><button class="xoro" onclick="check(4)"></button></td>
-				<td><button class="xoro" onclick="check(5)"></button></td>
+				<td><button class="xoro" onclick="check(3);"></button></td>
+				<td><button class="xoro" onclick="check(4);"></button></td>
+				<td><button class="xoro" onclick="check(5);"></button></td>
 			</tr>
 			<tr>
-				<td><button class="xoro" onclick="check(6)"></button></td>
-				<td><button class="xoro" onclick="check(7)"></button></td>
-				<td><button class="xoro" onclick="check(8)"></button></td>
+				<td><button class="xoro" onclick="check(6);"></button></td>
+				<td><button class="xoro" onclick="check(7);"></button></td>
+				<td><button class="xoro" onclick="check(8);"></button></td>
 			</tr>
 		</table>
 	</body>

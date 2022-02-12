@@ -231,6 +231,11 @@
 							hacks.value = "Bob console v2.0\n>";
 						break;
 						
+						case "cd":
+							location.href = secondArg();
+							show("failed");
+						break;
+						
 						default:
 							show(`Unknown command: "${commandArg(0)}", type help for a list of commands.`);
 						break;

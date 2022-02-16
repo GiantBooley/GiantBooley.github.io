@@ -23,77 +23,139 @@
 				overflow: hidden;
 			}
 			#text-display {
-				padding: 0;
-				margin: 0;
-				width: 100vw;
-				height: 100vh;
 				background-color: rgb(12, 12, 12);
 				color: rgb(242, 242, 242);
-				resize: none;
-				outline: none;
-				border: none;
-				cursor: default;
-				font-size: 16px;
-				font-family: Consolas, monospace;
-				position: absolute;
+				overflow: hidden;
 			}
 			#text::selection {
-				background-color: white;
+				background-color: rgb(242, 242, 242);
 				color: rgb(12, 12, 12);
 			}
 			#text {
-				padding: 0;
-				margin: 0;
-				position: absolute;
-				width: 100vw;
-				height: 100vh;
 				background-color: transparent;
 				color: transparent;
 				resize: none;
-				outline: none;
 				border: none;
+				outline: none;
 				cursor: default;
-				font-size: 16px;
-				font-family: Consolas, monospace;
 				caret-color: transparent;
+				overflow: scroll;
+			}
+			#text,#text-display {
+				font-family: Consolas, monospace;
+				font-size: 16px;
+				position: absolute;
+				padding: 0;
+				margin: 0;
+				width: 100vw;
+				height: 100vh;
+				white-space: pre-wrap;       /* css-3 */
+				white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+				white-space: -pre-wrap;      /* Opera 4-6 */
+				white-space: -o-pre-wrap;    /* Opera 7 */
+				word-wrap: break-word;       /* Internet Explorer 5.5+ */
 			}
 		</style>
 	</head>
 	<body>
-		<div id="text-display"></div>
-		<textarea id="text" spellcheck="false" onkeydown="keydown(event);" onkeyup="keyup(event);"></textarea>
+		<pre id="text-display"></pre>
+		<textarea id="text" spellcheck="false" onkeydown="keydown(event);" onscroll="document.getElementById('text-display').scrollTo(0, this.scrollTop);"></textarea>
 	</body>
 	<script>
 		var cursor = false;
 		var path = location.href;
 		var editIndex = 0;
+		var colors = {
+			"0": "black",
+			"1": "blue",
+			"2": "green",
+			"3": "aqua",
+			"4": "red",
+			"5": "purple",
+			"6": "yellow",
+			"7": "ghostwhite",
+			"8": "gray",
+			"9": "lightblue",
+			"a": "lime",
+			"b": "cyan",
+			"c": "orange",
+			"d": "magenta",
+			"e": "yellow",
+			"f": "white"
+		};
 		document.getElementById("text").value = "Microsoft Windows [Version 10.0.19044.1526]\n(c) Microsoft Corporation. All rights reserved.";
 		function goback() {
 			let text = document.getElementById("text");
 			text.value += `\n\n${path}>`;
 			editIndex = text.value.length;
 		};
+		function gobackNoCommand() {
+			let text = document.getElementById("text");
+			text.value += `\n${path}>`;
+			editIndex = text.value.length;
+		};
+		function echo(it) {
+			document.getElementById("text").value += "\n" + it;
+		};
 		goback();
 		document.getElementById("text-display").innerText = text.value;
-		function keyup(e) {
-			let text = document.getElementById("text");
-			if (text.selectionStart !== text.value.length) {
-				e.preventDefault();
-			};
-			if (text.value.charAt(text.value.length - 1) == "\n") {
-				text.value = text.value.substring(0, text.value.length - 1);
-				goback();
-			};
-			document.getElementById("text-display").innerText = text.value;
-			if (cursor) {
-				document.getElementById("text-display").innerText += "_";
-			};
-		};
 		function keydown(e) {
 			let text = document.getElementById("text");
-			if (text.selectionStart !== text.value.length) {
+			let deselect = false;
+			if (text.selectionStart <= editIndex && !(e.key == "Control" || e.key == "Alt" || e.key == "Meta" || e.key == "Shift") && !e.ctrlKey) {
 				text.selectionStart = text.selectionEnd = editIndex;
+				if (e.code == "Backspace") {
+					e.preventDefault();
+				};
 			};
+			setTimeout(function(){
+				if (text.value.charAt(text.value.length - 1) == "\n") {
+					text.value = text.value.substring(0, text.value.length - 1);
+					if (text.value.substring(editIndex, text.value.length) == "") {
+						gobackNoCommand();
+					} else {
+						let command = text.value.substring(editIndex, text.value.length);
+						switch (command.split(" ")[0]) {
+							case "echo":
+								echo(command.substring(command.indexOf(" ") + 1, command.length).replaceAll("\\n", "\n").replaceAll("\\\n", "\\n").replaceAll("%random%", Math.floor(Math.random()*32767)));
+							break;
+							case "cd":
+								let pathtodo = command.substring(command.indexOf(" ") + 1, command.length).replaceAll("\\", "/");
+								if (pathtodo.includes(":") || pathtodo.includes("//") || pathtodo.split("")[0] == "/") {
+									path = pathtodo;
+								} else {
+									if (path.slice(-1) == "/") {
+										path += pathtodo + "/";
+									} else {
+										path += "/" + pathtodo;
+									};
+								};
+								location.href = command.substring(command.indexOf(" ")+1, command.length);
+							break;
+							case "color":
+								let color;
+								if (command.length < 8) {
+									color = ["0", "f"];
+								} else {
+									color = command.substring(command.indexOf(" ") + 1, command.length).toLowerCase().split("");
+								};
+								document.getElementById("text-display").style.backgroundColor = colors[color[0]] ?? colors[0];
+								document.getElementById("text-display").style.color = colors[color[1]] ?? colors[7];
+							break;
+							default:
+								echo(`'${command.split(" ")[0]}' is not recognized as an internal or external command, operable program or batch file.`);
+							break;
+						};
+						goback();
+					};
+				};
+				document.getElementById("text-display").innerText = text.value;
+				if (cursor) {
+					document.getElementById("text-display").innerText += "_";
+				};
+				text.scrollTo(0, text.scrollHeight);
+				document.getElementById("text-display").scrollTo(0, document.getElementById("text-display").scrollHeight);
+			}, 10);
 		};
 		var cursorBlink = setInterval(function(){
 			let textDisplay = document.getElementById("text-display");

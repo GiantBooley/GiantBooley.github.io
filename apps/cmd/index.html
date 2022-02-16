@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="icon" href="./favicon.ico" type="image/x-icon">
+		<title>Command Prompt</title>
+		<style>
+			@font-face {
+				font-family: Consolas;
+				src: url("./consola.ttf");
+			}
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#text-display {
+				padding: 0;
+				margin: 0;
+				width: 100vw;
+				height: 100vh;
+				background-color: rgb(12, 12, 12);
+				color: rgb(242, 242, 242);
+				resize: none;
+				outline: none;
+				border: none;
+				cursor: default;
+				font-size: 16px;
+				font-family: Consolas, monospace;
+				position: absolute;
+			}
+			#text::selection {
+				background-color: white;
+				color: rgb(12, 12, 12);
+			}
+			#text {
+				padding: 0;
+				margin: 0;
+				position: absolute;
+				width: 100vw;
+				height: 100vh;
+				background-color: transparent;
+				color: transparent;
+				resize: none;
+				outline: none;
+				border: none;
+				cursor: default;
+				font-size: 16px;
+				font-family: Consolas, monospace;
+				caret-color: transparent;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="text-display"></div>
+		<textarea id="text" spellcheck="false" onkeydown="keydown(event);" onkeyup="keyup(event);"></textarea>
+	</body>
+	<script>
+		var cursor = false;
+		var path = location.href;
+		var editIndex = 0;
+		document.getElementById("text").value = "Microsoft Windows [Version 10.0.19044.1526]\n(c) Microsoft Corporation. All rights reserved.";
+		function goback() {
+			let text = document.getElementById("text");
+			text.value += `\n\n${path}>`;
+			editIndex = text.value.length;
+		};
+		goback();
+		document.getElementById("text-display").innerText = text.value;
+		function keyup(e) {
+			let text = document.getElementById("text");
+			if (text.selectionStart !== text.value.length) {
+				e.preventDefault();
+			};
+			if (text.value.charAt(text.value.length - 1) == "\n") {
+				text.value = text.value.substring(0, text.value.length - 1);
+				goback();
+			};
+			document.getElementById("text-display").innerText = text.value;
+			if (cursor) {
+				document.getElementById("text-display").innerText += "_";
+			};
+		};
+		function keydown(e) {
+			let text = document.getElementById("text");
+			if (text.selectionStart !== text.value.length) {
+				text.selectionStart = text.selectionEnd = editIndex;
+			};
+		};
+		var cursorBlink = setInterval(function(){
+			let textDisplay = document.getElementById("text-display");
+			if (cursor) {
+				cursor = false;
+				textDisplay.innerText = textDisplay.innerText.substring(0, textDisplay.innerText.length - 1);
+			} else {
+				cursor = true;
+				textDisplay.innerText += "_";
+			};
+		}, 500);
+	</script>
+</html>

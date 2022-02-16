@@ -124,7 +124,7 @@
 						let command = text.value.substring(editIndex, text.value.length);
 						switch (command.split(" ")[0]) {
 							case "echo":
-								echo(command.substring(command.indexOf(" ") + 1, command.length).replaceAll("\\n", "\n").replaceAll("\\\n", "\\n").replaceAll("%random%", Math.floor(Math.random()*32767)));
+								echo(command.substring(command.indexOf(" ") + 1, command.length).replaceAll("%random%", Math.floor(Math.random()*32767)));
 							break;
 							case "cd":
 								let pathtodo = command.substring(command.indexOf(" ") + 1, command.length).replaceAll("\\", "/");

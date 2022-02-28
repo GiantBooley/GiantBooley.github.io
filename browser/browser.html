@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Browser</title>
+		<style>
+			@font-face {
+				font-family: Roboto;
+				src: url("./Roboto-Regular.ttf");
+			}
+			* {
+				box-sizing: border-box;
+				font-family: Roboto, sans-serif;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+				display: flex;
+				flex-flow: column;
+			}
+			#url {
+				width: 100%;
+				height: 2rem;
+				border-radius: 100vw;
+				background-color: rgb(241, 243, 244);
+				border: none;
+				outline: none;
+				text-indent: 5ch;
+			}
+			#url:focus {
+				border: 3px solid blue;
+			}
+			#top-bar {
+				background-color: white;
+				border-bottom: 1px solid rgb(219, 220, 221);
+				width: 100%;
+				flex: 0 1 auto;
+			}
+			#tab-contents {
+				width: 100%;
+				flex: 1 1 auto;
+			}
+			.tab-content {
+				width: 100%;
+				height: 100%;
+				display: none;
+			}
+			.tab-content[selected] {
+				display: block;
+			}
+			#bottom-bar {
+				width: 100%;
+				flex: 0 1 auto;
+				pointer-events: none;
+			}
+			#new-tab-button {
+				width: 1.8rem;
+				height: 1.8rem;
+				transform: translate(0.1rem, 0.1rem);
+				border-radius: 100vw;
+				border: none;
+				transition-duration: 0.2s;
+				background-color: transparent;
+				font-size: 1.5rem;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				text-align: center;
+			}
+			#new-tab-button:hover {
+				background-color: #BBBBBB;
+			}
+			#tabs {
+				width: 100%;
+				height: 2rem;
+				background-color: rgb(222, 225, 230);
+				white-space: nowrap;
+			}
+			.tab {
+				width: 100px;
+				height: 2rem;
+				background-color: transparent;
+				display: inline-block;
+			}
+			.tab + .tab {
+				border-left: 1px solid gray;
+			}
+			.tab[selected] {
+				background-color: white;
+			}
+			#tabs-real {
+				height: 2rem;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="top-bar">
+			<div id="tabs">
+				<div id="tabs-real"><div class="tab" onclick="selectTab(this);" selected>https://www.google.com</div></div>
+				<button id="new-tab-button" onclick="newtab();">+</button>
+			</div>
+			<input id="url" autocomplete="off" onkeyup="urlkeyup(event);" placeholder="Search Google or type a URL">
+		</div>
+		<div id="tab-contents">
+			<iframe class="tab-content" selected frameborder="0" src="https://wassupwomiwi.herokuapp.com/main/https://www.google.com"></iframe>
+		</div>
+		<img id="bottom-bar" src="./bottom_bar.png">
+	</body>
+	<script>
+		var tabs = [
+			{url: "https://www.google.com", tabElement: document.getElementsByClassName("tab")[0], tabContent: document.getElementsByClassName("tab-contents")[0]}
+		];
+		var selectedTab = 0;
+		function urlkeyup(e) {
+			if (e.key == "Enter") {
+				document.getElementById("url").blur();
+				document.getElementsByClassName("tab-content")[0].src = document.getElementById("url").value.replaceAll(/^(?=https?:)/g, "https://wassupwomiwi.herokuapp.com/main/");
+				document.getElementsByClassName("tab-content")[0].focus();
+			};
+		};
+		function newtab() {
+			tabs.push({url: "https://www.google.com"});
+			tabs[tabs.length - 1].tabElement = document.createElement("div");
+			tabs[tabs.length - 1].tabElement.className = "tab";
+			//tabs[tabs.length - 1].innerText = tabs[tabs.length - 1].url;
+			tabs[tabs.length - 1].tabElement.addEventListener("click", function(){selectTab(this);});
+			document.getElementById("tabs-real").appendChild(tabs[tabs.length - 1].tabElement);
+		};
+		function selectTab(whattab) {
+			document.querySelectorAll(".tab").forEach(tab=>{tab.removeAttribute("selected")});
+			whattab.setAttribute("selected", "");
+		};
+		setInterval(function(){
+			//console.log(new Date().getHours() + ':' + new Date().getMinutes());
+		}, 10);
+	</script>
+</html>

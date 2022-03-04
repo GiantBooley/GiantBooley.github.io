@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>minecraft</title>
+		<style type="text/css" media="screen, print">
+			@font-face {
+				font-family: Minecraft;
+				src: url("./font_regular.otf");
+			}
+		</style>
+		<style>
+			* {
+				font-family: Minecraft;
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				overflow: hidden;
+			}
+			button {
+				background-image: url("./button.png");
+				background-size: cover;
+				outline: none;
+				border: none;
+				padding: 0;
+				color: rgb(252, 252, 252);
+				width: 20em;
+				height: 2em;
+				font-size: 40px;
+				image-rendering: pixelated;
+				text-shadow: 0.1em 0.1em rgb(62, 62, 62);
+			}
+			button:hover {
+				background-image: url("./hover.png");
+			}
+			button:disabled {
+				background-image: url("./disabled.png");
+				color: rgb(158, 158, 158);
+				text-shadow: 0.1em 0.1em rgb(39, 39, 39);
+			}
+		</style>
+	</head>
+	<body>
+		<button>Talk to bob</button><br>
+		<button disabled>Talk to tom</button>
+	</body>
+	<script>
+		document.querySelectorAll("button").forEach(button=>{
+			button.addEventListener("mousedown", function(){
+				new Audio("./click.ogg").play();
+			});
+		});
+	</script>
+</html>

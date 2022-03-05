@@ -15,14 +15,24 @@
 			}
 			body {
 				margin: 0;
+				overflow: hidden;
 			}
 			#canvas {
 				width: 100vw;
 				height: 100vh;
 			}
+			img {
+				z-index: 5;
+				top: 0px;
+				right: 0px;
+				position: absolute;
+				width: 30vw;
+				height: 30vh;
+				display: none;
+			}
 		</style>
 	</head>
-	<body onkeydown="keysDown[event.key]=true" onkeyup="keysDown[event.key]=false">
+	<body onkeydown="keysDown[event.key]=true" onkeyup="keysDown[event.key]=false" oncontextmenu="event.preventDefault()">
 		<canvas id="canvas"></canvas>
 	</body>
 	<script>
@@ -63,28 +73,60 @@
 		var height = window.innerHeight;
 		var ctx = canvas.getContext("2d");
 		var keysDown = {};
-
-
 		var sprites = {
 			box: new Sprite((width/2)-(100/2), (height/2)-(100/2), 100, 100, "black"),
 			redbox: new Sprite(100, 100, 100, 100, "red")
 		};
+		var xv = 0;
+		var yv = 0;
+		var onGround = false;
 
 		function isDown(key) {
-			return new Boolean(keysDown[key]);
+			return keysDown[key] ?? false;
 		};
 
 		canvas.setAttribute("width", width);
 		canvas.setAttribute("height", height);
 
 		var loop = setInterval(function(){
+			//set width and height
+			if (width !== window.innerWidth || height !== window.innerHeight) {
+				width = window.innerWidth;
+				height = window.innerHeight;
+				canvas.setAttribute("width", width);
+				canvas.setAttribute("height", height);
+			};
+
 			// calculate stuff
-			sprites.box.x += (isDown("ArrowRight") - isDown("ArrowLeft"))*3;
-			if (sprites.box.rect.left < 0) sprites.box.x = 0;
-			if (sprites.box.rect.right > width) sprites.box.x = width-sprites.box.width;
-			sprites.box.y += (isDown("ArrowDown") - isDown("ArrowUp"))*3;
-			if (sprites.box.rect.top < 0) sprites.box.y = 0;
-			if (sprites.box.rect.bottom > height) sprites.box.y = height-sprites.box.height;
+			xv += (isDown("ArrowRight") - isDown("ArrowLeft"))*1;
+			sprites.box.x += xv;
+			if (sprites.box.rect.left < 0) {
+				sprites.box.x = 0;
+				xv = 0;
+			};
+			if (sprites.box.rect.right > width) {
+				sprites.box.x = width-sprites.box.width;
+				xv = 0;
+			};
+			sprites.box.y += yv;
+			if (sprites.box.rect.top < 0) {
+				sprites.box.y = 0;
+				yv = 0;
+			};
+			if (sprites.box.rect.bottom > height) {
+				sprites.box.y = height-sprites.box.height;
+				yv = 0;
+				onGround = true;
+			} else {
+				onGround = false;
+			};
+			if (onGround && isDown("ArrowUp")) {
+				yv -= 15;
+				console.log(isDown("ArrowUp"));
+			};
+			xv *= 0.9;
+			xv *= 0.9;
+			yv += 0.5;
 			
 			//clear
 			ctx.clearRect(0, 0, width, height);
@@ -94,8 +136,6 @@
 			sprites.redbox.render();
 
 			//draw stuff
-
-
 		}, 10);
 	</script>
 </html>

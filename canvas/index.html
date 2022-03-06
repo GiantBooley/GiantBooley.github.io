@@ -20,6 +20,7 @@
 			#canvas {
 				width: 100vw;
 				height: 100vh;
+				cursor: default;
 			}
 			img {
 				z-index: 5;
@@ -32,7 +33,7 @@
 			}
 		</style>
 	</head>
-	<body onkeydown="keysDown[event.key]=true" onkeyup="keysDown[event.key]=false" oncontextmenu="event.preventDefault()">
+	<body onkeydown="keysDown[event.key]=true" onkeyup="keysDown[event.key]=false" oncontextmenu="event.preventDefault()" onmousemove="mousemove(event);">
 		<canvas id="canvas"></canvas>
 	</body>
 	<script>
@@ -65,17 +66,29 @@
 					center: {x: (this.x+(this.x+this.width))/2, y: (this.y+(this.y+this.height))/2},
 					width: this.width,
 					height: this.height
-				}
+				};
+			};
+			isTouching(sprite) {
+				if (sprite.rect) {
+					return this.rect.left < sprite.rect.right && this.rect.right > sprite.rect.left && this.rect.bottom > sprite.rect.top && this.rect.top < sprite.rect.bottom;
+				} else {
+					console.error("trying to detect touching something that doesnt have a rect");
+				};
 			};
 		};
 		var canvas = document.getElementById("canvas");
-		var width = window.innerWidth;
-		var height = window.innerHeight;
 		var ctx = canvas.getContext("2d");
+		
+		canvas.setAttribute("width", innerWidth);
+		canvas.setAttribute("height", innerHeight);
+
 		var keysDown = {};
 		var sprites = {
-			box: new Sprite((width/2)-(100/2), (height/2)-(100/2), 100, 100, "black"),
-			redbox: new Sprite(100, 100, 100, 100, "red")
+			box: new Sprite((canvas.width/2)-(100/2), (canvas.height/2)-(100/2), 100, 100, "black"),
+			redbox: new Sprite(100, canvas.height-210, 100, 100, "red"),
+
+			mousePointer: new Sprite(0, 0, 0, 0, "transparent"),
+			displayEdge: new Sprite(canvas.width, canvas.height, canvas.width*-1, canvas.height*-1, "transparent")
 		};
 		var xv = 0;
 		var yv = 0;
@@ -84,18 +97,18 @@
 		function isDown(key) {
 			return keysDown[key] ?? false;
 		};
+		function mousemove(e) {
+			sprites.mousePointer.x = e.clientX;
+			sprites.mousePointer.y = e.clientY;
+		};
 
-		canvas.setAttribute("width", width);
-		canvas.setAttribute("height", height);
 
 		var loop = setInterval(function(){
-			//set width and height
-			if (width !== window.innerWidth || height !== window.innerHeight) {
-				width = window.innerWidth;
-				height = window.innerHeight;
-				canvas.setAttribute("width", width);
-				canvas.setAttribute("height", height);
-			};
+			/*set width and height
+			if (canvas.width !== innerWidth || canvas.height !== innerHeight) {
+				canvas.setAttribute("width", innerWidth);
+				canvas.setAttribute("height", innerHeight);
+			};*/
 
 			// calculate stuff
 			xv += (isDown("ArrowRight") - isDown("ArrowLeft"))*1;
@@ -104,8 +117,8 @@
 				sprites.box.x = 0;
 				xv = 0;
 			};
-			if (sprites.box.rect.right > width) {
-				sprites.box.x = width-sprites.box.width;
+			if (sprites.box.rect.right > canvas.width) {
+				sprites.box.x = canvas.width-sprites.box.width;
 				xv = 0;
 			};
 			sprites.box.y += yv;
@@ -113,8 +126,8 @@
 				sprites.box.y = 0;
 				yv = 0;
 			};
-			if (sprites.box.rect.bottom > height) {
-				sprites.box.y = height-sprites.box.height;
+			if (sprites.box.rect.bottom > canvas.height) {
+				sprites.box.y = canvas.height-sprites.box.height;
 				yv = 0;
 				onGround = true;
 			} else {
@@ -122,19 +135,21 @@
 			};
 			if (onGround && isDown("ArrowUp")) {
 				yv -= 15;
-				console.log(isDown("ArrowUp"));
 			};
-			xv *= 0.9;
-			xv *= 0.9;
+			xv *= 0.8;
 			yv += 0.5;
+			if (sprites.box.isTouching(sprites.redbox)) {
+				sprites.redbox.color = "blue";
+			} else {
+				sprites.redbox.color = "red";
+			};
 			
 			//clear
-			ctx.clearRect(0, 0, width, height);
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 			//sprites
 			sprites.box.render();
 			sprites.redbox.render();
-
 			//draw stuff
 		}, 10);
 	</script>

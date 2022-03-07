@@ -134,20 +134,36 @@
 		function isDown(key) {
 			return keysDown[key] ?? false;
 		};
-		document.querySelectorAll("td").forEach(tile => {
+		document.querySelectorAll("td").forEach((tile, index) => {
 			tile.spellcheck = "false";
+			tile.setAttribute("itth", index.toString());
 			tile.tabIndex = "0";
 			tile.addEventListener("keydown", function(e){
 				if (/^[a-zA-Z]$/g.test(e.key) && tile.getAttribute("wordlecolor") !== "0") {
 					tile.innerText = e.key.toUpperCase();
+					tile.blur();
+					document.querySelectorAll("td")[parseInt(tile.getAttribute("itth")) + 1].focus();
+					updateAnswers();
 				} else if (e.code == "Space") {
 					tile.setAttribute("wordlecolor", (parseInt(tile.getAttribute("wordlecolor")) + 1).toString());
 					if (parseInt(tile.getAttribute("wordlecolor")) > 3) {
 						tile.setAttribute("wordlecolor", "0");
 						tile.innerText = "";
 					};
+					updateAnswers();
+				} else if (e.code == "ArrowLeft" && parseInt(tile.getAttribute("itth")) % 5 !== 0) {
+					tile.blur();
+					document.querySelectorAll("td")[parseInt(tile.getAttribute("itth")) - 1].focus();
+				} else if (e.code == "ArrowRight" && parseInt(tile.getAttribute("itth")) % 5 !== 4) {
+					tile.blur();
+					document.querySelectorAll("td")[parseInt(tile.getAttribute("itth")) + 1].focus();
+				} else if (e.code == "ArrowUp" && parseInt(tile.getAttribute("itth")) >= 5) {
+					tile.blur();
+					document.querySelectorAll("td")[parseInt(tile.getAttribute("itth")) - 5].focus();
+				} else if (e.code == "ArrowDown" && parseInt(tile.getAttribute("itth")) < 25) {
+					tile.blur();
+					document.querySelectorAll("td")[parseInt(tile.getAttribute("itth")) + 5].focus();
 				};
-				updateAnswers();
 			});
 		});
 		function updateAnswers() {

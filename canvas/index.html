@@ -75,6 +75,21 @@
 					console.error("trying to detect touching something that doesnt have a rect");
 				};
 			};
+
+			touchingColor(r,g,b) {
+				let oldColor = this.color;
+				this.color = "transparent";
+				this.render();
+				let data = ctx.getImageData(this.x, this.y, this.width, this.height).data;
+				this.color = oldColor;
+				this.render();
+				for(let i = 0; i < data.length; i += 4){
+					if (data[i+0] == r && data[i+1] == g && data[i+2] == b) {
+						return true;
+					};
+				};
+				return false;
+			};
 		};
 		var canvas = document.getElementById("canvas");
 		var ctx = canvas.getContext("2d");
@@ -84,8 +99,8 @@
 
 		var keysDown = {};
 		var sprites = {
-			box: new Sprite((canvas.width/2)-(100/2), (canvas.height/2)-(100/2), 100, 100, "black"),
-			redbox: new Sprite(100, canvas.height-210, 100, 100, "red"),
+			box: new Sprite((canvas.width/2)-(100/2), 10, 100, 100, "green"),
+			level1: new Sprite(600, canvas.height-210, 100, 100, "black"),
 
 			mousePointer: new Sprite(0, 0, 0, 0, "transparent"),
 			displayEdge: new Sprite(canvas.width, canvas.height, canvas.width*-1, canvas.height*-1, "transparent")
@@ -93,6 +108,8 @@
 		var xv = 0;
 		var yv = 0;
 		var onGround = false;
+		var startX = (canvas.width/2)-(100/2);
+		var startY = 10;
 
 		function isDown(key) {
 			return keysDown[key] ?? false;
@@ -111,45 +128,42 @@
 			};*/
 
 			// calculate stuff
+			let oldX = sprites.box.x;
 			xv += (isDown("ArrowRight") - isDown("ArrowLeft"))*1;
 			sprites.box.x += xv;
-			if (sprites.box.rect.left < 0) {
-				sprites.box.x = 0;
+			if (sprites.box.isTouching(sprites.level1)) {
+				sprites.box.x = oldX;
 				xv = 0;
 			};
-			if (sprites.box.rect.right > canvas.width) {
-				sprites.box.x = canvas.width-sprites.box.width;
-				xv = 0;
-			};
+
+			let oldY = sprites.box.y;
 			sprites.box.y += yv;
-			if (sprites.box.rect.top < 0) {
-				sprites.box.y = 0;
+			if (sprites.box.touchingColor(0,0,0)) {
 				yv = 0;
-			};
-			if (sprites.box.rect.bottom > canvas.height) {
-				sprites.box.y = canvas.height-sprites.box.height;
-				yv = 0;
+				sprites.box.y = oldY;
 				onGround = true;
 			} else {
 				onGround = false;
 			};
+
+			if (sprites.box.rect.bottom > canvas.height) {
+				sprites.box.x = startX;
+				sprites.box.y = startY;
+				xv = yv = 0;
+			};
+
 			if (onGround && isDown("ArrowUp")) {
-				yv -= 15;
+				yv = -15;
 			};
 			xv *= 0.8;
 			yv += 0.5;
-			if (sprites.box.isTouching(sprites.redbox)) {
-				sprites.redbox.color = "blue";
-			} else {
-				sprites.redbox.color = "red";
-			};
 			
 			//clear
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 			//sprites
 			sprites.box.render();
-			sprites.redbox.render();
+			sprites.level1.render();
 			//draw stuff
 		}, 10);
 	</script>

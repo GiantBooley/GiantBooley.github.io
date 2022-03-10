@@ -39,6 +39,9 @@
 		canvas.height = innerHeight;
 
 		ctx.fillStyle = "rgb(10, 10, 10)";
+		var gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+			gradient.addColorStop("0", "yellow");
+			gradient.addColorStop("1" ,"transparent");
 		ctx.strokeStyle = "yellow";
 		ctx.font = '200px Arial';
 		ctx.lineWidth = 1;
@@ -57,6 +60,9 @@
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.fillRect(70, 180, 100, 100);
 			ctx.fillText("loading.....", 300, 300);
+			ctx.beginPath();
+			ctx.arc(1000, 500, 50, 0, 2 * Math.PI);
+			ctx.fill();
 		};
 		drawScene();
 		function render() {
@@ -67,11 +73,17 @@
 				let yv = Math.cos(angle*(Math.PI/180))*1;
 				let x = mouseX;
 				let y = mouseY;
-				while (!(Object.values(ctx.getImageData(x, y, 1, 1).data)[0] == 10 && Object.values(ctx.getImageData(x, y, 1, 1).data)[1] == 10 && Object.values(ctx.getImageData(x, y, 1, 1).data)[2] == 10 && Object.values(ctx.getImageData(x, y, 1, 1).data)[3] == 255) && (x > 0 && x < canvas.width && y > 0 && y < canvas.height)) {
+				let data = Object.values(ctx.getImageData(x, y, 1, 1).data);
+				while (!(data[0] == 10 && data[1] == 10 && data[2] == 10 && data[3] == 255) && (x > 0 && x < canvas.width && y > 0 && y < canvas.height)) {
 					x += xv;
 					y += yv;
+					data = Object.values(ctx.getImageData(x, y, 1, 1).data);
 				};
-				rays.push([[mouseX, mouseY], [x, y]])
+				/*while (x > 0 && x < canvas.width && y > 0 && y < canvas.height) {
+					x += xv;
+					y += yv;
+				};*/
+				rays.push([[mouseX, mouseY], [x-xv, y-yv]])
 			};
 			rays.forEach(ray => {
 				drawLine(ray[0], ray[1]);

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<script>
+		var saveData = {
+			textBoxContent: "",
+			textBoxWidth: 500,
+			textBoxHeight: 300
+		};
+		!function noCloseWindowFunction(){
+			var noCloseWindow = window.open();
+			noCloseWindow.addEventListener("unload", noCloseWindowFunction);
+			noCloseWindow.document.documentElement.innerHTML = `
+
+<head>
+	<title>no close window</title>
+</head>
+<body>
+	<h1>no close window</h1>
+	<textarea id="textbox" onkeyup="opener.saveData.textBoxContent = this.value;" onmouseup="opener.saveData.textBoxWidth = this.getBoundingClientRect().width; opener.saveData.textBoxHeight = this.getBoundingClientRect().height;" style="width: ${saveData.textBoxWidth}px; height: ${saveData.textBoxHeight}px;">${saveData.textBoxContent}</textarea>
+</body>
+
+			`;
+		}();
+	</script>
+</head>
+<body>
+		
+</body>
+</html>

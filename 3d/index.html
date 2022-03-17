@@ -20,10 +20,18 @@
 				width: 100%;
 				height: 100%;
 			}
+			#p {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				z-index: 123123123;
+				margin: 2px;
+			}
 		</style>
 	</head>
-	<body>
+	<body onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
 		<canvas id="canvas"></canvas>
+		<p id="p">it</p>
 	</body>
 	<script>
 		const canvas = document.getElementById("canvas");
@@ -31,9 +39,24 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 		const levelData = [];
+		ctx.lineWidth = 10;
+		var fov = 90;
+		var keysDown = {};
 
 		function getPixel(x, y) {
 			return levelData[x + (y * canvas.width)];
+		};
+		function drawLine(first, second) {
+			ctx.beginPath();
+			ctx.moveTo(first[0], first[1]);
+			ctx.lineTo(second[0], second[1]);
+			ctx.stroke();
+		};
+		function distance(p1, p2) {
+			return Math.sqrt(((p1[0] - p1[1]) ** 2) + ((p2[0] - p2[1]) ** 2));
+		};
+		function isDown(key) {
+			return keysDown[key] ?? false;
 		};
 
 		ctx.fillRect(30, 30, 100, 100);
@@ -45,13 +68,56 @@
 			};
 		})();
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		var playerX = 300;
+		var playerY = 400;
+		var playerDir = 0;
 
 		function render() {
-			for (let i = 0; i < 360; i += 2) {
-				while (0) {
-
-				};
+			playerDir += (isDown("ArrowLeft") - isDown("ArrowRight")) * 5;
+			let oldPlayerX = playerX;
+			let oldPlayerY = playerY;
+			playerX += Math.sin(playerDir * (Math.PI / 180)) * (isDown("ArrowUp") - isDown("ArrowDown")) * 6;
+			playerY += Math.cos(playerDir * (Math.PI / 180)) * (isDown("ArrowUp") - isDown("ArrowDown")) * 6;
+			if (playerX < 0 || playerY < 0 || playerX > canvas.width || playerY > canvas.height) {
+				playerX = oldPlayerX;
+				playerY = oldPlayerY;
 			};
+
+			let rayHits = [];
+			for (let i = 0; i < fov; i += 1) {
+				let xv = Math.sin((playerDir - (fov / 2) + i) * (Math.PI / 180)) * 1;
+				let yv = Math.cos((playerDir - (fov / 2) + i) * (Math.PI / 180)) * 1;
+				let rayx = playerX;
+				let rayy = playerY;
+				while ((getPixel(rayx, rayy) ?? [0, 0, 0, 0])[3] == 0 && (rayx > 0 && rayy > 0 && rayx < canvas.width && rayy < canvas.height)) {
+					rayx += xv;
+					rayy += yv;
+				};
+				rayx -= xv;
+				rayy -= yv;
+				rayHits.push({
+					x: rayx,
+					y: rayy,
+					distance: distance([playerX, playerY], [rayx, rayy])
+				});
+			};
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			rayHits.reverse();
+			rayHits.forEach((point, pos) => {
+				document.getElementById("p").innerHTML = point.distance;
+				ctx.strokeStyle = `rgba(0, 0, 255, 1)`;//${1 - (point.distance / 600)})`;
+				let lineX = (pos * (canvas.width / fov));
+				drawLine([lineX, (canvas.height / 2) - (point.distance / 10)], [lineX, (canvas.height / 2) + (point.distance / 100)]);
+			});
+
+
+			ctx.fillRect(30, 30, 100, 100);
+
+			rayHits.forEach((point, pos) => {
+				ctx.strokeStyle = `rgba(255, 255, 0, 0.1)`;
+				drawLine([playerX, playerY], [point.x, point.y]);
+			});
 		};
+		setInterval(render, 10);
 	</script>
 </html>

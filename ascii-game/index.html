@@ -23,14 +23,35 @@
 				font-size: 10px;
 				margin: 0;
 				padding: 0px;
+				border: none;
+				outline: none;
+
+				overflow: hidden;
+				overflow-wrap: break-word;
+				word-break: break-all;
+				white-space: -moz-pre-wrap;
+				white-space: -o-pre-wrap;
+				white-space: pre-wrap;
+				word-wrap: break-word;
 			}
 		</style>
 	</head>
 	<body>
-		<div id="canvas" contenteditable="true"></div>
+		<textarea id="canvas" spellcheck="false" wrap="hard"></textarea>
 	</body>
 	<script>
 		const brightness = [
+			" ",
+			".",
+			":",
+			"-",
+			"=",
+			"+",
+			"*",
+			"#",
+			"%",
+			"@"
+		]; /*
 			".", "'", "`", "^",
 			"\"",",", ":", ";",
 			"I", "l", "!", "i",
@@ -48,10 +69,21 @@
 			"a", "o", "*", "#",
 			"M", "W", "&", "8",
 			"%", "B", "@", "$"
-		];
+		];*/
+
 		function l(hslbutl) {
-			return brightness[hslbutl * brightness.length];
+			if (hslbutl > 1) {
+				hslbutl = 1;
+			};
+			if (hslbutl < 0) {
+				hslbutl = 0;
+			};
+			return brightness[Math.floor(hslbutl * brightness.length) - 1];
 		};
+		String.prototype.fill = function fill(letter, start, end) {
+			return this.substring(0, start) + letter.repeat(end + 1 - start) + this.substring(end + 1, this.length);
+		};
+
 		const canvasRenderingContextASCII = class canvasRenderingContextASCII {
 			constructor(targetCanvas, width, height) {
 				this.targetCanvas = targetCanvas;
@@ -59,13 +91,24 @@
 				this.height = height;
 				this.fillStyle = l(1);
 			};
+			setText(text) {
+				this.targetCanvas.value = text;
+			};
+			get text() {
+				return this.targetCanvas.value;
+			};
 			fillRect(x, y, width, height) {
-
+				let it = this.text;
+				this.setText(it.fill(this.fillStyle, x, x + width));
 			};
 		};
 
 		const canvas = document.getElementById("canvas");
-		const ctx = new canvasRenderingContextASCII(canvas, 227, 51);
-		canvas.innerText = brightness.length;
+		const ctx = new canvasRenderingContextASCII(canvas, 240, 63);
+
+		for (let i = 0; i < ctx.width; i++) {
+			ctx.fillStyle = brightness[i];
+			ctx.setText(ctx.text + ctx.fillStyle.repeat(ctx.width/1.2));
+		};
 	</script>
 </html>

@@ -16,22 +16,45 @@
 			body {
 				margin: 0;
 			}
+			#canvas-wrapper {
+				width: 100%;
+				height: 100%;
+				background-image: linear-gradient(blue, black, blue);
+				outline: none;
+			}
 			#canvas {
 				width: 100%;
 				height: 100%;
 			}
-			#p {
+			#menu {
 				position: absolute;
 				top: 0px;
-				left: 0px;
+				right: 0px;
 				z-index: 123123123;
-				margin: 2px;
+				background-color: white;
+				font-family: monospace;
+			}
+			#hand {
+				position: absolute;
+				bottom: 0px;
+				right: 0px;
+				width: 20%;
+				height: 40%;
+			}
+			input[type="range"] {
+				width: 300px;
 			}
 		</style>
 	</head>
-	<body onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
-		<canvas id="canvas"></canvas>
-		<p id="p">it</p>
+	<body>
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
+			<canvas id="canvas"></canvas>
+		</div>
+		<img src="https://lh3.googleusercontent.com/QvP1N362ZFW4JRo1OuowIFpcyv-bcLmJ14dia3p6xF0J3MEAlFHzay4mWKmeUfrRoza9v6rd3Ci7XKb267f5=s500" alt="hand" id="hand">
+		<div id="menu">
+			<label for="fov">fov:</label><input type="range" id="fov" min="30" max="180"><br>
+			<label for="res">res:</label><input type="range" id="res" min="30" max="180">
+		</div>
 	</body>
 	<script>
 		const canvas = document.getElementById("canvas");
@@ -39,10 +62,11 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 		const levelData = [];
-		ctx.lineWidth = 10;
-		var fov = 90;
+		var fov = 30;
+		var res = 90;
 		var keysDown = {};
 		ctx.fillStyle = "rgba(255, 0, 0, 1)";
+		ctx.lineWidth = canvas.width / res;
 
 		function getPixel(x, y) {
 			return levelData[x + (y * canvas.width)];
@@ -81,17 +105,17 @@
 			playerDir += (isDown("ArrowLeft") - isDown("ArrowRight")) * 5;
 			let oldPlayerX = playerX;
 			let oldPlayerY = playerY;
-			playerX += Math.sin(playerDir * (Math.PI / 180)) * (isDown("ArrowUp") - isDown("ArrowDown")) * 6;
+			playerX += Math.sin(playerDir * (Math.PI / 180)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * 6;
 			if (playerX < 0 || playerX > canvas.width) {
 				playerX = oldPlayerX;
 			};
-			playerY += Math.cos(playerDir * (Math.PI / 180)) * (isDown("ArrowUp") - isDown("ArrowDown")) * 6;
+			playerY += Math.cos(playerDir * (Math.PI / 180)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * 6;
 			if (playerY < 0 || playerY > canvas.height) {
 				playerY = oldPlayerY;
 			};
 
 			let rayHits = [];
-			for (let i = 0; i < fov; i += 1) {
+			for (let i = 0; i < fov; i += fov/res) {
 				let xv = Math.sin(((playerDir - (fov / 2)) + i) * (Math.PI / 180)) * 1;
 				let yv = Math.cos(((playerDir - (fov / 2)) + i) * (Math.PI / 180)) * 1;
 				let rayx = playerX;
@@ -111,9 +135,8 @@
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			rayHits.reverse();
 			rayHits.forEach((point, pos) => {
-				document.getElementById("p").innerHTML = point.distance / 10;
-				ctx.strokeStyle = `rgba(0, 0, 255, ${1 - (point.distance / 1500)})`;
-				let lineX = (pos * (canvas.width / fov));
+				ctx.strokeStyle = `rgba(0, 0, 255, ${1 - (point.distance / 1000)})`;
+				let lineX = (pos * (canvas.width / res)) + (ctx.lineWidth / 2);
 				let height = 15000 / point.distance;
 				drawLine([lineX, (canvas.height / 2) - height], [lineX, (canvas.height / 2) + height]);
 			});
@@ -121,10 +144,10 @@
 
 			draw();
 
-			rayHits.forEach((point, pos) => {
+			/*rayHits.forEach((point, pos) => {
 				ctx.strokeStyle = `rgba(255, 255, 0, 0.1)`;
 				drawLine([playerX, playerY], [point.x, point.y]);
-			});
+			});*/
 		};
 		setInterval(render, 10);
 	</script>

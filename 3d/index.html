@@ -52,8 +52,8 @@
 		</div>
 		<img src="https://lh3.googleusercontent.com/QvP1N362ZFW4JRo1OuowIFpcyv-bcLmJ14dia3p6xF0J3MEAlFHzay4mWKmeUfrRoza9v6rd3Ci7XKb267f5=s500" alt="hand" id="hand">
 		<div id="menu">
-			<label for="fov">fov:</label><input type="range" id="fov" min="30" max="180"><br>
-			<label for="res">res:</label><input type="range" id="res" min="30" max="180">
+			<label for="fov">fov:</label><input type="range" id="fov" min="1" max="360"><br>
+			<label for="res">res:</label><input type="range" id="res" min="1" max="360">
 		</div>
 	</body>
 	<script>
@@ -62,7 +62,7 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 		const levelData = [];
-		var fov = 30;
+		var fov = 90;
 		var res = 90;
 		var keysDown = {};
 		ctx.fillStyle = "rgba(255, 0, 0, 1)";
@@ -102,6 +102,9 @@
 		var playerDir = 0;
 
 		function render() {
+			fov = document.getElementById("fov").value;
+			res = document.getElementById("res").value;
+
 			playerDir += (isDown("ArrowLeft") - isDown("ArrowRight")) * 5;
 			let oldPlayerX = playerX;
 			let oldPlayerY = playerY;
@@ -138,6 +141,7 @@
 				ctx.strokeStyle = `rgba(0, 0, 255, ${1 - (point.distance / 1000)})`;
 				let lineX = (pos * (canvas.width / res)) + (ctx.lineWidth / 2);
 				let height = 15000 / point.distance;
+				ctx.lineWidth = canvas.width / res;
 				drawLine([lineX, (canvas.height / 2) - height], [lineX, (canvas.height / 2) + height]);
 			});
 

@@ -40,6 +40,7 @@
 				right: 0px;
 				width: 20%;
 				height: 40%;
+				pointer-events: none;
 			}
 			input[type="range"] {
 				width: 300px;
@@ -52,8 +53,10 @@
 		</div>
 		<img src="https://lh3.googleusercontent.com/QvP1N362ZFW4JRo1OuowIFpcyv-bcLmJ14dia3p6xF0J3MEAlFHzay4mWKmeUfrRoza9v6rd3Ci7XKb267f5=s500" alt="hand" id="hand">
 		<div id="menu">
-			<label for="fov">fov:</label><input type="range" id="fov" min="1" max="360"><br>
-			<label for="res">res:</label><input type="range" id="res" min="1" max="360">
+			<label for="fov">fov:</label><input type="number" id="fov" min="1" max="360" value="90"><br>
+			<label for="res">res:</label><input type="number" id="res" min="1" max="360" value="180"><br>
+			<label>fps: </label> <label id="fps"></label><br>
+			<input type="checkbox" id="show-rays"><label for="show-rays">show rays</label>
 		</div>
 	</body>
 	<script>
@@ -62,6 +65,8 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 		const levelData = [];
+		var lastTimer = 0;
+		var fps = 0;
 		var fov = 90;
 		var res = 90;
 		var keysDown = {};
@@ -69,7 +74,7 @@
 		ctx.lineWidth = canvas.width / res;
 
 		function getPixel(x, y) {
-			return levelData[x + (y * canvas.width)];
+			return levelData[Math.round(x) + (Math.round(y) * canvas.width)];
 		};
 		function drawLine(first, second) {
 			ctx.beginPath();
@@ -86,7 +91,40 @@
 
 		function draw() {
 			ctx.fillStyle = "rgba(255, 0, 0, 1)";
-			ctx.fillRect(30, 30, 100, 100);
+			ctx.fillRect(50, 50, 100, 100);
+
+			ctx.fillStyle = "rgba(0, 0, 255, 1)";
+			ctx.fillRect(0, 0, canvas.width, 10);
+			ctx.fillRect(0, 10, 10, canvas.height);
+			ctx.fillRect(canvas.width - 10, 0, 10, canvas.height);
+			ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+
+			ctx.fillStyle = "rgba(0, 255, 0, 1)";
+			ctx.fillRect(200, 200, 20, 20);
+			ctx.fillRect(240, 200, 20, 20);
+			ctx.fillRect(280, 200, 20, 20);
+			ctx.fillRect(200, 240, 20, 20);
+			ctx.fillRect(240, 240, 20, 20);
+			ctx.fillRect(280, 240, 20, 20);
+			ctx.fillRect(200, 280, 20, 20);
+			ctx.fillRect(240, 280, 20, 20);
+			ctx.fillRect(280, 280, 20, 20);
+
+			ctx.fillStyle = "rgba(255, 255, 0, 1)";
+			ctx.beginPath();
+			ctx.arc(500, 300, 50, 0, 2 * Math.PI);
+			ctx.fill();
+
+			ctx.fillStyle = "rgba(255, 0, 0, 1)";
+			ctx.fillRect(700, 500, 50, 50);
+			ctx.fillRect(750, 550, 50, 50);
+			ctx.fillStyle = "rgba(255, 0, 255, 1)";
+			ctx.fillRect(750, 500, 50, 50);
+			ctx.fillRect(700, 550, 50, 50);
+			
+		};
+		function colliding(x, y) {
+			return (getPixel(x, y) ?? [0, 0, 0, 255])[3] !== 0;
 		};
 		draw();
 
@@ -105,15 +143,29 @@
 			fov = document.getElementById("fov").value;
 			res = document.getElementById("res").value;
 
-			playerDir += (isDown("ArrowLeft") - isDown("ArrowRight")) * 5;
+			let turnSpeed = 100 / (fps || 1);
+			playerDir += (isDown("ArrowLeft") - isDown("ArrowRight")) * turnSpeed;
+
 			let oldPlayerX = playerX;
 			let oldPlayerY = playerY;
-			playerX += Math.sin(playerDir * (Math.PI / 180)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * 6;
-			if (playerX < 0 || playerX > canvas.width) {
+
+			let speed = 100 / (fps || 1);
+			//straight
+			playerX += Math.sin(playerDir * (Math.PI / 180)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * speed;
+			if (colliding(playerX, playerY)) {
 				playerX = oldPlayerX;
 			};
-			playerY += Math.cos(playerDir * (Math.PI / 180)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * 6;
-			if (playerY < 0 || playerY > canvas.height) {
+			playerY += Math.cos(playerDir * (Math.PI / 180)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * speed;
+			if (colliding(playerX, playerY)) {
+				playerY = oldPlayerY;
+			};
+			//strafe
+			playerX += Math.sin((playerDir + 90) * (Math.PI / 180)) * (isDown("a") - isDown("d")) * speed;
+			if (colliding(playerX, playerY)) {
+				playerX = oldPlayerX;
+			};
+			playerY += Math.cos((playerDir + 90) * (Math.PI / 180)) * (isDown("a") - isDown("d")) * speed;
+			if (colliding(playerX, playerY)) {
 				playerY = oldPlayerY;
 			};
 
@@ -127,31 +179,39 @@
 					rayx += xv;
 					rayy += yv;
 				};
+				let color = getPixel(rayx, rayy);
 				rayx -= xv;
 				rayy -= yv;
 				rayHits.push({
 					x: rayx,
 					y: rayy,
-					distance: distance([playerX, playerY], [rayx, rayy])
+					distance: distance([playerX, playerY], [rayx, rayy]),
+					color: color
 				});
 			};
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			rayHits.reverse();
 			rayHits.forEach((point, pos) => {
-				ctx.strokeStyle = `rgba(0, 0, 255, ${1 - (point.distance / 1000)})`;
+				ctx.strokeStyle = `rgba(${point.color[0]}, ${point.color[1]}, ${point.color[2]}, ${1 - (point.distance / 1000)})`;
 				let lineX = (pos * (canvas.width / res)) + (ctx.lineWidth / 2);
 				let height = 15000 / point.distance;
-				ctx.lineWidth = canvas.width / res;
+				ctx.lineWidth = (canvas.width / res) + 0.3;
 				drawLine([lineX, (canvas.height / 2) - height], [lineX, (canvas.height / 2) + height]);
 			});
 
 
 			draw();
+			if (document.getElementById("show-rays").checked) {
+				rayHits.forEach((point, pos) => {
+					ctx.strokeStyle = `rgba(255, 255, 0, 0.1)`;
+					ctx.lineWidth = 5;
+					drawLine([playerX, playerY], [point.x, point.y]);
+				});
+			};
 
-			/*rayHits.forEach((point, pos) => {
-				ctx.strokeStyle = `rgba(255, 255, 0, 0.1)`;
-				drawLine([playerX, playerY], [point.x, point.y]);
-			});*/
+			fps = Math.round(1000 / (Date.now() - lastTimer));
+			document.getElementById("fps").innerHTML = fps;
+			lastTimer = Date.now();
 		};
 		setInterval(render, 10);
 	</script>

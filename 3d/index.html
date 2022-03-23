@@ -42,10 +42,11 @@
 				height: 40%;
 				pointer-events: none;
 			}
-			input[type="range"] {
-				width: 300px;
+			.image {
+				display: none;
 			}
 		</style>
+		<img class="image" src="level.png" id="img-level">
 	</head>
 	<body>
 		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
@@ -56,7 +57,15 @@
 			<label for="fov">fov:</label><input type="number" id="fov" min="1" max="360" value="90"><br>
 			<label for="res">res:</label><input type="number" id="res" min="1" max="360" value="180"><br>
 			<label>fps: </label> <label id="fps"></label><br>
-			<input type="checkbox" id="show-rays"><label for="show-rays">show rays</label>
+			<input type="checkbox" id="show-rays"><label for="show-rays">show rays</label><br>
+			<input type="checkbox" id="show-level"><label for="show-level">show level</label><br>
+			<input type="checkbox" id="show-render" checked><label for="show-render">show render</label><br>
+			<label for="render-type">render type:</label>
+			<select id="render-type">
+				<option value="equisolid" selected>equisolid</option>
+				<option value="rectilinear">rectilinear</option>
+				<option value="orthographic">orthographic</option>
+			</select>
 		</div>
 	</body>
 	<script>
@@ -88,8 +97,11 @@
 		function isDown(key) {
 			return keysDown[key] ?? false;
 		};
-
+		function getDirection(x, y) {
+			return Math.atan2(y,  x) / Math.PI * 180;
+		};
 		function draw() {
+			//ctx.drawImage(document.getElementById("img-level"), 0, 0, canvas.width, canvas.height);
 			ctx.fillStyle = "rgba(255, 0, 0, 1)";
 			ctx.fillRect(50, 50, 100, 100);
 
@@ -122,6 +134,12 @@
 			ctx.fillRect(750, 500, 50, 50);
 			ctx.fillRect(700, 550, 50, 50);
 			
+			let grad = ctx.createLinearGradient(1000, 1-0, 200, 300);
+			grad.addColorStop(0, "green");
+			grad.addColorStop(1, "blue");
+			ctx.strokeStyle = grad;
+			ctx.strokeRect(1000, 100, 200, 300);
+			
 		};
 		function colliding(x, y) {
 			return (getPixel(x, y) ?? [0, 0, 0, 255])[3] !== 0;
@@ -131,7 +149,7 @@
 		(() => {
 			let data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
 			for (let i = 0; i < data.length; i += 4) {
-				levelData.push([data[i], data[i+1], data[i+2], data[i+3]])
+				levelData.push([data[i], data[i+1], data[i+2], data[i+3]/255])
 			};
 		})();
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -171,8 +189,9 @@
 
 			let rayHits = [];
 			for (let i = 0; i < fov; i += fov/res) {
-				let xv = Math.sin(((playerDir - (fov / 2)) + i) * (Math.PI / 180)) * 1;
-				let yv = Math.cos(((playerDir - (fov / 2)) + i) * (Math.PI / 180)) * 1;
+				let rayDir = (playerDir - (fov / 2)) + i;
+				let xv = Math.sin(rayDir * (Math.PI / 180)) * 0.5;
+				let yv = Math.cos(rayDir * (Math.PI / 180)) * 0.5;
 				let rayx = playerX;
 				let rayy = playerY;
 				while ((getPixel(rayx, rayy) ?? [0, 0, 0, 0])[3] == 0 && (rayx > 0 && rayy > 0 && rayx < canvas.width && rayy < canvas.height)) {
@@ -182,25 +201,42 @@
 				let color = getPixel(rayx, rayy);
 				rayx -= xv;
 				rayy -= yv;
+
+				let rayDistance = distance([playerX, playerY], [rayx, rayy]);
+				switch (document.getElementById("render-type").value) {
+					case "rectilinear":
+						rayDistance = rayDistance * Math.cos(playerDir - rayDir);
+					break;
+					case "orthographic":
+						rayDistance = canvas.height / 2;
+					break;
+				};;
+
 				rayHits.push({
 					x: rayx,
 					y: rayy,
-					distance: distance([playerX, playerY], [rayx, rayy]),
+					distance: rayDistance,
 					color: color
 				});
 			};
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			rayHits.reverse();
-			rayHits.forEach((point, pos) => {
-				ctx.strokeStyle = `rgba(${point.color[0]}, ${point.color[1]}, ${point.color[2]}, ${1 - (point.distance / 1000)})`;
-				let lineX = (pos * (canvas.width / res)) + (ctx.lineWidth / 2);
-				let height = 15000 / point.distance;
-				ctx.lineWidth = (canvas.width / res) + 0.3;
-				drawLine([lineX, (canvas.height / 2) - height], [lineX, (canvas.height / 2) + height]);
-			});
 
+			//render
+			if (document.getElementById("show-render").checked) {
+				rayHits.forEach((point, pos) => {
+					ctx.strokeStyle = `rgba(${point.color[0]}, ${point.color[1]}, ${point.color[2]}, ${1 - (point.distance / 1000)})`;
+					let lineX = (pos * (canvas.width / res)) + (ctx.lineWidth / 2);
+					let height = 15000 / point.distance;
+					ctx.lineWidth = (canvas.width / res) + 0.3;
+					drawLine([lineX, (canvas.height / 2) - height], [lineX, (canvas.height / 2) + height]);
+				});
+			};
 
-			draw();
+			if (document.getElementById("show-level").checked) {
+				draw();
+			};
+
 			if (document.getElementById("show-rays").checked) {
 				rayHits.forEach((point, pos) => {
 					ctx.strokeStyle = `rgba(255, 255, 0, 0.1)`;

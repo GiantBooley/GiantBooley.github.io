@@ -104,7 +104,7 @@
 			return keysDown[key] ?? false;
 		};
 		function getDirection(x, y) {
-			return Math.atan2(y,  x) / Math.PI * 180;
+			return Math.atan2(y, x) / Math.PI * 180;
 		};
 		function draw() {
 			//ctx.drawImage(document.getElementById("img-level"), 0, 0, canvas.width, canvas.height);
@@ -155,6 +155,9 @@
 			ctx.fillRect(301, 51, 28, 28);
 			
 		};
+		function deg2rad(degrees) {
+			return degrees * (Math.PI / 180);
+		};
 		function colliding(x, y) {
 			return (getPixel(x, y) ?? [0, 0, 0, 0])[3] !== 0;
 		};
@@ -174,6 +177,7 @@
 		function render() {
 			fov = document.getElementById("fov").value;
 			res = document.getElementById("res").value;
+			let DV = canvas.width / Math.tan(deg2rad(fov / 2));
 
 			let turnSpeed = 100 / (fps || 1);
 			playerDir += (isDown("ArrowLeft") - isDown("ArrowRight")) * turnSpeed;
@@ -183,20 +187,20 @@
 
 			let speed = 100 / (fps || 1);
 			//straight
-			playerX += Math.sin(playerDir * (Math.PI / 180)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * speed;
+			playerX += Math.sin(deg2rad(playerDir)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * speed;
 			if (![[playerX - 1, playerY - 1], [playerX, playerY - 1], [playerX + 1, playerY - 1], [playerX - 1, playerY], [playerX, playerY], [playerX + 1, playerY], [playerX - 1, playerY + 1], [playerX, playerY + 1], [playerX + 1, playerY + 1]].every(it => !colliding(it[0], it[1]))) {
 				playerX = oldPlayerX;
 			};
-			playerY += Math.cos(playerDir * (Math.PI / 180)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * speed;
+			playerY += Math.cos(deg2rad(playerDir)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * speed;
 			if (![[playerX - 1, playerY - 1], [playerX, playerY - 1], [playerX + 1, playerY - 1], [playerX - 1, playerY], [playerX, playerY], [playerX + 1, playerY], [playerX - 1, playerY + 1], [playerX, playerY + 1], [playerX + 1, playerY + 1]].every(it => !colliding(it[0], it[1]))) {
 				playerY = oldPlayerY;
 			};
 			//strafe
-			playerX += Math.sin((playerDir + 90) * (Math.PI / 180)) * (isDown("a") - isDown("d")) * speed;
+			playerX += Math.sin(deg2rad(playerDir + 90)) * (isDown("a") - isDown("d")) * speed;
 			if (![[playerX - 1, playerY - 1], [playerX, playerY - 1], [playerX + 1, playerY - 1], [playerX - 1, playerY], [playerX, playerY], [playerX + 1, playerY], [playerX - 1, playerY + 1], [playerX, playerY + 1], [playerX + 1, playerY + 1]].every(it => !colliding(it[0], it[1]))) {
 				playerX = oldPlayerX;
 			};
-			playerY += Math.cos((playerDir + 90) * (Math.PI / 180)) * (isDown("a") - isDown("d")) * speed;
+			playerY += Math.cos(deg2rad(playerDir + 90)) * (isDown("a") - isDown("d")) * speed;
 			if (![[playerX - 1, playerY - 1], [playerX, playerY - 1], [playerX + 1, playerY - 1], [playerX - 1, playerY], [playerX, playerY], [playerX + 1, playerY], [playerX - 1, playerY + 1], [playerX, playerY + 1], [playerX + 1, playerY + 1]].every(it => !colliding(it[0], it[1]))) {
 				playerY = oldPlayerY;
 			};
@@ -204,8 +208,9 @@
 			let rayHits = [];
 			for (let i = 0; i < fov; i += fov/res) {
 				let rayDir = (playerDir - (fov / 2)) + i;
-				let xv = Math.sin(rayDir * (Math.PI / 180)) * 0.5;
-				let yv = Math.cos(rayDir * (Math.PI / 180)) * 0.5;
+				//let rayDir = playerDir + Math.atan(deg2rad(i / DV));
+				let xv = Math.sin(deg2rad(rayDir)) * 0.5;
+				let yv = Math.cos(deg2rad(rayDir)) * 0.5;
 				let rayx = playerX;
 				let rayy = playerY;
 				while (!colliding(rayx, rayy)) {
@@ -224,7 +229,7 @@
 				let rayDistance = distance([playerX, playerY], [rayx, rayy]);
 				switch (document.getElementById("render-type").value) {
 					case "rectilinear":
-						rayDistance = rayDistance * Math.cos(playerDir - rayDir);
+						rayDistance = rayDistance * Math.cos(deg2rad(playerDir - rayDir));
 					break;
 					case "orthographic":
 						rayDistance = canvas.height / 2;

@@ -19,31 +19,33 @@
 			#canvas-wrapper {
 				width: 100%;
 				height: 100%;
-				background-image: linear-gradient(blue, black, blue);
+				background-image: linear-gradient(rgb(100, 100, 255) 0%, rgb(200, 200, 255) 50%, rgb(30, 30, 10) 50%);
 				outline: none;
 			}
 			#canvas {
 				width: 100%;
 				height: 100%;
 			}
-			#menu {
+			#settings {
 				position: absolute;
 				top: 0px;
 				right: 0px;
-				z-index: 123123123;
 				background-color: white;
 				font-family: monospace;
+				text-align: center;
 			}
-			#hand {
-				position: absolute;
-				bottom: 0px;
-				right: 0px;
-				width: 20%;
-				height: 40%;
-				pointer-events: none;
+			#settings-body {
+				text-align: left;
+			}
+			h2 {
+				margin: 1px;
 			}
 			.image {
 				display: none;
+			}
+			input[type="number"] {
+				width: 10ch;
+				font-family: monospace;
 			}
 		</style>
 		<img class="image" src="level.png" id="img-level">
@@ -52,20 +54,24 @@
 		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
 			<canvas id="canvas"></canvas>
 		</div>
-		<img src="https://lh3.googleusercontent.com/QvP1N362ZFW4JRo1OuowIFpcyv-bcLmJ14dia3p6xF0J3MEAlFHzay4mWKmeUfrRoza9v6rd3Ci7XKb267f5=s500" alt="hand" id="hand">
-		<div id="menu">
-			<label for="fov">fov:</label><input type="number" id="fov" min="1" max="360" value="90"><br>
-			<label for="res">res:</label><input type="number" id="res" min="1" max="360" value="180"><br>
-			<label>fps: </label> <label id="fps"></label><br>
-			<input type="checkbox" id="show-rays"><label for="show-rays">show rays</label><br>
-			<input type="checkbox" id="show-level"><label for="show-level">show level</label><br>
-			<input type="checkbox" id="show-render" checked><label for="show-render">show render</label><br>
-			<label for="render-type">render type:</label>
-			<select id="render-type">
-				<option value="equisolid" selected>equisolid</option>
-				<option value="rectilinear">rectilinear</option>
-				<option value="orthographic">orthographic</option>
-			</select>
+		<div id="settings">
+			<h2>Settings</h2>
+			<hr>
+			<div id="settings-body">
+				<label for="fov">fov:</label><input type="number" id="fov" value="90"><br>
+				<label for="res">res:</label><input type="number" id="res" value="180"><br>
+				<label>fps: </label> <label id="fps"></label><br>
+				<input type="checkbox" id="show-rays"><label for="show-rays">show rays</label><br>
+				<input type="checkbox" id="show-level"><label for="show-level">show level</label><br>
+				<input type="checkbox" id="show-render" checked><label for="show-render">show render</label><br>
+				<label for="render-type">render type:</label>
+				<select id="render-type">
+					<option value="equisolid" selected>equisolid</option>
+					<option value="rectilinear">rectilinear</option>
+					<option value="orthographic">orthographic</option>
+				</select><br>
+				<label for="wall-height">wall height:</label><input type="number" id="wall-height" value="1"><br>
+			</div>
 		</div>
 	</body>
 	<script>
@@ -83,7 +89,7 @@
 		ctx.lineWidth = canvas.width / res;
 
 		function getPixel(x, y) {
-			return levelData[Math.round(x) + (Math.round(y) * canvas.width)];
+			return [...levelData[Math.round(x) + (Math.round(y) * canvas.width)]];
 		};
 		function drawLine(first, second) {
 			ctx.beginPath();
@@ -110,6 +116,7 @@
 			ctx.fillRect(0, 10, 10, canvas.height);
 			ctx.fillRect(canvas.width - 10, 0, 10, canvas.height);
 			ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+			//ctx.clearRect(0, 500, 10, 40);
 
 			ctx.fillStyle = "rgba(0, 255, 0, 1)";
 			ctx.fillRect(200, 200, 20, 20);
@@ -134,15 +141,22 @@
 			ctx.fillRect(750, 500, 50, 50);
 			ctx.fillRect(700, 550, 50, 50);
 			
-			let grad = ctx.createLinearGradient(1000, 1-0, 200, 300);
+			ctx.lineWidth = 10;
+			let grad = ctx.createLinearGradient(1000, 100, 200, 300);
 			grad.addColorStop(0, "green");
 			grad.addColorStop(1, "blue");
 			ctx.strokeStyle = grad;
 			ctx.strokeRect(1000, 100, 200, 300);
+			ctx.clearRect(995, 135, 10, 10);
+
+			ctx.fillStyle = "rgba(10, 200, 180, 1)";
+			ctx.fillRect(300, 50, 30, 30);
+			ctx.fillStyle = "rgba(230, 30, 100, 1)";
+			ctx.fillRect(301, 51, 28, 28);
 			
 		};
 		function colliding(x, y) {
-			return (getPixel(x, y) ?? [0, 0, 0, 255])[3] !== 0;
+			return (getPixel(x, y) ?? [0, 0, 0, 0])[3] !== 0;
 		};
 		draw();
 
@@ -170,20 +184,20 @@
 			let speed = 100 / (fps || 1);
 			//straight
 			playerX += Math.sin(playerDir * (Math.PI / 180)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * speed;
-			if (colliding(playerX, playerY)) {
+			if (![[playerX - 1, playerY - 1], [playerX, playerY - 1], [playerX + 1, playerY - 1], [playerX - 1, playerY], [playerX, playerY], [playerX + 1, playerY], [playerX - 1, playerY + 1], [playerX, playerY + 1], [playerX + 1, playerY + 1]].every(it => !colliding(it[0], it[1]))) {
 				playerX = oldPlayerX;
 			};
 			playerY += Math.cos(playerDir * (Math.PI / 180)) * ((isDown("ArrowUp") || isDown("w")) - (isDown("ArrowDown") || isDown("s"))) * speed;
-			if (colliding(playerX, playerY)) {
+			if (![[playerX - 1, playerY - 1], [playerX, playerY - 1], [playerX + 1, playerY - 1], [playerX - 1, playerY], [playerX, playerY], [playerX + 1, playerY], [playerX - 1, playerY + 1], [playerX, playerY + 1], [playerX + 1, playerY + 1]].every(it => !colliding(it[0], it[1]))) {
 				playerY = oldPlayerY;
 			};
 			//strafe
 			playerX += Math.sin((playerDir + 90) * (Math.PI / 180)) * (isDown("a") - isDown("d")) * speed;
-			if (colliding(playerX, playerY)) {
+			if (![[playerX - 1, playerY - 1], [playerX, playerY - 1], [playerX + 1, playerY - 1], [playerX - 1, playerY], [playerX, playerY], [playerX + 1, playerY], [playerX - 1, playerY + 1], [playerX, playerY + 1], [playerX + 1, playerY + 1]].every(it => !colliding(it[0], it[1]))) {
 				playerX = oldPlayerX;
 			};
 			playerY += Math.cos((playerDir + 90) * (Math.PI / 180)) * (isDown("a") - isDown("d")) * speed;
-			if (colliding(playerX, playerY)) {
+			if (![[playerX - 1, playerY - 1], [playerX, playerY - 1], [playerX + 1, playerY - 1], [playerX - 1, playerY], [playerX, playerY], [playerX + 1, playerY], [playerX - 1, playerY + 1], [playerX, playerY + 1], [playerX + 1, playerY + 1]].every(it => !colliding(it[0], it[1]))) {
 				playerY = oldPlayerY;
 			};
 
@@ -194,12 +208,17 @@
 				let yv = Math.cos(rayDir * (Math.PI / 180)) * 0.5;
 				let rayx = playerX;
 				let rayy = playerY;
-				while ((getPixel(rayx, rayy) ?? [0, 0, 0, 0])[3] == 0 && (rayx > 0 && rayy > 0 && rayx < canvas.width && rayy < canvas.height)) {
+				while (!colliding(rayx, rayy)) {
 					rayx += xv;
 					rayy += yv;
 				};
 				let color = getPixel(rayx, rayy);
 				rayx -= xv;
+				if (!colliding(rayx, rayy)) {
+					color[0] *= 0.8;
+					color[1] *= 0.8;
+					color[2] *= 0.8;
+				};
 				rayy -= yv;
 
 				let rayDistance = distance([playerX, playerY], [rayx, rayy]);
@@ -210,7 +229,7 @@
 					case "orthographic":
 						rayDistance = canvas.height / 2;
 					break;
-				};;
+				};
 
 				rayHits.push({
 					x: rayx,
@@ -225,11 +244,11 @@
 			//render
 			if (document.getElementById("show-render").checked) {
 				rayHits.forEach((point, pos) => {
-					ctx.strokeStyle = `rgba(${point.color[0]}, ${point.color[1]}, ${point.color[2]}, ${1 - (point.distance / 1000)})`;
+					ctx.strokeStyle = `rgba(${point.color[0]}, ${point.color[1]}, ${point.color[2]}, 1)`; //${2 - (point.distance / 1000)})`;
 					let lineX = (pos * (canvas.width / res)) + (ctx.lineWidth / 2);
 					let height = 15000 / point.distance;
-					ctx.lineWidth = (canvas.width / res) + 0.3;
-					drawLine([lineX, (canvas.height / 2) - height], [lineX, (canvas.height / 2) + height]);
+					ctx.lineWidth = (canvas.width / res) + 0.6;
+					drawLine([lineX, (canvas.height / 2) - (height * document.getElementById("wall-height").valueAsNumber)], [lineX, (canvas.height / 2) + height]);
 				});
 			};
 

@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>It B</title>
+		<title>GIOo</title>
 		<style>
 			* {
 				box-sizing: border-box;
@@ -15,18 +15,19 @@
 			}
 			body {
 				margin: 0;
-				overflow: hidden;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+				outline: none;
 			}
 			#canvas-wrapper {
 				width: 100%;
 				height: 100%;
 				outline: none;
 			}
-			#canvas {
-				width: 100%;
-				height: 100%;
-			}
 		</style>
+		<script src="./babylon.js"></script>
 	</head>
 	<body>
 		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
@@ -34,52 +35,53 @@
 		</div>
 	</body>
 	<script>
-		const canvas = document.getElementById("canvas");
-		canvas.width = innerWidth;
-		canvas.height = innerHeight;
-		const ctx = canvas.getContext("2d");
+		var canvas = document.getElementById("canvas");
+		var engine = new BABYLON.Engine(canvas);
 
-		var fov = 90;
-		var playerX = 0;
-		var playerY = 0;
-		var playerZ = -20;
+		var playerDir = 0;
+
+		var scene = new BABYLON.Scene(engine);
+		scene.clearColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+		var camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, -10), scene);
+		var light = new BABYLON.PointLight("light", new BABYLON.Vector3(0, 10, 0), scene);
+
 		var keysDown = {};
-
 		function isDown(key) {
 			return keysDown[key] ?? false;
 		};
-		function drawLine(p1, p2) {
-			ctx.beginPath();
-			ctx.moveTo(p1[0] + (canvas.width / 2), p1[1] + (canvas.height / 2));
-			ctx.lineTo(p2[0] + (canvas.width / 2), p2[1] + (canvas.height / 2));
-			ctx.stroke();
+
+		light.intensity = 1;
+
+		var box = BABYLON.Mesh.CreateBox("box", 2, scene);
+		box.rotation.x = 0;
+		box.rotation.y = 0;
+		var ground = BABYLON.MeshBuilder.CreateBox("box", {height: 0.1, width: 100, depth: 100});
+		ground.rotation.x = 0;
+		ground.rotation.y = 0;
+		ground.position.x = 0;
+		ground.position.y = -3;
+		var box3 = BABYLON.MeshBuilder.CreateBox("box", {height: 1, width: 1, depth: 1});
+		box3.rotation.x = 0;
+		box3.rotation.y = 0;
+
+		var boxMaterial = new BABYLON.StandardMaterial("material", scene);
+		boxMaterial.emissiveColor = new BABYLON.Color3(0, 0.58, 0.86);
+		box.material = boxMaterial;
+		ground.material = boxMaterial;
+		box3.material = boxMaterial;
+
+		var renderLoop = function(){
+			camera.position.x += (isDown("w") - isDown("s")) * 0.3 * Math.sin(camera.rotation.y);
+			camera.position.z += (isDown("w") - isDown("s")) * 0.3 * Math.cos(camera.rotation.y);
+			camera.position.x += (isDown("d") - isDown("a")) * 0.3 * Math.sin(camera.rotation.y + 1.5708);
+			camera.position.z += (isDown("d") - isDown("a")) * 0.3 * Math.cos(camera.rotation.y + 1.5708);
+
+			camera.rotation.x += (isDown("ArrowDown") - isDown("ArrowUp")) * 0.02;
+			camera.rotation.y += (isDown("ArrowRight") - isDown("ArrowLeft")) * 0.05;
+			//camera.translate(new BABYLON.Vector3(1, 0, 1), 1, BABYLON.Space.WORLD);
+
+			scene.render();
 		};
-		function point3D(x, y, z) {
-			return [((playerX + x) / (playerZ + z)) * fov, ((playerY + y) / (playerZ + z)) * fov];
-		};
-		function render() {
-			playerX += (isDown("d") - isDown("a")) * 3;
-			playerY += (isDown("Shift") - isDown(" ")) * 3;
-			playerZ += (isDown("w") - isDown("s")) * 1;
-
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-			drawLine(point3D(-10, 10, -10), point3D(10, 10, -10));
-			drawLine(point3D(10, 10, -10), point3D(10, 10, 10));
-			drawLine(point3D(10, 10, 10), point3D(-10, 10, 10));
-			drawLine(point3D(-10, 10, 10), point3D(-10, 10, -10));
-
-			drawLine(point3D(-10, 10, -10), point3D(-10, -10, -10));
-			drawLine(point3D(10, 10, -10), point3D(10, -10, -10));
-			drawLine(point3D(10, 10, 10), point3D(10, -10, 10));
-			drawLine(point3D(-10, 10, 10), point3D(-10, -10, 10));
-
-			drawLine(point3D(-10, -10, -10), point3D(10,- 10, -10));
-			drawLine(point3D(10, -10, -10), point3D(10, -10, 10));
-			drawLine(point3D(10, -10, 10), point3D(-10, -10, 10));
-			drawLine(point3D(-10, -10, 10), point3D(-10, -10, -10));
-		};
-
-		setInterval(render, 10);
+		engine.runRenderLoop(renderLoop);
 	</script>
 </html>

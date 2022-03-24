@@ -1,45 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-	   <meta charset="UTF-8">
-	   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-	   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	   <title>it</title>
-	   <style>
-		   * {
-			   box-sizing: border-box;
-		   }
-		   html,body {
-			   width: 100%;
-			   height: 100%;
-		   }
-		   body {
-			   margin: 0;
-			   overflow: hidden;
-		   }
-		   #canvas-wrapper {
-			   width: 100%;
-			   height: 100%;
-			   outline: none;
-		   }
-		   #canvas {
-			   width: 100%;
-			   height: 100%;
-		   }
-		   #output {
-			   display: none;
-			   z-index: 10;
-			   position: absolute;
-			   top: 0px;
-			   left: 0px;
-		   }
-	   </style>
-	</html>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>It B</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#canvas-wrapper {
+				width: 100%;
+				height: 100%;
+				outline: none;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
 	<body>
-		<div id="canvas-wrapper" tabindex="0" onkeydown="keypress(event);" onmousemove="mousemove(event);" onmousedown="mousedown(event);" onmouseup="mouseup(event);">
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
 			<canvas id="canvas"></canvas>
 		</div>
-		<textarea id="output" cols="30" rows="10"></textarea>
 	</body>
 	<script>
 		const canvas = document.getElementById("canvas");
@@ -47,47 +39,47 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 
-		var mouseX = 0;
-		var mouseY = 0;
-		var mouseDown = false;
-		var startPos = 0;
-		var buffer = [[0, 0, canvas.width, 10], [0, 10, 10, canvas.height], [canvas.width - 10, 0, 10, canvas.height], [0, canvas.height - 10, canvas.width, 10]];
-		ctx.fillStyle = "rgb(200, 200, 0)";
+		var fov = 90;
+		var playerX = 0;
+		var playerY = 0;
+		var playerZ = -20;
+		var keysDown = {};
 
-		function mousedown(e) {
-			mouseDown = true;
-			startPos = [mouseX, mouseY];
+		function isDown(key) {
+			return keysDown[key] ?? false;
 		};
-		function mousemove(e) {
-			mouseX = Math.floor(e.clientX / 5) * 5;
-			mouseY = Math.floor(e.clientY / 5) * 5;
+		function drawLine(p1, p2) {
+			ctx.beginPath();
+			ctx.moveTo(p1[0] + (canvas.width / 2), p1[1] + (canvas.height / 2));
+			ctx.lineTo(p2[0] + (canvas.width / 2), p2[1] + (canvas.height / 2));
+			ctx.stroke();
 		};
+		function point3D(x, y, z) {
+			return [((playerX + x) / (playerZ + z)) * fov, ((playerY + y) / (playerZ + z)) * fov];
+		};
+		function render() {
+			playerX += (isDown("d") - isDown("a")) * 3;
+			playerY += (isDown("Shift") - isDown(" ")) * 3;
+			playerZ += (isDown("w") - isDown("s")) * 1;
 
-		setInterval(function(){
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			buffer.forEach(rect => {
-				ctx.fillRect(rect[0], rect[1], rect[2], rect[3]);
-			});
-			if (mouseDown) {
-				ctx.fillRect(startPos[0], startPos[1], mouseX - startPos[0], mouseY - startPos[1]);
-			};
-		}, 10);
-		function mouseup(e) {
-			mouseDown = false;
-			if (mouseX !== startPos[0] && mouseY !== startPos[1] ) {
-				buffer.push([startPos[0], startPos[1], mouseX - startPos[0], mouseY - startPos[1]]);
-			};
+
+			drawLine(point3D(-10, 10, -10), point3D(10, 10, -10));
+			drawLine(point3D(10, 10, -10), point3D(10, 10, 10));
+			drawLine(point3D(10, 10, 10), point3D(-10, 10, 10));
+			drawLine(point3D(-10, 10, 10), point3D(-10, 10, -10));
+
+			drawLine(point3D(-10, 10, -10), point3D(-10, -10, -10));
+			drawLine(point3D(10, 10, -10), point3D(10, -10, -10));
+			drawLine(point3D(10, 10, 10), point3D(10, -10, 10));
+			drawLine(point3D(-10, 10, 10), point3D(-10, -10, 10));
+
+			drawLine(point3D(-10, -10, -10), point3D(10,- 10, -10));
+			drawLine(point3D(10, -10, -10), point3D(10, -10, 10));
+			drawLine(point3D(10, -10, 10), point3D(-10, -10, 10));
+			drawLine(point3D(-10, -10, 10), point3D(-10, -10, -10));
 		};
-		function keypress(e) {
-			if (e.code == "Space") {
-				document.getElementById("output").style.display = "block";
-				document.getElementById("output").value = "";
-				buffer.forEach(it => {
-					document.getElementById("output").value += `ctx.fillRect(${it[0]}, ${it[1]}, ${it[2]}, ${it[3]});\n`;
-				});
-			} else if (e.ctrlKey && e.code == "KeyZ") {
-				buffer.pop();
-			};
-		};
+
+		setInterval(render, 10);
 	</script>
 </html>

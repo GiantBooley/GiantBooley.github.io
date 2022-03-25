@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -38,6 +39,11 @@
 				background-color: white;
 				font-family: monospace;
 				text-align: center;
+				opacity: 0.5;
+				transition-duration: 0.2s;
+			}
+			#settings:hover {
+				opacity: 1;
 			}
 			#settings-body {
 				text-align: left;
@@ -63,6 +69,7 @@
 			<h2>Settings</h2>
 			<hr>
 			<div id="settings-body">
+				<div>x: <b id="x"></b><br>y: <b id="y"></b><br>d: <b id="d"></b></div>
 				<label for="fov">fov:</label><input type="number" id="fov" value="90"><br>
 				<label for="res">res:</label><input type="number" id="res" value="180"><br>
 				<label>fps: </label> <label id="fps"></label><br>
@@ -82,6 +89,7 @@
 					<option value="grid">grid</option>
 					<option value="backrooms">backrooms</option>
 				</select><br>
+				<label for="shading-offset">shading offset:</label><input type="range" id="shading-offset" value="0.9" min="0" max="1" step="0.025">
 			</div>
 		</div>
 	</body>
@@ -155,9 +163,9 @@
 					ctx.fillRect(700, 550, 50, 50);
 
 					ctx.lineWidth = 10;
-					let grad = ctx.createLinearGradient(1000, 100, 200, 300);
-					grad.addColorStop(0, "green");
-					grad.addColorStop(1, "blue");
+					let grad = ctx.createLinearGradient(1094, 405, 1089, 32);
+					grad.addColorStop(0, "rgba(0, 255, 0, 1)");
+					grad.addColorStop(1, "rgba(255, 0, 0, 1)");
 					ctx.strokeStyle = grad;
 					ctx.strokeRect(1000, 100, 200, 300);
 					ctx.clearRect(995, 135, 10, 10);
@@ -244,6 +252,16 @@
 		function colliding(x, y) {
 			return (getPixel(x, y) ?? [0, 0, 0, 0])[3] !== 0;
 		};
+		function randomNumber(min, max) {
+			return Math.random() * (max - min + 1) + min;
+		};
+		function randomPos() {
+			do {
+				playerX = randomNumber(0, canvas.width);
+				playerY = randomNumber(0, canvas.height);
+				playerDir = randomNumber(0, 360);
+			} while (colliding(playerX, playerY));
+		};
 
 		function getLevelData() {
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -259,12 +277,14 @@
 		var playerX = 300;
 		var playerY = 400;
 		var playerDir = 0;
+		randomPos();
 
 		function render() {
 			if (level !== document.getElementById("level").value) {
 				level = document.getElementById("level").value;
 				document.getElementById("canvas-wrapper").style.background = `var(--sky-${level})`;
 				getLevelData();
+				randomPos();
 			};
 
 			fov = document.getElementById("fov").value;
@@ -273,6 +293,7 @@
 
 			let turnSpeed = 100 / (fps || 1);
 			playerDir += (isDown("ArrowLeft") - isDown("ArrowRight")) * turnSpeed;
+			playerDir = playerDir % 360;
 
 			let oldPlayerX = playerX;
 			let oldPlayerY = playerY;
@@ -311,12 +332,15 @@
 				};
 				let color = getPixel(rayx, rayy);
 				rayx -= xv;
+				var colorOffset = document.getElementById("shading-offset").valueAsNumber;
 				if (!colliding(rayx, rayy)) {
-					color[0] *= 0.8;
-					color[1] *= 0.8;
-					color[2] *= 0.8;
+					color[0] *= colorOffset;
+					color[1] *= colorOffset;
+					color[2] *= colorOffset;
 				} else {
-					color
+					color[0] /= colorOffset;
+					color[1] /= colorOffset;
+					color[2] /= colorOffset;
 				};
 				rayy -= yv;
 
@@ -362,6 +386,10 @@
 					drawLine([playerX, playerY], [point.x, point.y]);
 				});
 			};
+
+			document.getElementById("x").innerText = playerX;
+			document.getElementById("y").innerText = playerY;
+			document.getElementById("d").innerText = playerDir;
 
 			fps = Math.round(1000 / (Date.now() - lastTimer));
 			document.getElementById("fps").innerHTML = fps;

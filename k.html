@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>GIOo</title>
+		<title>it</title>
 		<style>
 			* {
 				box-sizing: border-box;
@@ -15,73 +15,120 @@
 			}
 			body {
 				margin: 0;
-			}
-			#canvas {
-				width: 100%;
-				height: 100%;
-				outline: none;
+				overflow: hidden;
 			}
 			#canvas-wrapper {
 				width: 100%;
 				height: 100%;
 				outline: none;
 			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+			#output {
+				display: none;
+				z-index: 10;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+			}
 		</style>
-		<script src="./babylon.js"></script>
-	</head>
+	</html>
 	<body>
 		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
 			<canvas id="canvas"></canvas>
 		</div>
 	</body>
 	<script>
-		var canvas = document.getElementById("canvas");
-		var engine = new BABYLON.Engine(canvas);
+		/* -v-v-v-v-v-v- *\
+		|  +X: RIGHT,     |
+		>  +Y: UP,        <
+		|  +Z: BACKWARDS  |
+		\* -^-^-^-^-^-^- */
+		const rect3D = class rect3D {
+			constructor(faces) {
+				this.top = faces.top;
+				this.bottom =  faces.bottom;
+				this.left = faces.left;
+				this.right = faces.right
+				this.front = faces.front;
+				this.back = faces.back;
+			};
+			isPointIntersecting(x, y, z) {
+				return (x < this.right && x > this.left && y > this.bottom && y < this.top && z > this.back && z < this.front);
+			};
+		}; 
 
-		var playerDir = 0;
+		const canvas = document.getElementById("canvas");
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+		const ctx = canvas.getContext("2d");
 
-		var scene = new BABYLON.Scene(engine);
-		scene.clearColor = new BABYLON.Color3(0.8, 0.8, 0.8);
-		var camera = new BABYLON.FreeCamera("camera", new BABYLON.Vector3(0, 0, -10), scene);
-		var light = new BABYLON.PointLight("light", new BABYLON.Vector3(0, 10, 0), scene);
+		var fovX = 60;
+		var fovY = 60;
+		var resX = 90;
+		var resY = 90;
+		var playerX = 0; // do keys down and move
+		var playerY = 0;
+		var playerZ = 0;
+		var playerDirX = 0;
+		var playerDirY = 0;
 
+		var cube = new rect3D({
+			top: 2,
+			bottom: -2,
+			left: -2,
+			right: 2,
+			front: 2,
+			back: -2
+		});
 		var keysDown = {};
 		function isDown(key) {
 			return keysDown[key] ?? false;
 		};
-
-		light.intensity = 1;
-
-		var box = BABYLON.Mesh.CreateBox("box", 2, scene);
-		box.rotation.x = 0;
-		box.rotation.y = 0;
-		var ground = BABYLON.MeshBuilder.CreateBox("box", {height: 0.1, width: 100, depth: 100});
-		ground.rotation.x = 0;
-		ground.rotation.y = 0;
-		ground.position.x = 0;
-		ground.position.y = -3;
-		var box3 = BABYLON.MeshBuilder.CreateBox("box", {height: 1, width: 1, depth: 1});
-		box3.rotation.x = 0;
-		box3.rotation.y = 0;
-
-		var boxMaterial = new BABYLON.StandardMaterial("material", scene);
-		boxMaterial.emissiveColor = new BABYLON.Color3(0, 0.58, 0.86);
-		box.material = boxMaterial;
-		ground.material = boxMaterial;
-		box3.material = boxMaterial;
-
-		var renderLoop = function(){
-			camera.position.x += (isDown("w") - isDown("s")) * 0.3 * Math.sin(camera.rotation.y);
-			camera.position.z += (isDown("w") - isDown("s")) * 0.3 * Math.cos(camera.rotation.y);
-			camera.position.x += (isDown("d") - isDown("a")) * 0.3 * Math.sin(camera.rotation.y + 1.5708);
-			camera.position.z += (isDown("d") - isDown("a")) * 0.3 * Math.cos(camera.rotation.y + 1.5708);
-
-			camera.rotation.x += (isDown("ArrowDown") - isDown("ArrowUp")) * 0.02;
-			camera.rotation.y += (isDown("ArrowRight") - isDown("ArrowLeft")) * 0.05;
-			//camera.translate(new BABYLON.Vector3(1, 0, 1), 1, BABYLON.Space.WORLD);
-
-			scene.render();
+		function deg2rad(degrees) {
+			return degrees * (Math.PI / 180);
 		};
-		engine.runRenderLoop(renderLoop);
+		function randomNumber(min, max) {
+			return Math.random() * (max - min + 1) + min;
+		};
+
+		function render() {
+			playerX += (isDown("s") - isDown("w")) * Math.sin(deg2rad(playerDirY)) * 20;
+			playerZ += (isDown("s") - isDown("w")) * Math.cos(deg2rad(playerDirY)) * 20;
+			playerX += (isDown("d") - isDown("a")) * Math.sin(deg2rad(playerDirY + 90)) * 20;
+			playerZ += (isDown("d") - isDown("a")) * Math.cos(deg2rad(playerDirY + 90)) * 20;
+
+			playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft"));
+
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			for (let rayDirX = playerDirX - (fovX / 2); rayDirX < fovX; rayDirX++) {
+				for (let rayDirY = playerDirY - (fovY / 2); rayDirY < fovY; rayDirY++) {
+					let rayDirZ = playerDirZ;
+
+					let rayX = playerX;
+					let rayY = playerY;
+					let rayZ = playerZ;
+
+					let rayXV = Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
+					let rayYV = Math.sin(deg2rad(rayDirX));
+					let rayZV = Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
+
+					while (!cube.isPointIntersecting(rayX, rayY, rayZ) && rayZ > 4) {
+						rayX += rayXV;
+						rayY += rayYV;
+						rayZ += rayZV;
+					};
+					for (let pixelX = 0; pixelX < canvas.width / fov; pixelX++) {
+						for (let pixelY = 0; pixelY < canvas.width / fov; pixelY++) {
+							ctx.fillRect(rayX + (canvas.width / 2), rayY + (canvas.height / 2), 1, 1);
+						};
+					};
+				};
+			};
+		};
+		setInterval(render, 10);
 	</script>
 </html>

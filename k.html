@@ -65,7 +65,7 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 
-		var fovX = 60;
+		var fovX = 90;
 		var fovY = 60;
 		var resX = 90;
 		var resY = 90;
@@ -74,14 +74,16 @@
 		var playerZ = 0;
 		var playerDirX = 0;
 		var playerDirY = 0;
+		var playerDirZ = 0;
+		var renderDistance = 50;
 
 		var cube = new rect3D({
 			top: 2,
 			bottom: -2,
 			left: -2,
 			right: 2,
-			front: 2,
-			back: -2
+			front: 6,
+			back: 4
 		});
 		var keysDown = {};
 		function isDown(key) {
@@ -95,12 +97,15 @@
 		};
 
 		function render() {
-			playerX += (isDown("s") - isDown("w")) * Math.sin(deg2rad(playerDirY)) * 20;
-			playerZ += (isDown("s") - isDown("w")) * Math.cos(deg2rad(playerDirY)) * 20;
-			playerX += (isDown("d") - isDown("a")) * Math.sin(deg2rad(playerDirY + 90)) * 20;
-			playerZ += (isDown("d") - isDown("a")) * Math.cos(deg2rad(playerDirY + 90)) * 20;
+			playerX += (isDown("s") - isDown("w")) * Math.sin(deg2rad(playerDirY)) * 1;
+			playerZ += (isDown("s") - isDown("w")) * Math.cos(deg2rad(playerDirY)) * 1;
+			playerX += (isDown("d") - isDown("a")) * Math.sin(deg2rad(playerDirY + 90)) * 1;
+			playerZ += (isDown("d") - isDown("a")) * Math.cos(deg2rad(playerDirY + 90)) * 1;
 
-			playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft"));
+			playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft")) * 3;
+			playerDirX += (isDown("ArrowUp") - isDown("ArrowDown")) * 3;
+			playerDirY = playerDirY % 360;
+			playerDirX = playerDirX % 360;
 
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -116,16 +121,28 @@
 					let rayYV = Math.sin(deg2rad(rayDirX));
 					let rayZV = Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
 
-					while (!cube.isPointIntersecting(rayX, rayY, rayZ) && rayZ > 4) {
+					while (!(cube.isPointIntersecting(rayX, rayY, rayZ) || (rayX > playerX + renderDistance || rayX < playerX - renderDistance || rayY > playerY + renderDistance || rayY < playerY - renderDistance || rayZ > playerZ + renderDistance || rayZ < playerZ - renderDistance))) {
 						rayX += rayXV;
 						rayY += rayYV;
 						rayZ += rayZV;
 					};
-					for (let pixelX = 0; pixelX < canvas.width / fov; pixelX++) {
-						for (let pixelY = 0; pixelY < canvas.width / fov; pixelY++) {
-							ctx.fillRect(rayX + (canvas.width / 2), rayY + (canvas.height / 2), 1, 1);
-						};
+
+					let buffer = [];
+					if (cube.isPointIntersecting(rayX, rayY, rayZ)) {
+						buffer.push([rayDirX, rayDirY, "green"]);
+					} else {
+						buffer.push([rayDirX, rayDirY, "skyblue"]);
 					};
+
+					/*for (let pixelX = 0; pixelX < canvas.width / fov; pixelX++) {
+						for (let pixelY = 0; pixelY < canvas.width / fov; pixelY++) {
+							ctx.fillRect(pixelX, pixelY, 1, 1);
+						};
+					};*/
+					buffer.forEach(it => {
+						ctx.fillStyle = it[2];
+						ctx.fillRect(it[0] * (canvas.width / fovX), it[1] * (canvas.height / fovY), canvas.width / fovX, canvas.height / fovY);
+					});
 				};
 			};
 		};

@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>it</title>
+		<title>Boffnop</title>
 		<style>
 			* {
 				box-sizing: border-box;
@@ -26,100 +26,50 @@
 				width: 100%;
 				height: 100%;
 			}
-			#output {
-				display: none;
-				z-index: 10;
-				position: absolute;
-				top: 0px;
-				left: 0px;
-			}
 		</style>
-	</html>
+	</head>
 	<body>
-		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
+		<div id="canvas-wrapper">
 			<canvas id="canvas"></canvas>
 		</div>
 	</body>
 	<script>
-		/* -v-v-v-v-v-v- *\
-		|  +X: RIGHT,     |
-		>  +Y: UP,        <
-		|  +Z: BACKWARDS  |
-		\* -^-^-^-^-^-^- */
-		const rect3D = class rect3D {
-			constructor(faces) {
-				this.top = faces.top;
-				this.bottom =  faces.bottom;
-				this.left = faces.left;
-				this.right = faces.right
-				this.front = faces.front;
-				this.back = faces.back;
-			};
-			isPointIntersecting(x, y, z) {
-				return (x < this.right && x > this.left && y > this.bottom && y < this.top && z > this.back && z < this.front);
-			};
-		}; 
-
 		const canvas = document.getElementById("canvas");
 		canvas.width = innerWidth;
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 
-		var fovX = 60;
-		var fovY = 60;
-		var resX = 90;
-		var resY = 90;
-		var playerX = 0; // do keys down and move
-		var playerY = 0;
-		var playerZ = 0;
-		var playerDirX = 0;
-		var playerDirY = 0;
-
-		var cube = new rect3D({
-			top: 2,
-			bottom: -2,
-			left: -2,
-			right: 2,
-			front: 2,
-			back: -2
-		});
-		var keysDown = {};
-		function isDown(key) {
-			return keysDown[key] ?? false;
+		function getPixel(x, y, z) {
+			if (x > 200 || x < -200 || y > 200 || y < -200 || z > 200 || z < -200) {
+				return [0, 0, 255, 1];
+			};
+			return [0, 0, 0, 0];
 		};
 		function deg2rad(degrees) {
 			return degrees * (Math.PI / 180);
 		};
-		function randomNumber(min, max) {
-			return Math.random() * (max - min + 1) + min;
-		};
-
 		function render() {
-			playerX += (isDown("s") - isDown("w")) * Math.sin(deg2rad(playerDirY)) * 20;
-			playerZ += (isDown("s") - isDown("w")) * Math.cos(deg2rad(playerDirY)) * 20;
-			playerX += (isDown("d") - isDown("a")) * Math.sin(deg2rad(playerDirY + 90)) * 20;
-			playerZ += (isDown("d") - isDown("a")) * Math.cos(deg2rad(playerDirY + 90)) * 20;
-
-			playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft"));
-
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-			for (let rayX = playerX - (canvas.width / 2); rayX < fovX; rayX++) {
-				for (let rayY = playerY - (canvas.height / 2); rayY < fovY; rayY++) {
-					let rayZ = playerZ;
-					let xv = Math.sin(deg2rad(playerDirY));
-					let yv = 0;
-					let zv = Math.cos(deg2rad(playerDirY));
-
-					while (!cube.isPointIntersecting(rayX, rayY, rayZ) && rayZ > 4) {
-						rayX += xv;
-						rayY += yv;
-						rayZ += zv;
+			for (let pixelX = 0; pixelX < canvas.width; pixelX += 90 / canvas.width) {
+				for (let pixelY = 0; pixelY < canvas.height; pixelY += 60 / canvas.height) {
+					let rayDirX = pixelX * (90 / canvas.width);
+					let rayDirY = pixelY * (60 / canvas.height);
+					let rayXV = Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
+					let rayYV = Math.sin(deg2rad(rayDirX));
+					let rayZV = Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
+					let rayX = 0;
+					let rayY = 0;
+					let rayZ = 0;
+					while (getPixel(rayX, rayY, rayZ)[3] == 0) {
+						rayX += rayXV;
+						rayY += rayYV;
+						rayZ += rayZV;
 					};
-					ctx.fillRect(rayX + (canvas.width / 2), rayY + (canvas.height / 2), 1, 1);
+					let color = getPixel(rayX, rayY, rayZ);
+					ctx.fillStyle = `rgba(${color.join(", ")})`;
+					ctx.fillRect(pixelX, pixelY, 1, 1);
 				};
 			};
 		};
-		setInterval(render, 10);
+		//render();
 	</script>
 </html>

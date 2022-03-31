@@ -44,8 +44,10 @@
 			<canvas id="canvas"></canvas>
 		</div>
 		<div id="settings">
-			<label for="fovX">fovX:</label><input type="range" id="fovX" min="0" max="360" value="90"><br>
-			<label for="fovY">fovY:</label><input type="range" id="fovY" min="0" max="360" value="90">
+			<label for="fovX">fov x:</label><input type="range" id="fovX" min="0" max="360" value="90"><br>
+			<label for="fovY">fov y:</label><input type="range" id="fovY" min="0" max="360" value="180"><br>
+			<label for="resX">res x:</label><input type="range" id="resX" min="0" max="360" value="90"><br>
+			<label for="resY">res y:</label><input type="range" id="resY" min="0" max="360" value="90">
 		</div>
 	</body>
 	<script>
@@ -54,16 +56,17 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 
-		var fovX = 130;
-		var fovY = 100;
-		var resX = fovX * 0.5;
-		var resY = fovY * 0.5;
+		var fovX = 90;
+		var fovY = 60;
+		var resX = 90;
+		var resY = 60;
 		var playerX = 0;
 		var playerY = 0;
 		var playerZ = 0;
 		var playerDirX = 0;
 		var playerDirY = 0;
 		var keysDown = {};
+		var isRender = false;
 
 		function isDown(key) {
 			return keysDown[key] ?? false;
@@ -74,7 +77,7 @@
 				y: green
 				z: blue
 			*/
-			if (x > 200 || x < -200) {
+			if (x > 400 || x < -200) {
 				return [255, 0, 0, 1];
 			};
 			if (y > 200 || y < -200) {
@@ -91,26 +94,26 @@
 		function render() {
 			let time = Date.now();
 
-			if (fovX != document.getElementById("fovX").value) {
+			if (!isRender) {
 				fovX = document.getElementById("fovX").value;
-			};
-			if (fovY != document.getElementById("fovY").value) {
 				fovY = document.getElementById("fovY").value;
+				resX = document.getElementById("resX").value;
+				resY = document.getElementById("resY").value;
+
+				playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft"));
+				playerDirX += (isDown("ArrowDown") - isDown("ArrowUp"));
+
+				playerZ += (isDown("w") - isDown("s")) * Math.sin(deg2rad(playerDirY));
+				playerX += (isDown("w") - isDown("s")) * Math.cos(deg2rad(playerDirY));
+				
+				playerZ += (isDown("a") - isDown("d")) * Math.sin(deg2rad(playerDirY + 90));
+				playerX += (isDown("a") - isDown("d")) * Math.cos(deg2rad(playerDirY + 90));
 			};
-
-			playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft"));
-			playerDirX += (isDown("ArrowDown") - isDown("ArrowUp"));
-
-			playerZ += (isDown("w") - isDown("s")) * Math.sin(deg2rad(playerDirY));
-			playerX += (isDown("w") - isDown("s")) * Math.cos(deg2rad(playerDirY));
-			
-			playerZ += (isDown("a") - isDown("d")) * Math.sin(deg2rad(playerDirY + 90));
-			playerX += (isDown("a") - isDown("d")) * Math.cos(deg2rad(playerDirY + 90));
 			
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-			for (let pixelX = 0; pixelX < canvas.width; pixelX += canvas.width / resX) {
-				for (let pixelY = 0; pixelY < canvas.height; pixelY += canvas.height / resY) {
+			for (let pixelX = canvas.width / -2; pixelX < canvas.width; pixelX += canvas.width / resX) {
+				for (let pixelY = canvas.height / -2; pixelY < canvas.height; pixelY += canvas.height / resY) {
 					let rayDirX = (pixelY * (fovY / canvas.width)) + playerDirX;
 					let rayDirY = (pixelX * (fovX / canvas.height)) + playerDirY;
 					let rayXV = Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
@@ -128,7 +131,7 @@
 					};
 					let color = getPixel(rayX, rayY, rayZ);
 					ctx.fillStyle = `rgba(${color.join(", ")})`;
-					ctx.fillRect(pixelX, pixelY, canvas.width / resX, canvas.height / resY);
+					ctx.fillRect(pixelX + (canvas.width / 2), pixelY + (canvas.height / 2), canvas.width / resX, canvas.height / resY);
 				};
 			};
 			// console.log("render took " + (Math.floor(((Date.now() - time) / 1000) * 10) / 10) + "s");
@@ -137,6 +140,7 @@
 		var bud = setInterval(render, 10);
 		function renderreal() {
 			clearInterval(bud);
+			isRender = true;
 			resX = canvas.width;
 			resY = canvas.height;
 			render();

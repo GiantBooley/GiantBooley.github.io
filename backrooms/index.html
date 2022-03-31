@@ -46,10 +46,11 @@
 			<canvas id="canvas"></canvas>
 		</div>
 		<div id="settings">
+			<label for="fps">fps: </label><b id="fps">0</b><br>
 			<label for="fovX">fov x:</label><input type="range" id="fovX" min="0" max="360" value="90"><br>
 			<label for="fovY">fov y:</label><input type="range" id="fovY" min="0" max="360" value="90"><br>
-			<label for="resX">res x:</label><input type="range" id="resX" min="0" max="360" value="90"><br>
-			<label for="resY">res y:</label><input type="range" id="resY" min="0" max="360" value="90">
+			<label for="resX">res x:</label><input type="range" id="resX" min="0" max="360" value="10"><br>
+			<label for="resY">res y:</label><input type="range" id="resY" min="0" max="360" value="10">
 		</div>
 	</body>
 	<script>
@@ -66,9 +67,10 @@
 		var playerY = 0;
 		var playerZ = 0;
 		var playerDirX = 0;
-		var playerDirY = 0;
+		var playerDirY = 90;
 		var keysDown = {};
-		var isRender = false;
+		var finalRender = false;
+		var fps = 0;
 
 		function isDown(key) {
 			return keysDown[key] ?? false;
@@ -79,72 +81,159 @@
 				y: green
 				z: blue
 			*/
-			if (x > 400 || x < -200) {
-				return [255, 0, 0, 1];
+			if (x < -200) {
+				return [255, 255, 0, 1];
 			};
-			if (y > 200 || y < -200) {
-				return [0, 255, 0, 1];
+			if (x > 400) {
+				if (Math.sin(z) > Math.sin(y)) {
+					return [234, 235, 190, 1];
+				};
+				return [223, 224, 177, 1];
+			};
+			if (y > 200) {
+				return [255, 0, 255, 1];
+			};
+			if (y < -200) {
+				if (Math.sin(x) > Math.sin(z)) {
+					return [234, 235, 190, 1];
+				};
+				return [223, 224, 177, 1];
 			};
 			if (z > 200 || z < -200) {
-				return [0, 0, 255, 1];
+				return [0, 255, 255, 1];
 			};
 			return [0, 0, 0, 0];
 		};
 		function deg2rad(degrees) {
 			return degrees * (Math.PI / 180);
 		};
+		function average(number1, number2) {
+			return (number1 + number2) / 2;
+		};
 		function render() {
-			let time = Date.now();
+			let time = performance.now();
 
-			if (!isRender) {
+			if (!finalRender) {
 				fovX = document.getElementById("fovX").valueAsNumber;
 				fovY = document.getElementById("fovY").valueAsNumber;
 				resX = document.getElementById("resX").valueAsNumber;
 				resY = document.getElementById("resY").valueAsNumber;
 
-				playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft"));
 				playerDirX += (isDown("ArrowDown") - isDown("ArrowUp"));
+				playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft"));
 				let playerSpeed = 3;
+
+				let oldPlayerX = playerX;
+				let oldPlayerZ = playerZ;
+
 				playerX += playerSpeed * (isDown("w") - isDown("s")) * Math.sin(deg2rad(playerDirY));
+				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
+					playerX = oldPlayerX;
+				};
 				playerZ += playerSpeed * (isDown("w") - isDown("s")) * Math.cos(deg2rad(playerDirY));
+				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
+					playerZ = oldPlayerZ;
+				};
 				
 				playerX += playerSpeed * (isDown("d") - isDown("a")) * Math.sin(deg2rad(playerDirY + 90));
+				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
+					playerX = oldPlayerX;
+				};
 				playerZ += playerSpeed * (isDown("d") - isDown("a")) * Math.cos(deg2rad(playerDirY + 90));
-			};
+				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
+					playerZ = oldPlayerZ;
+				};
 			
+			};
+
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-			for (let pixelX = canvas.width / -2; pixelX < canvas.width; pixelX += canvas.width / resX) {
-				for (let pixelY = canvas.height / -2; pixelY < canvas.height; pixelY += canvas.height / resY) {
-					let rayDirX = (pixelY * (fovY / .5 / canvas.width)) + playerDirX;
-					let rayDirY = (pixelX * (fovX / 2 / canvas.height)) + playerDirY;
-					let rayXV = Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
-					let rayYV = Math.sin(deg2rad(rayDirX));
-					let rayZV = Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
-					let rayX = playerX;
-					let rayY = playerY;
-					let rayZ = playerZ;
-					let bpb = 0;
-					while (getPixel(rayX, rayY, rayZ)[3] == 0 && bpb < 100900) {
-						rayX += rayXV;
-						rayY += rayYV;
-						rayZ += rayZV;
-						bpb++;
+			let singleRay = function singleRay(pixelX, pixelY) {
+				let rayDirX = (pixelY * (fovY / .5 / canvas.width)) + playerDirX;
+				let rayDirY = ((pixelX * (fovX / 2 / canvas.height)) + playerDirY) * -1;
+				let rayXV = 1 * Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
+				let rayYV = 1 * Math.sin(deg2rad(rayDirX));
+				let rayZV = 1 * Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
+				let rayX = playerX;
+				let rayY = playerY;
+				let rayZ = playerZ;
+
+				let bounces = 0;
+				let bounceColor = [];
+				while (!(getPixel(rayX, rayY, rayZ)[3] !== 0 && getPixel(rayX, rayY, rayZ).join(",") !== "170,150,225,1")) {
+					rayX += rayXV;
+					if (getPixel(rayX, rayY, rayZ).join(",") == "170,150,225,1") {
+						rayXV *= -1;
+						bounceColor = getPixel(rayX, rayY, rayZ);
 					};
-					let color = getPixel(rayX, rayY, rayZ);
-					ctx.fillStyle = `rgba(${color.join(", ")})`;
-					ctx.fillRect(pixelX + (canvas.width / 2), pixelY + (canvas.height / 2), canvas.width / resX, canvas.height / resY);
+					rayY += rayYV;
+					if (getPixel(rayX, rayY, rayZ).join(",") == "170,150,225,1") {
+						rayYV *= -1;
+						bounceColor = getPixel(rayX, rayY, rayZ);
+					};
+					rayZ += rayZV;
+					if (getPixel(rayX, rayY, rayZ).join(",") == "170,150,225,1") {
+						rayZV *= -1;
+						bounceColor = getPixel(rayX, rayY, rayZ);
+					};
+				};
+				if (bounceColor.length == 0) {
+					bounceColor = getPixel(rayX, rayY, rayZ);
+				};
+
+				let color = [
+					average(getPixel(rayX, rayY, rayZ)[0], bounceColor[0]),
+					average(getPixel(rayX, rayY, rayZ)[1], bounceColor[1]),
+					average(getPixel(rayX, rayY, rayZ)[2], bounceColor[2]),
+					getPixel(rayX, rayY, rayZ)[3]
+				];
+				/*let colorOffset = 1.3;
+				if (getPixel(rayX - rayXV, rayY, rayZ)[3] == 0) {
+					color[0] *= colorOffset;
+					color[1] *= colorOffset;
+					color[2] *= colorOffset;
+				} else if (getPixel(rayX, rayY, rayZ - rayZV)[3] == 0) {
+					color[0] /= colorOffset;
+					color[1] /= colorOffset;
+					color[2] /= colorOffset;
+				};
+				*/
+				ctx.fillStyle = `rgba(${color.join(", ")})`;
+				ctx.fillRect(pixelX + (canvas.width / 2), pixelY + (canvas.height / 2), canvas.width / resX, canvas.height / resY);
+			};
+
+			if (finalRender) {
+				let pixelX = canvas.width / -2;
+				let pixelY = canvas.height / -2;
+				let loopX = setInterval(function(){
+					//for (let i = 0; i < 10; i++) {
+						for (let pixelX = canvas.width / -2; pixelX < canvas.width; pixelX += canvas.width / resX) {
+							singleRay(pixelX, pixelY);
+						};
+						pixelY += canvas.height / resY;
+						if (!(pixelY < canvas.height)) {
+							clearInterval(loopY);
+						};
+					//};
+				}, 0);
+			} else {
+				for (let pixelY = canvas.height / -2; pixelY < canvas.height; pixelY += canvas.height / resY) {
+					for (let pixelX = canvas.width / -2; pixelX < canvas.width; pixelX += canvas.width / resX) {
+						singleRay(pixelX, pixelY);
+					};
 				};
 			};
-			// console.log("render took " + (Math.floor(((Date.now() - time) / 1000) * 10) / 10) + "s");
-			return Date.now() - time;
+			// console.log("render took " + (Math.floor(((performance.now() - time) / 1000) * 10) / 10) + "s");
+			fps = 1000 / (performance.now() - time);
+			document.getElementById("fps").innerText = fps;
+			return performance.now() - time;
 		};
 		var bud = setInterval(render, 10);
 		function renderreal() {
 			clearInterval(bud);
-			isRender = true;
-			resX = canvas.width;
-			resY = canvas.height;
+			finalRender = true;
+			resX = canvas.width / 1;
+			resY = canvas.height / 1;
 			render();
 		};
 	</script>

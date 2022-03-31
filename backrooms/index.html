@@ -33,6 +33,8 @@
 				right: 0px;
 				z-index: 19;
 				font-family: monospace;
+				outline: 5px ridge gray;
+				box-shadow: inset 3px 0px 10px gray;
 			}
 			input {
 				width: 200px;
@@ -45,7 +47,7 @@
 		</div>
 		<div id="settings">
 			<label for="fovX">fov x:</label><input type="range" id="fovX" min="0" max="360" value="90"><br>
-			<label for="fovY">fov y:</label><input type="range" id="fovY" min="0" max="360" value="180"><br>
+			<label for="fovY">fov y:</label><input type="range" id="fovY" min="0" max="360" value="90"><br>
 			<label for="resX">res x:</label><input type="range" id="resX" min="0" max="360" value="90"><br>
 			<label for="resY">res y:</label><input type="range" id="resY" min="0" max="360" value="90">
 		</div>
@@ -95,27 +97,27 @@
 			let time = Date.now();
 
 			if (!isRender) {
-				fovX = document.getElementById("fovX").value;
-				fovY = document.getElementById("fovY").value;
-				resX = document.getElementById("resX").value;
-				resY = document.getElementById("resY").value;
+				fovX = document.getElementById("fovX").valueAsNumber;
+				fovY = document.getElementById("fovY").valueAsNumber;
+				resX = document.getElementById("resX").valueAsNumber;
+				resY = document.getElementById("resY").valueAsNumber;
 
 				playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft"));
 				playerDirX += (isDown("ArrowDown") - isDown("ArrowUp"));
-
-				playerZ += (isDown("w") - isDown("s")) * Math.sin(deg2rad(playerDirY));
-				playerX += (isDown("w") - isDown("s")) * Math.cos(deg2rad(playerDirY));
+				let playerSpeed = 3;
+				playerX += playerSpeed * (isDown("w") - isDown("s")) * Math.sin(deg2rad(playerDirY));
+				playerZ += playerSpeed * (isDown("w") - isDown("s")) * Math.cos(deg2rad(playerDirY));
 				
-				playerZ += (isDown("a") - isDown("d")) * Math.sin(deg2rad(playerDirY + 90));
-				playerX += (isDown("a") - isDown("d")) * Math.cos(deg2rad(playerDirY + 90));
+				playerX += playerSpeed * (isDown("d") - isDown("a")) * Math.sin(deg2rad(playerDirY + 90));
+				playerZ += playerSpeed * (isDown("d") - isDown("a")) * Math.cos(deg2rad(playerDirY + 90));
 			};
 			
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 			for (let pixelX = canvas.width / -2; pixelX < canvas.width; pixelX += canvas.width / resX) {
 				for (let pixelY = canvas.height / -2; pixelY < canvas.height; pixelY += canvas.height / resY) {
-					let rayDirX = (pixelY * (fovY / canvas.width)) + playerDirX;
-					let rayDirY = (pixelX * (fovX / canvas.height)) + playerDirY;
+					let rayDirX = (pixelY * (fovY / .5 / canvas.width)) + playerDirX;
+					let rayDirY = (pixelX * (fovX / 2 / canvas.height)) + playerDirY;
 					let rayXV = Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
 					let rayYV = Math.sin(deg2rad(rayDirX));
 					let rayZV = Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));

@@ -39,18 +39,29 @@
 			input {
 				width: 200px;
 			}
+			#time-map {
+				width: 100%;
+				height: 100%;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				display: none;
+			}
 		</style>
 	</head>
 	<body>
 		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true; if (event.key == ' ') {renderreal()}" onkeyup="keysDown[event.key] = false;">
 			<canvas id="canvas"></canvas>
 		</div>
+		<canvas id="time-map"></canvas>
 		<div id="settings">
 			<label for="fps">fps: </label><b id="fps">0</b><br>
 			<label for="fovX">fov x:</label><input type="range" id="fovX" min="0" max="360" value="90"><br>
 			<label for="fovY">fov y:</label><input type="range" id="fovY" min="0" max="360" value="90"><br>
 			<label for="resX">res x:</label><input type="range" id="resX" min="0" max="360" value="10"><br>
-			<label for="resY">res y:</label><input type="range" id="resY" min="0" max="360" value="10">
+			<label for="resY">res y:</label><input type="range" id="resY" min="0" max="360" value="10"><br>
+			<label for="resY">res z:</label><input type="number" id="resZ"value="1"><br>
+			<button onclick="toggleTimeMap();">toggle time map</button>
 		</div>
 	</body>
 	<script>
@@ -59,10 +70,16 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 
+		const timeMap = document.getElementById("time-map");
+		timeMap.width = canvas.width;
+		timeMap.height = canvas.height;
+		const tmctx = timeMap.getContext("2d");
+
 		var fovX = 90;
 		var fovY = 60;
 		var resX = 90;
 		var resY = 60;
+		var resZ = 1;
 		var playerX = 0;
 		var playerY = 0;
 		var playerZ = 0;
@@ -72,35 +89,47 @@
 		var finalRender = false;
 		var fps = 0;
 
+		Math.mod = function mod(n, t) {
+			return ((n % t) + t) % t;
+		};
+
+		function toggleTimeMap() {
+			if (window.getComputedStyle(document.getElementById('time-map'), null).getPropertyValue('display') == 'block') {
+				document.getElementById('time-map').style.display = 'none';
+			} else {
+				document.getElementById('time-map').style.display = 'block';
+			};
+		};
 		function isDown(key) {
 			return keysDown[key] ?? false;
 		};
 		function getPixel(x, y, z) {
 			/*
-				x: red
-				y: green
-				z: blue
+				[r, g, b, a, reflectiveness]
 			*/
-			if (x < -200) {
-				return [255, 255, 0, 1];
-			};
-			if (x > 400) {
-				if (Math.sin(z) > Math.sin(y)) {
-					return [234, 235, 190, 1];
+			if (x > 400 || x < -200) {
+				if (Math.mod(z, 10) < 2 || (Math.mod(z + (y / 4), 10) < 2 && Math.mod(z, 10) > 5) || (Math.mod(z - (y / 4), 10) < 2 && Math.mod(z, 10) < 5)) {
+					return [200, 200, 50, 1];
 				};
-				return [223, 224, 177, 1];
+				return [255, 255, 100, 1];
 			};
-			if (y > 200) {
-				return [255, 0, 255, 1];
+			if (y > 200) { // roof
+				if (Math.mod(x, 20) < 2 || Math.mod(z, 20) < 2) {
+					return [200, 200, 200, 1];
+				};
+				return [240, 240, 230, 1];
 			};
-			if (y < -200) {
-				if (Math.sin(x) > Math.sin(z)) {
+			if (y < -200) { // floor
+				if (Math.sin(x * 1000) > Math.sin(z * 1000)) {
 					return [234, 235, 190, 1];
 				};
 				return [223, 224, 177, 1];
 			};
 			if (z > 200 || z < -200) {
-				return [0, 255, 255, 1];
+				if (Math.mod(x, 10) < 2 || (Math.mod(x + (y / 4), 10) < 2 && Math.mod(x, 10) > 5) || (Math.mod(x - (y / 4), 10) < 2 && Math.mod(x, 10) < 5)) {
+					return [200, 200, 50, 1];
+				};
+				return [255, 255, 100, 1];
 			};
 			return [0, 0, 0, 0];
 		};
@@ -113,11 +142,14 @@
 		function render() {
 			let time = performance.now();
 
+			
+
 			if (!finalRender) {
 				fovX = document.getElementById("fovX").valueAsNumber;
 				fovY = document.getElementById("fovY").valueAsNumber;
 				resX = document.getElementById("resX").valueAsNumber;
 				resY = document.getElementById("resY").valueAsNumber;
+				resZ = document.getElementById("resZ").valueAsNumber || 1;
 
 				playerDirX += (isDown("ArrowDown") - isDown("ArrowUp"));
 				playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft"));
@@ -147,13 +179,14 @@
 			};
 
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			tmctx.clearRect(0, 0, timeMap.width, timeMap.height);
 
 			let singleRay = function singleRay(pixelX, pixelY) {
 				let rayDirX = (pixelY * (fovY / .5 / canvas.width)) + playerDirX;
-				let rayDirY = ((pixelX * (fovX / 2 / canvas.height)) + playerDirY) * -1;
-				let rayXV = 1 * Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
-				let rayYV = 1 * Math.sin(deg2rad(rayDirX));
-				let rayZV = 1 * Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
+				let rayDirY = ((pixelX * (fovX / 2 / canvas.height)) + playerDirY);
+				let rayXV = resZ * Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
+				let rayYV = -resZ * Math.sin(deg2rad(rayDirX));
+				let rayZV = resZ * Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
 				let rayX = playerX;
 				let rayY = playerY;
 				let rayZ = playerZ;
@@ -208,7 +241,11 @@
 				let loopX = setInterval(function(){
 					//for (let i = 0; i < 10; i++) {
 						for (let pixelX = canvas.width / -2; pixelX < canvas.width; pixelX += canvas.width / resX) {
+							let timeReal = performance.now();
 							singleRay(pixelX, pixelY);
+							let colorReal = (performance.now() - timeReal) * 1000;
+							tmctx.fillStyle = `rgba(${colorReal}, ${colorReal}, ${colorReal}, 1)`;
+							tmctx.fillRect(pixelX + (timeMap.width / 2), pixelY + (timeMap.height / 2), timeMap.width / resX, timeMap.height / resY);
 						};
 						pixelY += canvas.height / resY;
 						if (!(pixelY < canvas.height)) {

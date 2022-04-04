@@ -109,13 +109,27 @@
 		ctx.lineWidth = canvas.width / res;
 
 		function getPixel(x, y) {
-			return [...levelData[Math.round(x) + (Math.round(y) * canvas.width)]];
+			return levelData[Math.round(x) + (Math.round(y) * canvas.width)];
 		};
 		function drawLine(first, second) {
 			ctx.beginPath();
 			ctx.moveTo(first[0], first[1]);
 			ctx.lineTo(second[0], second[1]);
 			ctx.stroke();
+		};
+		function rayColliding(p1, p2) {
+			let x = p1[0];
+			let y = p1[1];
+			let xv = Math.sin(Math.atan2(p2[0] - p1[0], p2[1] - p1[1]));
+			let yv = Math.cos(Math.atan2(p2[0] - p1[0], p2[1] - p1[1]));
+			for (let i = 0; i < distance(p1, p2); i++) {
+				if (colliding(x, y)) {
+					return true;
+				};
+				x += xv;
+				y += yv;
+			};
+			return false;
 		};
 		function distance(p1, p2) {
 			return Math.sqrt(((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2));
@@ -322,18 +336,28 @@
 			for (let i = 0; i < fov; i += fov/res) {
 				let rayDir = (playerDir - (fov / 2)) + i;
 				//let rayDir = playerDir + Math.atan(deg2rad(i / DV));
-				let xv = Math.sin(deg2rad(rayDir)) * 0.5;
-				let yv = Math.cos(deg2rad(rayDir)) * 0.5;
-				let rayx = playerX;
-				let rayy = playerY;
-				while (!colliding(rayx, rayy)) {
-					rayx += xv;
-					rayy += yv;
+				let rayXV = Math.sin(deg2rad(rayDir)) * 1;
+				let rayYV = Math.cos(deg2rad(rayDir)) * 1;
+				let rayX = playerX;
+				let rayY = playerY;
+				while (!colliding(rayX, rayY)) {
+					rayX += rayXV;
+					rayY += rayYV;
 				};
-				let color = getPixel(rayx, rayy);
-				rayx -= xv;
+
+				let color = [...getPixel(rayX, rayY)];
+				let maxBounces = 2;
+
+				if (rayColliding([rayX - rayXV, rayY - rayYV], [660, 400])) {
+					color[0] /= 1000;
+					color[1] /= 1000;
+					color[2] /= 1000;
+				};
+
+
+				rayX -= rayXV;
 				var colorOffset = document.getElementById("shading-offset").valueAsNumber;
-				if (!colliding(rayx, rayy)) {
+				if (!colliding(rayX, rayY)) {
 					color[0] *= colorOffset;
 					color[1] *= colorOffset;
 					color[2] *= colorOffset;
@@ -342,9 +366,9 @@
 					color[1] /= colorOffset;
 					color[2] /= colorOffset;
 				};
-				rayy -= yv;
+				rayY -= rayYV;
 
-				let rayDistance = distance([playerX, playerY], [rayx, rayy]);
+				let rayDistance = distance([playerX, playerY], [rayX, rayY]);
 				switch (document.getElementById("render-type").value) {
 					case "rectilinear":
 						rayDistance = rayDistance * Math.cos(deg2rad(playerDir - rayDir));
@@ -355,8 +379,8 @@
 				};
 
 				rayHits.push({
-					x: rayx,
-					y: rayy,
+					x: rayX,
+					y: rayY,
 					distance: rayDistance,
 					color: color
 				});
@@ -382,8 +406,11 @@
 			if (document.getElementById("show-rays").checked) {
 				rayHits.forEach((point, pos) => {
 					ctx.strokeStyle = `rgba(255, 255, 0, 0.1)`;
-					ctx.lineWidth = 5;
+					ctx.lineWidth = 1;
 					drawLine([playerX, playerY], [point.x, point.y]);
+					ctx.strokeStyle = `rgba(255, 200, 200, 1)`;
+					drawLine([point.x, point.y], [point.lightX, point.lightY]);
+					ctx.fillRect(655, 395, 10, 10);
 				});
 			};
 

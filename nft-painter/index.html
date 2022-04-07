@@ -122,20 +122,17 @@
 			if (fill) {
 				let color = getPixel(mouse.x, mouse.y);
 				let pixelsToFill = [[mouse.x, mouse.y]];
-				let i = 10;
+				let i = 0;
 				console.log("asdasd");
-				while (i > 0) {
-					console.log("while loop");
+				while (i < 5) {
 					pixelsToFill.forEach(pixelToFill => {
-						console.log("foreach loop 1");
 						[[pixelToFill[0] + 1, pixelToFill[1]], [pixelToFill[0] - 1, pixelToFill[1]], [pixelToFill[0], pixelToFill[1] + 1], [pixelToFill[0], pixelToFill[1] - 1]].forEach(pixel => {
-							console.log("foreach loop 2");
 							if (getPixel(pixel[0], pixel[1]).toString() == color.toString()) {
 								pixelsToFill.push(pixel);
 							};
 						});
 					});
-					i--;
+					i++;
 					//break;
 				};
 				/* [[mouse.x + 1, mouse.y], [mouse.x - 1, mouse.y], [mouse.x, mouse.y + 1], [mouse.x, mouse.y - 1]].forEach(pixel => {
@@ -144,7 +141,9 @@
 						fillPixel(pixel[0], pixel[1]);
 					};
 				}); */
-				fillPixel(mouse.x, mouse.y);
+				pixelsToFill.forEach(pixelToFill => {
+					fillPixel(pixelToFill[0], pixelToFill[1]);
+				});
 				fill = false;
 			};
 			oldMouseX = mouse.x;

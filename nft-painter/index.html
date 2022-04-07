@@ -80,7 +80,7 @@
 			return Math.sqrt(((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2));
 		};
 		function getPixel(x, y) {
-			let colorReal = [...ctx.getImageData(x / resX, y / resY, 1, 1).data];
+			let colorReal = [...ctx.getImageData(x * resX, y * resY, 1, 1).data];
 			colorReal[3] /= 255;
 			console.log(colorReal);
 			return colorReal;
@@ -90,12 +90,12 @@
 			return result ? `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})` : null;
 		};
 
-		canvasWrapper.addEventListener("mousedown", e => {oldMouseX = mouse.x = e.clientX; oldMouseY = mouse.y = e.clientY - canvas.getBoundingClientRect().top; mouse.down = true});
+		canvasWrapper.addEventListener("mousedown", e => {oldMouseX = mouse.x = e.clientX / resX; oldMouseY = mouse.y = (e.clientY - canvas.getBoundingClientRect().top) / resY; mouse.down = true});
 		canvasWrapper.addEventListener("mouseup", e => {mouse.down = false});
-		canvasWrapper.addEventListener("mousemove", e => {mouse.x = e.clientX; mouse.y = e.clientY - canvas.getBoundingClientRect().top});
-		canvasWrapper.addEventListener("touchstart", e => {oldMouseX = mouse.x = e.touches[0].clientX; oldMouseY = mouse.y = e.touches[0].clientY - canvas.getBoundingClientRect().top; mouse.down = true});
+		canvasWrapper.addEventListener("mousemove", e => {mouse.x = e.clientX / resX; mouse.y = (e.clientY - canvas.getBoundingClientRect().top) / resX;});
+		canvasWrapper.addEventListener("touchstart", e => {oldMouseX = mouse.x = e.touches[0].clientX / resX; oldMouseY = mouse.y = (e.touches[0].clientY - canvas.getBoundingClientRect().top) / resY; mouse.down = true});
 		canvasWrapper.addEventListener("touchend", e => {mouse.down = false});
-		canvasWrapper.addEventListener("touchmove", e => {mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY - canvas.getBoundingClientRect().top});
+		canvasWrapper.addEventListener("touchmove", e => {mouse.x = e.touches[0].clientX / resX; mouse.y = (e.touches[0].clientY - canvas.getBoundingClientRect().top) / resY});
 		canvasWrapper.addEventListener("keydown", e => {
 			if (e.key == "f") {
 				fill = true;
@@ -109,9 +109,9 @@
 
 			if (mouse.down) {
 				let lineDir = Math.atan2(mouse.x - oldMouseX, mouse.y - oldMouseY);
-				let pixelX = (oldMouseX / resX);
-				let pixelY = (oldMouseY / resY);
-				for (let i = 0; i < distance([oldMouseX / resX, oldMouseY / resY], [mouse.x / resX, mouse.y / resY]); i++) {;
+				let pixelX = (oldMouseX);
+				let pixelY = (oldMouseY);
+				for (let i = 0; i < distance([oldMouseX, oldMouseY], [mouse.x, mouse.y]); i++) {;
 					document.getElementById("eraser").checked ? clearPixel(pixelX, pixelY) : fillPixel(pixelX, pixelY);
 					pixelX += Math.sin(lineDir);
 					pixelY += Math.cos(lineDir);
@@ -120,13 +120,31 @@
 				//ctx.fillRect(mouse.x.round(10), mouse.y.round(10), 10, 10);
 			};
 			if (fill) {
-				let color = getPixel(mouse.x / resX, mouse.y / resY).toString();
-				[mouse.x + 1, mouse.x - 1, mouse.y + 1, mouse.y - 1].forEach(pixel => {
-					if (getPixel(pixel / resX).toString() == color) {
-						fillPixel(pixel / resX, pixel / resY);
+				let color = getPixel(mouse.x, mouse.y);
+				let pixelsToFill = [[mouse.x, mouse.y]];
+				let i = 10;
+				console.log("asdasd");
+				while (i > 0) {
+					console.log("while loop");
+					pixelsToFill.forEach(pixelToFill => {
+						console.log("foreach loop 1");
+						[[pixelToFill[0] + 1, pixelToFill[1]], [pixelToFill[0] - 1, pixelToFill[1]], [pixelToFill[0], pixelToFill[1] + 1], [pixelToFill[0], pixelToFill[1] - 1]].forEach(pixel => {
+							console.log("foreach loop 2");
+							if (getPixel(pixel[0], pixel[1]).toString() == color.toString()) {
+								pixelsToFill.push(pixel);
+							};
+						});
+					});
+					i--;
+					//break;
+				};
+				/* [[mouse.x + 1, mouse.y], [mouse.x - 1, mouse.y], [mouse.x, mouse.y + 1], [mouse.x, mouse.y - 1]].forEach(pixel => {
+					if (getPixel(pixel[0], pixel[1]).toString() == color.toString()) {
+						console.log(getPixel(pixel[0], pixel[1]).toString(), color.toString());
+						fillPixel(pixel[0], pixel[1]);
 					};
-				});
-				fillPixel(mouse.x / resX, mouse.y / resY);
+				}); */
+				fillPixel(mouse.x, mouse.y);
 				fill = false;
 			};
 			oldMouseX = mouse.x;

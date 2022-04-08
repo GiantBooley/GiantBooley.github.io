@@ -9,6 +9,9 @@
 			* {
 				box-sizing: border-box;
 			}
+			:root {
+				--res: 20px;
+			}
 			html,body {
 				width: 100%;
 				height: 100%;
@@ -22,12 +25,16 @@
 			#canvas {
 				width: 100%;
 				height: 100%;
+				background-color: transparent;
 			}
 			#canvas-wrapper {
 				width: 100%;
 				height: 80%;
 				outline: none;
 				cursor: crosshair;
+				background-image: linear-gradient(45deg, #EEEEEE 25%, transparent 25%), linear-gradient(-45deg, #EEEEEE 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #EEEEEE 75%), linear-gradient(-45deg, transparent 75%, #EEEEEE 75%);;
+				background-size: 40px 40px;
+				background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
 			}
 			#settings {
 				width: 100%;
@@ -41,9 +48,17 @@
 			<label for="brush-color">Brush color:</label>
 			<input type="color" id="brush-color">
 			<label for="alpha">a:</label>
-			<input type="number" id="alpha" value="1"><br>
-			<input type="checkbox" id="eraser">
-			<label for="eraser">Eraser</label>
+			<input type="number" id="alpha" value="1">
+			<button id="pixel-size-button">Change pixel size</button><br>
+			<label for="tool">Tool:</label>
+			<select id="tool">
+				<option value="paint_brush" selected="">Paint brush</option>
+				<option value="eraser">Eraser</option>
+				<option value="paint_bucket">Paint bucket</option>
+				<option value="eye_dropper">Eye dropper</option>
+			</select><br>
+			<input type="checkbox" id="show-transparency">
+			<label for="show-transparency">Show transparency</label>
 		</div>
 		<div id="canvas-wrapper" tabindex="0">
 			<canvas id="canvas"></canvas>
@@ -62,27 +77,23 @@
 			y: 0
 		};
 		var buffer = [];
-		//var pixelSize = 1;
-		var resX = 20;
-		var resY = 20;
-		var fill = false;
+		var pixelSize = 20;
 
 		Number.prototype.round = function(nearest) {
 			return Math.floor(this / nearest) * nearest;
 		};
 		function fillPixel(x, y) {
-			ctx.fillRect(Math.floor(x) * resX, Math.floor(y) * resX, resX, resY);
+			ctx.fillRect(Math.floor(x) * pixelSize, Math.floor(y) * pixelSize, pixelSize, pixelSize);
 		};
 		function clearPixel(x, y) {
-			ctx.clearRect(Math.floor(x) * resX, Math.floor(y) * resX, resX, resY);
+			ctx.clearRect(Math.floor(x) * pixelSize, Math.floor(y) * pixelSize, pixelSize, pixelSize);
 		};
 		function distance(p1, p2) {
 			return Math.sqrt(((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2));
 		};
 		function getPixel(x, y) {
-			let colorReal = [...ctx.getImageData(x * resX, y * resY, 1, 1).data];
+			let colorReal = [...ctx.getImageData(x * pixelSize, y * pixelSize, 1, 1).data];
 			colorReal[3] /= 255;
-			console.log(colorReal);
 			return colorReal;
 		};
 		function hexToRgb(hex) {
@@ -90,61 +101,66 @@
 			return result ? `rgb(${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)})` : null;
 		};
 
-		canvasWrapper.addEventListener("mousedown", e => {oldMouseX = mouse.x = e.clientX / resX; oldMouseY = mouse.y = (e.clientY - canvas.getBoundingClientRect().top) / resY; mouse.down = true});
+		canvasWrapper.addEventListener("mousedown", e => {oldMouseX = mouse.x = e.clientX / pixelSize; oldMouseY = mouse.y = (e.clientY - canvas.getBoundingClientRect().top) / pixelSize; mouse.down = true});
 		canvasWrapper.addEventListener("mouseup", e => {mouse.down = false});
-		canvasWrapper.addEventListener("mousemove", e => {mouse.x = e.clientX / resX; mouse.y = (e.clientY - canvas.getBoundingClientRect().top) / resX;});
-		canvasWrapper.addEventListener("touchstart", e => {oldMouseX = mouse.x = e.touches[0].clientX / resX; oldMouseY = mouse.y = (e.touches[0].clientY - canvas.getBoundingClientRect().top) / resY; mouse.down = true});
+		canvasWrapper.addEventListener("mousemove", e => {mouse.x = e.clientX / pixelSize; mouse.y = (e.clientY - canvas.getBoundingClientRect().top) / pixelSize;});
+		canvasWrapper.addEventListener("touchstart", e => {oldMouseX = mouse.x = e.touches[0].clientX / pixelSize; oldMouseY = mouse.y = (e.touches[0].clientY - canvas.getBoundingClientRect().top) / pixelSize; mouse.down = true});
 		canvasWrapper.addEventListener("touchend", e => {mouse.down = false});
-		canvasWrapper.addEventListener("touchmove", e => {mouse.x = e.touches[0].clientX / resX; mouse.y = (e.touches[0].clientY - canvas.getBoundingClientRect().top) / resY});
-		canvasWrapper.addEventListener("keydown", e => {
-			if (e.key == "f") {
-				fill = true;
+		canvasWrapper.addEventListener("touchmove", e => {mouse.x = e.touches[0].clientX / pixelSize; mouse.y = (e.touches[0].clientY - canvas.getBoundingClientRect().top) / pixelSize});
+		canvasWrapper.addEventListener("keydown", e => {});
+		document.getElementById("pixel-size-button").addEventListener("click", function(e){
+			let pixelSizeToSet = parseInt(prompt(`how big is each pixel, current: ${pixelSize}\nTHIS WILL CLEAR THE CANVAS`));
+			if (Number.isFinite(pixelSizeToSet)) {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				pixelSize = pixelSizeToSet;
+				canvasWrapper.style.backgroundSize = `${pixelSize * 2}px ${pixelSize * 2}px`;
+				canvasWrapper.style.backgroundPosition = `0 0, 0 ${pixelSize}px, ${pixelSize}px -${pixelSize}px, -${pixelSize}px 0px`;
 			};
 		});
 
 		var oldMouseX = 0;
 		var oldMouseY = 0;
 		function loop() {
+			let tool = document.getElementById("tool").value;
 			ctx.fillStyle = ctx.strokeStyle = hexToRgb(document.getElementById("brush-color").value).replaceAll(")", ", " + document.getElementById("alpha").value + ")").replaceAll("rgb", "rgba");
 
+			canvas.style.backgroundColor = document.getElementById("show-transparency").checked ? "transparent" : "white";
+
+
 			if (mouse.down) {
-				let lineDir = Math.atan2(mouse.x - oldMouseX, mouse.y - oldMouseY);
-				let pixelX = (oldMouseX);
-				let pixelY = (oldMouseY);
-				for (let i = 0; i < distance([oldMouseX, oldMouseY], [mouse.x, mouse.y]); i++) {;
-					document.getElementById("eraser").checked ? clearPixel(pixelX, pixelY) : fillPixel(pixelX, pixelY);
-					pixelX += Math.sin(lineDir);
-					pixelY += Math.cos(lineDir);
-				};
-				
-				//ctx.fillRect(mouse.x.round(10), mouse.y.round(10), 10, 10);
-			};
-			if (fill) {
-				let color = getPixel(mouse.x, mouse.y);
-				let pixelsToFill = [[mouse.x, mouse.y]];
-				let i = 0;
-				console.log("asdasd");
-				while (i < 5) {
-					pixelsToFill.forEach(pixelToFill => {
-						[[pixelToFill[0] + 1, pixelToFill[1]], [pixelToFill[0] - 1, pixelToFill[1]], [pixelToFill[0], pixelToFill[1] + 1], [pixelToFill[0], pixelToFill[1] - 1]].forEach(pixel => {
-							if (getPixel(pixel[0], pixel[1]).toString() == color.toString()) {
-								pixelsToFill.push(pixel);
-							};
-						});
-					});
-					i++;
-					//break;
-				};
-				/* [[mouse.x + 1, mouse.y], [mouse.x - 1, mouse.y], [mouse.x, mouse.y + 1], [mouse.x, mouse.y - 1]].forEach(pixel => {
-					if (getPixel(pixel[0], pixel[1]).toString() == color.toString()) {
-						console.log(getPixel(pixel[0], pixel[1]).toString(), color.toString());
-						fillPixel(pixel[0], pixel[1]);
+				if (tool == "paint_brush" || tool == "eraser") {
+					if (oldMouseX == mouse.x && oldMouseY == mouse.y) {
+						tool == "eraser" ? clearPixel(mouse.x, mouse.y) : fillPixel(mouse.x, mouse.y);
+					} else {
+						let lineDir = Math.atan2(mouse.x - oldMouseX, mouse.y - oldMouseY);
+						let pixelX = (oldMouseX);
+						let pixelY = (oldMouseY);
+						for (let i = 0; i < distance([oldMouseX, oldMouseY], [mouse.x, mouse.y]); i++) {;
+							tool == "eraser" ? clearPixel(pixelX, pixelY) : fillPixel(pixelX, pixelY);
+							pixelX += Math.sin(lineDir);
+							pixelY += Math.cos(lineDir);
+						};
 					};
-				}); */
-				pixelsToFill.forEach(pixelToFill => {
-					fillPixel(pixelToFill[0], pixelToFill[1]);
-				});
-				fill = false;
+				} else if (tool == "paint_bucket") {
+					let color = getPixel(mouse.x, mouse.y);
+					let pixelsToFill = [[mouse.x, mouse.y]];
+					for (let i = 0; i < 5; i++) {
+						pixelsToFill.forEach(pixelToFill => {
+							[[pixelToFill[0] + 1, pixelToFill[1]], [pixelToFill[0] - 1, pixelToFill[1]], [pixelToFill[0], pixelToFill[1] + 1], [pixelToFill[0], pixelToFill[1] - 1]].forEach(pixel => {
+								if (getPixel(pixel[0], pixel[1]).toString() == color.toString()) {
+									pixelsToFill.push(pixel);
+								};
+							});
+						});
+					};
+					pixelsToFill.forEach(pixelToFill => {
+						fillPixel(pixelToFill[0], pixelToFill[1]);
+					});
+				} else if (tool == "eye_dropper") {
+					let pixelColor = getPixel(mouse.x, mouse.y);
+					document.getElementById("brush-color").value = `rgb(${pixelColor[0]}, ${pixelColor[1]}, ${pixelColor[2]})`;
+					document.getElementById("alpha").value = pixelColor[3];
+				};
 			};
 			oldMouseX = mouse.x;
 			oldMouseY = mouse.y;

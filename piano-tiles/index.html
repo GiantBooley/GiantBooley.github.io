@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>0</title>
+		<title>rhythm</title>
 		<style>
 			* {
 				box-sizing: border-box;
@@ -45,42 +45,82 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 
+		ctx.font = canvas.height / 6 + "px arial";
+
 		var tiles = [];
 		var gameOver = false;
-
+		var keyDown = null;
 		var tick = 0;
+		var pb = 0;
+		var score = 0;
+		var pianoSounds = [
+			new Audio("./piano0.mp3"),
+			new Audio("./piano1.mp3"),
+			new Audio("./piano2.mp3"),
+			new Audio("./piano3.mp3")
+		];
 
 		document.getElementById("canvas-wrapper").addEventListener("keydown", function(e){
 			if (e.repeat) return;
-			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			keyDown = {d: 0, f: 1, j: 2, k: 3}[e.key];
 		});
+		document.getElementById("canvas-wrapper").addEventListener("keyup", function(e){
+			keyDown = {d: 0, f: 1, j: 2, k: 3}[e.key];
+		});
+		document.getElementById("canvas-wrapper").focus();
 
 		function loop() {
 			tick++;
-			tiles.forEach(tile => {
-				tile.y += 3;
+			let speed = (tick / (canvas.height / 4));
+			tiles.forEach((tile, i) => {
+				tile.y += speed;
+				if (keyDown == tile.col && tile.y > canvas.height - (canvas.width / 4)) {
+					tiles.splice(i, 1);
+					pianoSounds[tile.col].cloneNode(true).play();
+					score++;
+					return;
+				};
 				if (tile.y > canvas.height) {
 					gameOver = true;
+					ctx.fillStyle = "red";
+					pb = Math.max(score, pb);
+					ctx.fillText("YOU DIED", 100, 100);
+					ctx.fillText("score: " + score, 100, 200);
+					ctx.fillText("pb: " + pb, 100, 300);
+					for (let i = 0; i < 3; i++) {
+						pianoSounds.forEach(sound => sound.cloneNode(true).play());
+					};
+					setTimeout(function(){
+						tiles = [];
+						gameOver = false;
+						tick = 0;
+						score = 0;
+						loop();
+					}, 3000);
 				};
 			});
+			if (gameOver) return;
 
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.fillStyle = "blue";
 			tiles.forEach(tile => {
 				ctx.fillRect(tile.col * (canvas.width / 4), tile.y, (canvas.width / 4), (canvas.width / 4));
 			});
+			ctx.fillStyle = "skyblue";
+			ctx.fillRect((canvas.height * 0.25) - 1, 0, 2, canvas.height);
+			ctx.fillRect((canvas.height * 0.5) - 1, 0, 2, canvas.height);
+			ctx.fillRect((canvas.height * 0.75) - 1, 0, 2, canvas.height);
 
-			if (tick % 50 == 0) {
+			if ((tick % Math.floor(speed * (canvas.width / 4)) || 0) == 0) {
 				tiles.push({
 					col: Math.floor(Math.random() * 4),
 					y: canvas.width / -4
 				});
 			};
 
+			keyDown = null;
 			if (!gameOver) {
-				setTimeout(function(){
-					requestAnimationFrame(loop);
-				}, 100)
+				requestAnimationFrame(loop);
 			};
 		};
 		requestAnimationFrame(loop);

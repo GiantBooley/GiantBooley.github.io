@@ -32,9 +32,15 @@
 				width: 100%;
 				height: 100%;
 			}
+			#msg {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+			}
 		</style>
 	</head>
 	<body>
+		<p id="msg"></p>
 		<div id="canvas-wrapper" tabindex="0">
 			<canvas id="canvas"></canvas>
 		</div>
@@ -59,16 +65,21 @@
 			new Audio("./piano2.mp3"),
 			new Audio("./piano3.mp3")
 		];
-		var clickX = null;
-		var clickY = null;
+		var clicks = [];
+
+		var row = 0;
+		var rows = [4,1,2,3,2,4,1,1,3,2];
 
 		document.getElementById("canvas-wrapper").addEventListener("keydown", function(e){
-			if (e.repeat) return;
-			keyDown = {d: 0, f: 1, j: 2, k: 3}[e.key] ?? null;
+			if (!gameOver) {
+				if (e.repeat) return;
+				keyDown = {d: 0, f: 1, j: 2, k: 3}[e.key] ?? null;
+			};
 		});
 		document.getElementById("canvas-wrapper").addEventListener("touchstart", function(e){
-			clickX = e.touches[0].clientX - document.getElementById("canvas-wrapper").getBoundingClientRect().left;
-			clickY = e.touches[0].clientY;
+			for (let i = 0; i < e.touches.length; i++) {
+				clicks[i] = [e.touches[i].clientX - document.getElementById("canvas-wrapper").getBoundingClientRect().left, e.touches[i].clientY];
+			};
 		});
 		document.getElementById("canvas-wrapper").focus();
 
@@ -87,13 +98,14 @@
 				gameOver = false;
 				tick = 0;
 				score = 0;
+				row = 0;
 				loop();
 			}, 3000);
 		};
 
 		function loop() {
 			tick++;
-			let speed = 10 + (tick / (canvas.height));
+			let speed = 10; // + (tick / (canvas.height)) * 1;
 			let createTile = false;
 			let hitTile = false;
 			tiles.forEach((tile, i) => {
@@ -102,7 +114,7 @@
 					createTile = true;
 					tile.createdATile = true;
 				};
-				if ((keyDown == tile.col && tile.y > canvas.height - (canvas.width / 4)) || (clickX > tile.col * (canvas.width / 4) && clickX < (tile.col + 1) * (canvas.width / 4) && clickY > tile.y && clickY < tile.y + (canvas.width / 4))) {
+				if ((keyDown == tile.col && tile.y > canvas.height - (canvas.width / 4)) || clicks.some(click => (click[0] > tile.col * (canvas.width / 4) && click[0] < (tile.col + 1) * (canvas.width / 4) && click[1] > tile.y && click[1] < tile.y + (canvas.width / 4)) )) {
 					tiles.splice(i, 1);
 					pianoSounds[tile.col].cloneNode(true).play();
 					score++;
@@ -117,6 +129,7 @@
 				ctx.fillStyle = "red";
 				ctx.fillRect((canvas.width / 4) * keyDown, canvas.height - (canvas.width / 4), canvas.width / 4, canvas.width / 4);
 				die();
+				keyDown = null;
 			};
 			if (gameOver) return;
 
@@ -130,19 +143,22 @@
 			ctx.fillRect((canvas.height * 0.5) - 1, 0, 2, canvas.height);
 			ctx.fillRect((canvas.height * 0.75) - 1, 0, 2, canvas.height);
 
+			ctx.fillText(score, canvas.width / 2 - 30, 100);
+
 			if (createTile || tiles.length == 0) {
 				tiles.push({
-					col: Math.floor(Math.random() * 4),
+					col: Math.floor(Math.random() * 4), // (rows[row++] - 1), // 
 					y: canvas.width / -4,
 					createdATile: false
 				});
 			};
 
 			keyDown = null;
-			clickX = null;
-			clickY = null;
+			clicks = [];
 			if (!gameOver) {
-				requestAnimationFrame(loop);
+				//setTimeout(function(){
+					requestAnimationFrame(loop);
+				//}, 500);
 			};
 		};
 		requestAnimationFrame(loop);

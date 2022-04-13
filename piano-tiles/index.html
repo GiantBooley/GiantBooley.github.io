@@ -26,21 +26,23 @@
 				background-color: black;
 				position: absolute;
 				left: 50%;
+				top: 0px;
 				transform: translateX(-50%);
 			}
 			#canvas {
 				width: 100%;
 				height: 100%;
 			}
-			#msg {
-				position: absolute;
-				top: 0px;
-				left: 0px;
-			}
 		</style>
 	</head>
 	<body>
-		<p id="msg"></p>
+		<label for="input-type">keys:</label>
+		<select id="input-type">
+			<option value='["d", "f", "j", "k"]' selected="">dfjk</option>
+			<option value='["z", "x", ",", "."]'>zx,.</option>
+		</select><br>
+		<label for="rows">rows:</label>
+		<input type="number" id="rows" value="4">
 		<div id="canvas-wrapper" tabindex="0">
 			<canvas id="canvas"></canvas>
 		</div>
@@ -68,12 +70,14 @@
 		var clicks = [];
 
 		var row = 0;
-		var rows = [1,2,3,4,3,2,1,2,3,4,3,2,1,2,3,4,3,2,1,2,3,4,3,2,1,2,3,4,3,2,1,2,3,4,3,2,1,2,3,4];
+		var rows = [1,3,1,4,1,4,1,1,3,2,3,1,4];
+		var howManyRows = 4;
+		var botActivated = false;
 
 		document.getElementById("canvas-wrapper").addEventListener("keydown", function(e){
 			if (!gameOver) {
 				if (e.repeat) return;
-				keyDown = {d: 0, f: 1, j: 2, k: 3}[e.key] ?? null;
+				keyDown = JSON.parse(document.getElementById("input-type").value).indexOf(e.key) ?? null;
 			};
 		});
 		document.getElementById("canvas-wrapper").addEventListener("touchstart", function(e){
@@ -105,35 +109,39 @@
 
 		function loop() {
 			tick++;
-			let speed = 10; // + (tick / (canvas.height)) * 1;
+			howManyRows = document.getElementById("rows").value;
+			let speed = 5; // + (tick / (canvas.height)) * 1;
 			let createTile = false;
 			let hitTile = false;
+			let gameWidth = canvas.width;
+			let gameHeight = canvas.height - 100;
+			let tileSize = gameWidth / howManyRows;
 			tiles.forEach((tile, i) => {
 				tile.y += speed;
 				if (tile.y >= 0 && !tile.createdATile) {
 					createTile = true;
 					tile.createdATile = true;
 				};
-				if ((keyDown == tile.col && tile.y > canvas.height - (canvas.width / 4)) || clicks.some(click => (click[0] > tile.col * (canvas.width / 4) && click[0] < (tile.col + 1) * (canvas.width / 4) && click[1] > tile.y && click[1] < tile.y + (canvas.width / 4)) )) {
+				if (((tile.y > gameWidth - tileSize && keyDown == tile.col) || clicks.some(click => (click[0] > tile.col * tileSize && click[0] < (tile.col + 1) * tileSize && click[1] > tile.y && click[1] < tile.y + tileSize))) || (tile.y > gameWidth - tileSize && botActivated)) {
 					tiles.splice(i, 1);
-					pianoSounds[tile.col].cloneNode(true).play();
+					//pianoSounds[tile.col].cloneNode(true).play();
 					score++;
 					hitTile = true;
 					return;
 				};
-				if (tile.y > canvas.height) {
+				if (tile.y > gameWidth) {
 					die();
 				};
 			});
 			if (keyDown !== null && !hitTile) {
 				ctx.fillStyle = "red";
-				ctx.fillRect((canvas.width / 4) * keyDown, canvas.height - (canvas.width / 4), canvas.width / 4, canvas.width / 4);
+				ctx.fillRect(tileSize * keyDown, gameWidth - tileSize, tileSize, tileSize);
 				die();
 				keyDown = null;
 			};
 			if (clicks.length > 0 && !hitTile) {
 				ctx.fillStyle = "red";
-				ctx.fillRect(Math.floor(clicks[0][0] / (canvas.width / 4)) * (canvas.width / 4), canvas.height - canvas.width / 4, canvas.width / 4, canvas.width / 4);
+				ctx.fillRect(Math.floor(clicks[0][0] / tileSize) * tileSize, gameWidth - tileSize, tileSize, tileSize);
 				die();
 			};
 			if (gameOver) return;
@@ -141,19 +149,19 @@
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.fillStyle = "blue";
 			tiles.forEach(tile => {
-				ctx.fillRect(tile.col * (canvas.width / 4), tile.y, (canvas.width / 4), (canvas.width / 4));
+				ctx.fillRect(tile.col * tileSize, tile.y, tileSize, tileSize);
 			});
 			ctx.fillStyle = "white";
-			ctx.fillRect((canvas.height * 0.25) - 1, 0, 2, canvas.height);
-			ctx.fillRect((canvas.height * 0.5) - 1, 0, 2, canvas.height);
-			ctx.fillRect((canvas.height * 0.75) - 1, 0, 2, canvas.height);
+			for (let i = 1; i < howManyRows; i++) {
+				ctx.fillRect((tileSize * i) - 1, 0, 2, gameWidth);
+			};
 
-			ctx.fillText(score, canvas.width / 2 - 30, 100);
+			ctx.fillText(score, gameWidth / 2 - 30, 100);
 
 			if (createTile || tiles.length == 0) {
 				tiles.push({
-					col: (rows[row++] - 1), // Math.floor(Math.random() * 4), //
-					y: canvas.width / -4,
+					col: Math.floor(Math.random() * howManyRows), // (rows[row++] - 1), //
+					y: -tileSize,
 					createdATile: false
 				});
 			};

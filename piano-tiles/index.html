@@ -68,7 +68,7 @@
 		var clicks = [];
 
 		var row = 0;
-		var rows = [4,1,2,3,2,4,1,1,3,2];
+		var rows = [1,2,3,4,3,2,1,2,3,4,3,2,1,2,3,4,3,2,1,2,3,4,3,2,1,2,3,4,3,2,1,2,3,4,3,2,1,2,3,4];
 
 		document.getElementById("canvas-wrapper").addEventListener("keydown", function(e){
 			if (!gameOver) {
@@ -152,7 +152,7 @@
 
 			if (createTile || tiles.length == 0) {
 				tiles.push({
-					col: Math.floor(Math.random() * 4), // (rows[row++] - 1), // 
+					col: (rows[row++] - 1), // Math.floor(Math.random() * 4), //
 					y: canvas.width / -4,
 					createdATile: false
 				});

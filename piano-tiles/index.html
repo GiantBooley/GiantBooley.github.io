@@ -44,7 +44,11 @@
 			<option value='["o", "b", "r", "m"]'>obrm (hard)</option>
 		</select><br>
 		<label for="rows">rows:</label>
-		<input type="number" id="rows" value="4">
+		<input type="number" id="rows" value="4"><br>
+		<input type="checkbox" id="bot">
+		<label for="bot">bot</label><br>
+		<label for="hit-offset">hit offset:</label>
+		<input type="number" id="hit-offset" value="10"><br>
 
 		<div id="canvas-wrapper" tabindex="0">
 			<canvas id="canvas"></canvas>
@@ -73,10 +77,8 @@
 		var clicks = [];
 
 		var row = 0;
-		var rows = [1,3,1,4,1,4,1,1,3,2,3,1,4];
-		var hitOffset = 0;
+		var rows = [1,4,1,2,3,1,4,1,3,2,4,1,2,3,1,4,3,2,3,2,1,4,2,1,4,3,1,2,3,1,3,2,4,2,3,2];
 		var howManyRows = 4;
-		var botActivated = false;
 
 		document.getElementById("canvas-wrapper").addEventListener("keydown", function(e){
 			if (!gameOver) {
@@ -114,13 +116,15 @@
 
 		function loop() {
 			tick++;
-			howManyRows = document.getElementById("rows").value;
-			let speed = 5; // + (tick / (canvas.height)) * 1;
+			howManyRows = document.getElementById("rows").valueAsNumber;
+			let speed = 10; /// + (tick / (canvas.height)) / tick;
 			let createTile = false;
 			let hitTile = false;
 			let gameWidth = canvas.width;
 			let tileSize = gameWidth / howManyRows;
-			let gameHeight = canvas.height - tileSize;
+			let gameHeight = canvas.height;
+			let hitOffset = document.getElementById("hit-offset").valueAsNumber;
+
 			tiles.forEach((tile, i) => {
 				tile.y += speed;
 				if (tile.y >= 0 && !tile.createdATile) {
@@ -132,10 +136,10 @@
 					||
 					clicks.some(click => (click[0] > tile.col * tileSize && click[0] < (tile.col + 1) * tileSize && click[1] > tile.y && click[1] < tile.y + tileSize))
 					||
-					(tile.y > gameHeight - tileSize && botActivated)
+					(tile.y > gameHeight - tileSize && document.getElementById("bot").checked)
 				) {
 					tiles.splice(i, 1);
-					//pianoSounds[tile.col].cloneNode(true).play();
+					pianoSounds[tile.col]?.cloneNode(true)?.play();
 					score++;
 					hitTile = true;
 					return;
@@ -166,14 +170,12 @@
 			for (let i = 1; i < howManyRows; i++) {
 				ctx.fillRect((tileSize * i) - 1, 0, 2, gameHeight);
 			};
+			ctx.fillRect(0, gameHeight - (hitOffset + 1), gameWidth, 2);
 			ctx.fillText(score, gameWidth / 2 - 30, 100);
-
-			ctx.fillStyle = "red";
-			ctx.fillRect(0, (gameHeight - hitOffset) - 1, gameWidth, 2);
 
 			if (createTile || tiles.length == 0) {
 				tiles.push({
-					col: Math.floor(Math.random() * howManyRows), // (rows[row++] - 1), //
+					col: (rows[row++] - 1), // Math.floor(Math.random() * howManyRows), //
 					y: -tileSize,
 					createdATile: false
 				});
@@ -181,7 +183,7 @@
 
 			keyDown = null;
 			clicks = [];
-			if (!gameOver) {='''''''-[=]}+'
+			if (!gameOver) {
 				//setTimeout(function(){
 					requestAnimationFrame(loop);
 				//}, 500);

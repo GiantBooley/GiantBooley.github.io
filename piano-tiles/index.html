@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -42,6 +43,7 @@
 			<option value='["z", "x", ",", "."]'>zx,.</option>
 			<option value='["1", "2", "3", "4"]'>1234</option>
 			<option value='["o", "b", "r", "m"]'>obrm (hard)</option>
+			<option value='["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]'>1234567890</option>
 		</select><br>
 		<label for="rows">rows:</label>
 		<input type="number" id="rows" value="4"><br>
@@ -175,7 +177,7 @@
 
 			if (createTile || tiles.length == 0) {
 				tiles.push({
-					col: (rows[row++] - 1), // Math.floor(Math.random() * howManyRows), //
+					col: Math.floor(Math.random() * howManyRows), // (rows[row++] - 1), //
 					y: -tileSize,
 					createdATile: false
 				});

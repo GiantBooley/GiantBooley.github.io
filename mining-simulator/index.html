@@ -199,16 +199,30 @@
 			}
 		</style>
 		<script>
+			class Machine {
+				constructor(name, cost, baseOps) {
+					this.name = name;
+					this.cost = cost;
+					this.baseOps = baseOps;
+					this.level = 0;
+					this.ops = 0;
+				};
+				levelUp() {
+					this.level++;
+					this.ops += this.baseOps;
+				};
+			};
+
 			var tempGame = {
-				machines: {
-					jackhammer:		{name: "Jackhammer",	cost: 50,			baseOps: 5,			level: 0, ops: 0},
-					drill:			{name: "Drill",			cost: 300,			baseOps: 30,		level: 0, ops: 0},
-					digger:			{name: "Digger",		cost: 5000,			baseOps: 85,		level: 0, ops: 0},
-					mineshaft:		{name: "Mineshaft",		cost: 50000,		baseOps: 300,		level: 0, ops: 0},
-					dynamite:		{name: "Dynamite",		cost: 150000,		baseOps: 5000,		level: 0, ops: 0},
-					quarryTruck:	{name: "Quarry truck",	cost: 800000,		baseOps: 10000,		level: 0, ops: 0},
-					megadrill:		{name: "Megadrill",		cost: 1400000,		baseOps: 16000,		level: 0, ops: 0}
-				},
+				machines: [ /* name, cost, base ops */
+					new Machine("Jackhammer",		50,			5),
+					new Machine("Drill",			300,		30),
+					new Machine("Digger",			5000,		85),
+					new Machine("Mineshaft",		50000,		300),
+					new Machine("Dynamite",			150000,		5000),
+					new Machine("Quarry truck",		800000,		10000),
+					new Machine("Megadrill",		1400000,	16000)
+				],
 				ore: 0,
 				money: 0,
 				ops: 0,

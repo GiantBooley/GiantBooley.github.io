@@ -41,10 +41,11 @@
 	</body>
 	<script>
 		class Burger {
-			constructor() {
+			constructor(name, fatness) {
+				this.name = name;
 				this.x = playerX + lerp(canvas.width / -2, canvas.width / 2, Math.random());
 				this.y = playerY + lerp(canvas.height / -2, canvas.height / 2, Math.random());
-				this.size = lerp(10, 15, Math.random());
+				this.fatness = fatness;
 				this.color = ["red", "green", "blue", "cyan", "magenta", "yellow"].random();
 			};
 		};
@@ -53,6 +54,8 @@
 		canvas.width = innerWidth;
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
+
+		ctx.font = "20px monospace";
 
 		var playerX = 0;
 		var playerY = 0; // max player = 72057594037927940
@@ -63,7 +66,7 @@
 		var keysDown = {};
 		var mouseX = canvas.width / 2;
 		var mouseY = canvas.height / 2;
-		var size = 10;
+		var fatness = 10;
 		var burgers = [];
 
 		Array.prototype.random = function random() {
@@ -72,6 +75,11 @@
 		function lerp(min, max, mult) {
 			return (max - min) * mult + min;
 		}
+		function createBurger(type) {
+			return {
+				"bobo": new Burger("bobo", 1),
+			};
+		};
 		function isDown(code) {
 			return keysDown[code] ?? false;
 		};
@@ -92,18 +100,17 @@
 			return y - cameraY + canvas.height / 2;
 		};
 
-		function drawImage(url, x, y, width, height) {
-			let image = new Image();
-			image.onload = function(){
-				createImageBitmap(image).then(it => ctx.drawImage(it, x, y, width, height));
-			};
-			image.src = url;
+		function drawImage(name, x, y, width, height) {
+			ctx.drawImage(document.getElementById("img-" + name), x, y, width, height);
+		};
+		function round(number) {
+			return Math.floor(number * 1000) / 1000;
 		};
 		Math.mod = function mod(n, t) {
 			return ((n % t) + t) % t;
 		};
 
-		async function loop() {
+		function loop() {
 			if (Math.random() < 1 / 100) {
 				burgers.push(new Burger());
 			};
@@ -119,7 +126,6 @@
 
 			playerXV *= 0.9;
 			playerYV *= 0.9;
-
 			let times = 5;
 			cameraX = (cameraX * (times - 1) + playerX) / times;
 			cameraY = (cameraY * (times - 1) + playerY) / times;
@@ -128,30 +134,41 @@
 
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-			ctx.drawImage(document.getElementById("img-lovin"), 0, 0, canvas.width, canvas.height);
+			drawImage("lovin", 0, 0, canvas.width, canvas.height);
 			//drawImage("./lovin.jpg", 0, 0, canvas.width, canvas.height);
 
-			ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+			ctx.fillStyle = `rgba(255, 255, 255, 0.2)`;
 			for (let x = gridWidth / -2; x < canvas.width + gridWidth * 10; x += gridWidth * 10) {
 				ctx.fillRect(x - Math.mod(cameraX, gridWidth * 10), 0, gridWidth, canvas.height);
 			};
 			for (let y = gridWidth / -2; y < canvas.height + gridWidth * 10; y += gridWidth * 10) {
 				ctx.fillRect(0, y - Math.mod(cameraY, gridWidth * 10) - gridWidth / 2, canvas.width, gridWidth);
 			};
+			ctx.fillStyle = "rgb(20, 20, 20)";
+			ctx.fillRect(coordinateX(72057594037927940), 0, 10, canvas.height);
+			ctx.fillRect(0, coordinateY(72057594037927940), canvas.width, 10);
+			ctx.fillRect(coordinateX(-72057594037927940), 0, 10, canvas.height);
+			ctx.fillRect(0, coordinateY(-72057594037927940), canvas.width, 10);
 
 			ctx.fillStyle = "blue";
 			ctx.beginPath();
-			ctx.arc(coordinateX(playerX), coordinateY(playerY), size, 0, 2 * Math.PI);
+			ctx.arc(coordinateX(playerX), coordinateY(playerY), fatness, 0, 2 * Math.PI);
 			ctx.fill();
 
+			ctx.fillStyle = "black";
+			`fatness: ${fatness}\nx: ${round(playerX)}\ny: ${round(playerY)}\nxv: ${round(playerXV)}\nyv: ${round(playerYV)}\ncamera x offset: ${round(cameraX - playerX)}\ncamera y offset: ${round(cameraY - playerY)}`.split("\n").forEach((text, i) => {
+				ctx.fillText(text, 0, (i + 1) * 20);
+
+			});
+
 			burgers.forEach((burger, i) => {
-				if (distance([burger.x, burger.y], [playerX, playerY]) - burger.size - size <= 0) {
+				if (distance([burger.x, burger.y], [playerX, playerY]) - burger.fatness - fatness <= 0) {
 					burgers.splice(i, 1);
-					size += Math.abs(burger.size) / 10;
+					fatness += Math.abs(burger.fatness) / 10;
 				} else {
 					ctx.fillStyle = burger.color;
 					ctx.beginPath();
-					ctx.arc(coordinateX(burger.x), coordinateY(burger.y), Math.abs(burger.size), 0, 2 * Math.PI);
+					ctx.arc(coordinateX(burger.x), coordinateY(burger.y), Math.abs(burger.fatness), 0, 2 * Math.PI);
 					ctx.fill();
 				};
 			});

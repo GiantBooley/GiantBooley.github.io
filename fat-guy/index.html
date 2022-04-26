@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Fat guy</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+			#canvas-wrapper {
+				width: 100%;
+				height: 100%;
+				outline: none;
+			}
+			#images {
+				display: none;
+			}
+		</style>
+		<div id="images">
+			<img src="./lovin.jpg" id="img-lovin">
+		</div>
+	</head>
+	<body>
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.code] = true;" onkeyup="keysDown[event.code] = false;" onmousemove="mouseMove(event);">
+			<canvas id="canvas"></canvas>
+		</div>
+	</body>
+	<script>
+		class Burger {
+			constructor() {
+				this.x = playerX + lerp(canvas.width / -2, canvas.width / 2, Math.random());
+				this.y = playerY + lerp(canvas.height / -2, canvas.height / 2, Math.random());
+				this.size = lerp(10, 15, Math.random());
+				this.color = ["red", "green", "blue", "cyan", "magenta", "yellow"].random();
+			};
+		};
+
+		const canvas = document.getElementById("canvas");
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+		const ctx = canvas.getContext("2d");
+
+		var playerX = 0;
+		var playerY = 0; // max player = 72057594037927940
+		var playerXV = 0;
+		var playerYV = 0;
+		var cameraX = 0;
+		var cameraY = 0;
+		var keysDown = {};
+		var mouseX = canvas.width / 2;
+		var mouseY = canvas.height / 2;
+		var size = 10;
+		var burgers = [];
+
+		Array.prototype.random = function random() {
+			return this[Math.floor(Math.random() * this.length)];
+		};
+		function lerp(min, max, mult) {
+			return (max - min) * mult + min;
+		}
+		function isDown(code) {
+			return keysDown[code] ?? false;
+		};
+		function distance(p1, p2) {
+			return Math.sqrt(((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2));
+		};
+		function mouseMove(e) {
+			mouseX = e.clientX - canvas.width / 2;
+			mouseY = e.clientY - canvas.height / 2;
+		};
+		function deg2rad(degrees) {
+			return degrees * (Math.PI / 180);
+		};
+		function coordinateX(x) {
+			return x - cameraX + canvas.width / 2;
+		};
+		function coordinateY(y) {
+			return y - cameraY + canvas.height / 2;
+		};
+
+		function drawImage(url, x, y, width, height) {
+			let image = new Image();
+			image.onload = function(){
+				createImageBitmap(image).then(it => ctx.drawImage(it, x, y, width, height));
+			};
+			image.src = url;
+		};
+		Math.mod = function mod(n, t) {
+			return ((n % t) + t) % t;
+		};
+
+		async function loop() {
+			if (Math.random() < 1 / 100) {
+				burgers.push(new Burger());
+			};
+			let speed = 5;
+			if (isDown("ArrowLeft") || isDown("ArrowRight")) {
+				playerXV = (isDown("ArrowRight") - isDown("ArrowLeft")) * speed;
+			};
+			if (isDown("ArrowUp") || isDown("ArrowDown")) {
+				playerYV = (isDown("ArrowDown") - isDown("ArrowUp")) * speed;
+			};
+			playerX += playerXV;
+			playerY += playerYV;
+
+			playerXV *= 0.9;
+			playerYV *= 0.9;
+
+			let times = 5;
+			cameraX = (cameraX * (times - 1) + playerX) / times;
+			cameraY = (cameraY * (times - 1) + playerY) / times;
+
+			let gridWidth = 2;
+
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			ctx.drawImage(document.getElementById("img-lovin"), 0, 0, canvas.width, canvas.height);
+			//drawImage("./lovin.jpg", 0, 0, canvas.width, canvas.height);
+
+			ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+			for (let x = gridWidth / -2; x < canvas.width + gridWidth * 10; x += gridWidth * 10) {
+				ctx.fillRect(x - Math.mod(cameraX, gridWidth * 10), 0, gridWidth, canvas.height);
+			};
+			for (let y = gridWidth / -2; y < canvas.height + gridWidth * 10; y += gridWidth * 10) {
+				ctx.fillRect(0, y - Math.mod(cameraY, gridWidth * 10) - gridWidth / 2, canvas.width, gridWidth);
+			};
+
+			ctx.fillStyle = "blue";
+			ctx.beginPath();
+			ctx.arc(coordinateX(playerX), coordinateY(playerY), size, 0, 2 * Math.PI);
+			ctx.fill();
+
+			burgers.forEach((burger, i) => {
+				if (distance([burger.x, burger.y], [playerX, playerY]) - burger.size - size <= 0) {
+					burgers.splice(i, 1);
+					size += Math.abs(burger.size) / 10;
+				} else {
+					ctx.fillStyle = burger.color;
+					ctx.beginPath();
+					ctx.arc(coordinateX(burger.x), coordinateY(burger.y), Math.abs(burger.size), 0, 2 * Math.PI);
+					ctx.fill();
+				};
+			});
+
+			//setTimeout(function(){
+				requestAnimationFrame(loop);
+			//}, 100);
+		};
+		requestAnimationFrame(loop);
+	</script>
+</html>

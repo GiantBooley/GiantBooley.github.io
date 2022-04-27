@@ -33,6 +33,7 @@
 		<div id="images">
 			<img src="./assets/textures/background.jpg" id="img-background">
 			<img src="./assets/textures/bobo.png" id="img-burger-bobo">
+			<img src="./assets/textures/anina.png" id="img-anina">
 		</div>
 	</head>
 	<body>
@@ -79,6 +80,7 @@
 		var burgers = [];
 		var shopOpen = false;
 		var fps = 0;
+		var playerImage = document.getElementById("img-anina");
 
 		Array.prototype.random = function random() {
 			return this[Math.floor(Math.random() * this.length)];
@@ -88,16 +90,16 @@
 		}
 		function createBurger(type) { //               name,    fatness, image, showRequirement, eatRequirement, eatFunction
 			return {
-				"bobo":						new Burger(type,	1,		"burger" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"wate":						new Burger(type,	2,		"burger" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"mac and cheese burger":	new Burger(type,	4,		"burger" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"rotten burger":			new Burger(type,	5,		"burger" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"bacon gurger":				new Burger(type,	10,		"burger" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"tred mil":					new Burger(type,	10,		"burger" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"carit":					new Burger(type,	10,		"burger" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"super nasty burger":		new Burger(type,	25,		"burger" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"pumin":					new Burger(type,	50,		"burger" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"pi":						new Burger(type,	250,	"burger" + type.replaceAll(" ", "-"), 0, 0, function(burger){})
+				"bobo":						new Burger(type,	1,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
+				"wate":						new Burger(type,	2,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
+				"mac and cheese burger":	new Burger(type,	4,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
+				"rotten burger":			new Burger(type,	5,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
+				"bacon gurger":				new Burger(type,	10,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
+				"tred mil":					new Burger(type,	10,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
+				"carit":					new Burger(type,	10,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
+				"super nasty burger":		new Burger(type,	25,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
+				"pumin":					new Burger(type,	50,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
+				"pi":						new Burger(type,	250,	"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){})
 			}[type];
 		};
 		function isDown(code) {
@@ -157,7 +159,7 @@
 
 			drawImage("background", 0, 0, canvas.width, canvas.height);
 
-			ctx.fillStyle = `rgba(255, 255, 255, 0.2)`;
+			ctx.fillStyle = `rgba(255, 255, 255, 0.1)`;
 			for (let x = gridWidth / -2; x < canvas.width + gridWidth * 10; x += gridWidth * 10) {
 				ctx.fillRect(x - Math.mod(cameraX, gridWidth * 10), 0, gridWidth, canvas.height);
 			};
@@ -171,18 +173,10 @@
 			ctx.fillRect(0, coordinateY(-72057594037927940), canvas.width, 10);
 
 			ctx.fillStyle = "blue";
-			ctx.beginPath();
-			ctx.arc(coordinateX(playerX), coordinateY(playerY), fatness + 10, 0, 2 * Math.PI);
-			ctx.fill();
-
-			ctx.fillStyle = "black";
-			`fatness: ${fatness}\nx: ${round(playerX)}\ny: ${round(playerY)}\nxv: ${round(playerXV)}\nyv: ${round(playerYV)}\ncamera x offset: ${round(cameraX - playerX)}\ncamera y offset: ${round(cameraY - playerY)}\nfps: ${round(fps)}`.split("\n").forEach((text, i) => {
-				ctx.fillText(text, 0, (i + 1) * 20);
-
-			});
+			ctx.drawImage(playerImage, coordinateX(playerX - playerImage.width / 2), coordinateY(playerY - playerImage.height / 2));
 
 			burgers.forEach((burger, i) => {
-				if (distance([burger.x, burger.y], [playerX, playerY]) - burger.hitboxRadius - fatness <= 0) {
+				if (burger.x - burger.image.width / 2 < playerX + playerImage.width / 2 && burger.x + burger.image.width / 2 > playerX - playerImage.width / 2 && burger.y - burger.image.height / 2 < playerY + playerImage.height / 2 && burger.y + burger.image.height / 2 > playerY - playerImage.height / 2) {
 					burgers.splice(i, 1);
 					fatness += Math.abs(burger.fatness);
 				} else {
@@ -193,6 +187,12 @@
 					//ctx.arc(coordinateX(burger.x), coordinateY(burger.y), Math.abs(burger.fatness), 0, 2 * Math.PI);
 					//ctx.fill();
 				};
+			});
+
+			ctx.fillStyle = "black";
+			`fatness: ${fatness}\nx: ${round(playerX)}\ny: ${round(playerY)}\nxv: ${round(playerXV)}\nyv: ${round(playerYV)}\ncamera x offset: ${round(cameraX - playerX)}\ncamera y offset: ${round(cameraY - playerY)}\nfps: ${round(fps)}`.split("\n").forEach((text, i) => {
+				ctx.fillText(text, 0, (i + 1) * 20);
+			
 			});
 		};
 

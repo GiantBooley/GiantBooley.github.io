@@ -33,6 +33,15 @@
 		<div id="images">
 			<img src="./assets/textures/background.jpg" id="img-background">
 			<img src="./assets/textures/bobo.png" id="img-burger-bobo">
+			<img src="./assets/textures/wate.png" id="img-burger-wate">
+			<img src="./assets/textures/mac_and_cheese_burger.png" id="img-burger-mac-and-cheese-burger">
+			<img src="./assets/textures/rotten_burger.png" id="img-burger-rotten-burger">
+			<img src="./assets/textures/bacon_gurger.png" id="img-burger-bacon-gurger">
+			<img src="./assets/textures/tred_mil.png" id="img-burger-tred-mil">
+			<img src="./assets/textures/carit.png" id="img-burger-carit">
+			<img src="./assets/textures/super_nasty_burger.png" id="img-burger-super-nasty-burger">
+			<img src="./assets/textures/pumin.png" id="img-burger-pumin">
+			<img src="./assets/textures/pi.png" id="img-burger-pi">
 			<img src="./assets/textures/anina.png" id="img-anina">
 		</div>
 	</head>
@@ -88,6 +97,19 @@
 		function lerp(min, max, mult) {
 			return (max - min) * mult + min;
 		}
+
+		var burgerTypes = [
+			"bobo",
+			"wate",
+			"mac and cheese burger",
+			"rotten burger",
+			"bacon gurger",
+			"tred mil",
+			"carit",
+			"super nasty burger",
+			"pumin",
+			"pi"
+		];
 		function createBurger(type) { //               name,    fatness, image, showRequirement, eatRequirement, eatFunction
 			return {
 				"bobo":						new Burger(type,	1,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
@@ -135,7 +157,11 @@
 
 		function tick() {
 			if (Math.random() < 1 / 100) {
-				burgers.push(createBurger("bobo"));
+				//for (let i = 0; i < 1; i++) {
+					burgers.push(createBurger(burgerTypes.random()));
+					//burgers[burgers.length - 1].x = playerX;
+					//burgers[burgers.length - 1].y = playerY;
+				//};
 			};
 			let speed = 5;
 			if (isDown("ArrowLeft") || isDown("ArrowRight")) {
@@ -176,6 +202,7 @@
 			ctx.drawImage(playerImage, coordinateX(playerX - playerImage.width / 2), coordinateY(playerY - playerImage.height / 2));
 
 			burgers.forEach((burger, i) => {
+				console.log("drawing burger: " + burger.name);
 				if (burger.x - burger.image.width / 2 < playerX + playerImage.width / 2 && burger.x + burger.image.width / 2 > playerX - playerImage.width / 2 && burger.y - burger.image.height / 2 < playerY + playerImage.height / 2 && burger.y + burger.image.height / 2 > playerY - playerImage.height / 2) {
 					burgers.splice(i, 1);
 					fatness += Math.abs(burger.fatness);
@@ -183,9 +210,6 @@
 					if (burger.x - cameraX > canvas.width / -2 && burger.x - cameraX < canvas.width / 2 && burger.y - cameraY > canvas.height / -2 && burger.y - cameraY < canvas.height / 2) {
 						burger.draw();
 					};
-					//ctx.beginPath();
-					//ctx.arc(coordinateX(burger.x), coordinateY(burger.y), Math.abs(burger.fatness), 0, 2 * Math.PI);
-					//ctx.fill();
 				};
 			});
 

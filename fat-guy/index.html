@@ -52,20 +52,29 @@
 	</body>
 	<script>
 		class Burger {
-			constructor(name, fatness, image, showRequirement, eatRequirement, eatFunction) {
-				this.name = name;
+			constructor(type, fatness, image, scale, showRequirement, eatRequirement, eatFunction) {
+				this.type = type;
 				this.fatness = fatness;
 				this.image = document.getElementById("img-" + image);
+				this.scale = scale;
 				this.hitboxRadius = 0; //Math.max(this.image.naturalWidth, this.image.naturalHeight) / 2;
 				this.x = playerX + lerp(canvas.width / -2, canvas.width / 2, Math.random());
 				this.y = playerY + lerp(canvas.height / -2, canvas.height / 2, Math.random());
 				this.eatFunction = eatFunction;
 			};
 			draw() {
-				ctx.drawImage(this.image, coordinateX(this.x - this.image.naturalWidth / 2), coordinateY(this.y - this.image.naturalHeight / 2));
+				ctx.drawImage(this.image, coordinateX(this.x - (this.image.width / 2) * this.scale), coordinateY(this.y - (this.image.height / 2) * this.scale), this.image.width * this.scale, this.image.height * this.scale);
 			};
 			eat() {
 				this.eatFunction(this);
+			}
+			get hitbox() {
+				return {
+					left: this.x - (this.image.width / 2) * this.scale,
+					right: this.x + (this.image.width / 2) * this.scale,
+					top: this.y - (this.image.height / 2) * this.scale,
+					bottom: this.y + (this.image.height / 2) * this.scale
+				};
 			}
 		};
 
@@ -110,18 +119,18 @@
 			"pumin",
 			"pi"
 		];
-		function createBurger(type) { //               name,    fatness, image, showRequirement, eatRequirement, eatFunction
+		function createBurger(type) { //               type,    fatness, image, 							   scale, showRequirement, eatRequirement, eatFunction
 			return {
-				"bobo":						new Burger(type,	1,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"wate":						new Burger(type,	2,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"mac and cheese burger":	new Burger(type,	4,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"rotten burger":			new Burger(type,	5,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"bacon gurger":				new Burger(type,	10,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"tred mil":					new Burger(type,	10,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"carit":					new Burger(type,	10,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"super nasty burger":		new Burger(type,	25,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"pumin":					new Burger(type,	50,		"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){}),
-				"pi":						new Burger(type,	250,	"burger-" + type.replaceAll(" ", "-"), 0, 0, function(burger){})
+				"bobo":						new Burger(type,	1,		"burger-" + type.replaceAll(" ", "-"), 1,	0, 0, function(burger){}),
+				"wate":						new Burger(type,	2,		"burger-" + type.replaceAll(" ", "-"), 0.5,	0, 0, function(burger){}),
+				"mac and cheese burger":	new Burger(type,	4,		"burger-" + type.replaceAll(" ", "-"), 0.5,	0, 0, function(burger){}),
+				"rotten burger":			new Burger(type,	5,		"burger-" + type.replaceAll(" ", "-"), 0.8,	0, 0, function(burger){}),
+				"bacon gurger":				new Burger(type,	10,		"burger-" + type.replaceAll(" ", "-"), 0.7,	0, 0, function(burger){}),
+				"tred mil":					new Burger(type,	10,		"burger-" + type.replaceAll(" ", "-"), 0.7,	0, 0, function(burger){}),
+				"carit":					new Burger(type,	10,		"burger-" + type.replaceAll(" ", "-"), 0.3,	0, 0, function(burger){}),
+				"super nasty burger":		new Burger(type,	25,		"burger-" + type.replaceAll(" ", "-"), 0.5,	0, 0, function(burger){}),
+				"pumin":					new Burger(type,	50,		"burger-" + type.replaceAll(" ", "-"), 0.6,	0, 0, function(burger){}),
+				"pi":						new Burger(type,	250,	"burger-" + type.replaceAll(" ", "-"), 0.5,	0, 0, function(burger){})
 			}[type];
 		};
 		function isDown(code) {
@@ -133,6 +142,14 @@
 		function mouseMove(e) {
 			mouseX = e.clientX - canvas.width / 2;
 			mouseY = e.clientY - canvas.height / 2;
+		};
+		function playerHitbox() {
+			return {
+				left: playerX - playerImage.width / 2,
+				right: playerX + playerImage.width / 2,
+				top: playerY - playerImage.height / 2,
+				bottom: playerY + playerImage.height / 2
+			};
 		};
 		function deg2rad(degrees) {
 			return degrees * (Math.PI / 180);
@@ -202,8 +219,8 @@
 			ctx.drawImage(playerImage, coordinateX(playerX - playerImage.width / 2), coordinateY(playerY - playerImage.height / 2));
 
 			burgers.forEach((burger, i) => {
-				console.log("drawing burger: " + burger.name);
-				if (burger.x - burger.image.width / 2 < playerX + playerImage.width / 2 && burger.x + burger.image.width / 2 > playerX - playerImage.width / 2 && burger.y - burger.image.height / 2 < playerY + playerImage.height / 2 && burger.y + burger.image.height / 2 > playerY - playerImage.height / 2) {
+				console.log("drawing burger: " + burger.type);
+				if (playerHitbox().right > burger.hitbox.left && playerHitbox().left < burger.hitbox.right && playerHitbox().bottom > burger.hitbox.top && playerHitbox().top < burger.hitbox.bottom) {
 					burgers.splice(i, 1);
 					fatness += Math.abs(burger.fatness);
 				} else {

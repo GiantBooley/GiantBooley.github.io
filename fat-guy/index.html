@@ -61,6 +61,7 @@
 				this.x = playerX + lerp(canvas.width / -2, canvas.width / 2, Math.random());
 				this.y = playerY + lerp(canvas.height / -2, canvas.height / 2, Math.random());
 				this.eatFunction = eatFunction;
+				this.time = 1000;
 			};
 			draw() {
 				ctx.drawImage(this.image, coordinateX(this.x - (this.image.width / 2) * this.scale), coordinateY(this.y - (this.image.height / 2) * this.scale), this.image.width * this.scale, this.image.height * this.scale);
@@ -99,6 +100,37 @@
 		var shopOpen = false;
 		var fps = 0;
 		var playerImage = document.getElementById("img-anina");
+		var guyNumber = 0;
+		var guys = [
+			"anina",
+			"amon",
+			"champ99",
+			"champ99",
+			"frank",
+			"santa",
+			"big chungus",
+			"fat belly",
+			"pikachu",
+			"fat rat",
+			"buzz",
+			"superman",
+			"sans",
+			"shrek",
+			"im luggin it",
+			"stranger",
+			"gun guy",
+			"ash",
+			"gabe the dog",
+			"fatty",
+			"ronald mcdonald",
+			"albert einstein",
+			"dentist",
+			"steve",
+			"lumberjack",
+			"bob ross",
+			"thanos",
+			""
+		];
 
 		Array.prototype.random = function random() {
 			return this[Math.floor(Math.random() * this.length)];
@@ -181,17 +213,17 @@
 				//};
 			};
 			let speed = 5;
+			playerX += playerXV;
+			playerY += playerYV;
+
+			playerXV *= 0.9;
+			playerYV *= 0.9;
 			if (isDown("ArrowLeft") || isDown("ArrowRight")) {
 				playerXV = (isDown("ArrowRight") - isDown("ArrowLeft")) * speed;
 			};
 			if (isDown("ArrowUp") || isDown("ArrowDown")) {
 				playerYV = (isDown("ArrowDown") - isDown("ArrowUp")) * speed;
 			};
-			playerX += playerXV;
-			playerY += playerYV;
-
-			playerXV *= 0.9;
-			playerYV *= 0.9;
 			let times = 5;
 			cameraX = (cameraX * (times - 1) + playerX) / times;
 			cameraY = (cameraY * (times - 1) + playerY) / times;
@@ -215,18 +247,20 @@
 			ctx.fillRect(coordinateX(-72057594037927940), 0, 10, canvas.height);
 			ctx.fillRect(0, coordinateY(-72057594037927940), canvas.width, 10);
 
-			ctx.fillStyle = "blue";
 			ctx.drawImage(playerImage, coordinateX(playerX - playerImage.width / 2), coordinateY(playerY - playerImage.height / 2));
 
+			ctx.fillStyle = "white";
 			burgers.forEach((burger, i) => {
 				console.log("drawing burger: " + burger.type);
-				if (playerHitbox().right > burger.hitbox.left && playerHitbox().left < burger.hitbox.right && playerHitbox().bottom > burger.hitbox.top && playerHitbox().top < burger.hitbox.bottom) {
+				if ((playerHitbox().right > burger.hitbox.left && playerHitbox().left < burger.hitbox.right && playerHitbox().bottom > burger.hitbox.top && playerHitbox().top < burger.hitbox.bottom) || burger.time <= 0) {
 					burgers.splice(i, 1);
 					fatness += Math.abs(burger.fatness);
 				} else {
 					if (burger.x - cameraX > canvas.width / -2 && burger.x - cameraX < canvas.width / 2 && burger.y - cameraY > canvas.height / -2 && burger.y - cameraY < canvas.height / 2) {
 						burger.draw();
+						//ctx.fillText(burger.time, coordinateX(burger.x), coordinateY(burger.y));
 					};
+					burger.time--;
 				};
 			});
 

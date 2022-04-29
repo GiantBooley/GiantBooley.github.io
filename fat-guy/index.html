@@ -43,10 +43,10 @@
 				padding: 1em 2em;
 				font-size: 20px;
 			}
-			button:hover {
+			button:not(:disabled):hover {
 				transform: scale(1.05, 1.05);
 			}
-			button:active {
+			button:not(:disabled):active {
 				transform: scale(0.95, 0.95);
 			}
 			#shop {
@@ -78,6 +78,18 @@
 			#upgrade-guy-button {
 				bottom: 10px;
 			}
+			#stats {
+				user-select: none;
+				font-size: 20px;
+				font-family: monospace;
+				position: absolute;
+				margin: 0;
+				top: 5px;
+				left: 5px;
+				color: #FFAAAA;
+				text-shadow: 0px 0px 2px black;
+				font-weight: bold;
+			}
 		</style>
 		<div id="images">
 			<img src="./assets/textures/background.jpg" id="img-background">
@@ -100,10 +112,11 @@
 			<div id="shop">
 				<p id="guy-name">guy: anina</p>
 				<img src="./assets/textures/anina.png" alt="guy image" id="guy-image">
-				<button id="times-fatness-button">2x fatness: 50 fatness</button><br>
+				<button id="times-fatness-button" onclick="upgradeTimesFatness();">2x fatness: 50 fatness</button><br>
 				<button id="upgrade-guy-button">upgrade guy: 100 fatness</button>
 			</div>
-			<button id="shop-button">SHOP</button>
+			<button id="shop-button" onclick="toggleShop();">SHOP</button>
+			<p id="stats"></p>
 		</div>
 	</body>
 	<script>
@@ -128,7 +141,7 @@
 				this.eatFunction(this);
 			}
 			get hitbox() {
-				console.log("getting hitbox: " + this.type);
+				//console.log("getting hitbox: " + this.type);
 				return {
 					left: this.x - (this.image.width / 2) * this.scale,
 					right: this.x + (this.image.width / 2) * this.scale,
@@ -160,6 +173,10 @@
 		var fps = 0;
 		var playerImage = document.getElementById("img-anina");
 		var guyNumber = 0;
+		var timesFatness = 1;
+		var timesFatnessPrice = 50;
+		var debug = false;
+
 		var guys = [
 			"anina",
 			"amon",
@@ -211,7 +228,7 @@
 			"pi":						{type: "pi",						fatness: 250,		image: "burger-pi",							scale: 0.5,		spawnRequirement: 0, 	eatRequirement: 0, eatFunction: burger => {}},
 		};
 		function createBurger(type) { //               type,    fatness, image, 							   scale, spawnRequirement, eatRequirement, eatFunction
-			console.log(type);
+			//console.log(type);
 			return {
 				"bobo":						new Burger(burgerTypes[type]),
 				"wate":						new Burger(burgerTypes[type]),
@@ -224,6 +241,16 @@
 				"pumin":					new Burger(burgerTypes[type]),
 				"pi":						new Burger(burgerTypes[type])
 			}[type];
+		};
+		function upgradeTimesFatness() {
+			if (fatness >= timesFatnessPrice) {
+				fatness -= timesFatnessPrice;
+				timesFatness *= 2;
+				timesFatnessPrice *= 2.5;
+			};
+		};
+		function toggleShop() {
+			shopOpen = !shopOpen;
 		};
 		function isDown(code) {
 			return keysDown[code] ?? false;
@@ -264,7 +291,9 @@
 		};
 
 
-		function tick() {
+		function gameTick() {
+			if (shopOpen) return;
+
 			if (Math.random() < 1 / 100) {
 				//for (let i = 0; i < 1; i++) {
 					burgers.push(createBurger(Object.keys(burgerTypes).random()));
@@ -272,6 +301,7 @@
 					//burgers[burgers.length - 1].y = playerY;
 				//};
 			};
+
 			let speed = 5;
 			playerX += playerXV;
 			playerY += playerYV;
@@ -311,10 +341,10 @@
 
 			ctx.fillStyle = "white";
 			burgers.forEach((burger, i) => {
-				console.log("drawing burger: " + burger.type);
+				//console.log("drawing burger: " + burger.type);
 				if ((playerHitbox().right > burger.hitbox.left && playerHitbox().left < burger.hitbox.right && playerHitbox().bottom > burger.hitbox.top && playerHitbox().top < burger.hitbox.bottom) || burger.time <= 0) {
 					burgers.splice(i, 1);
-					fatness += Math.abs(burger.fatness);
+					fatness += Math.abs(burger.fatness) * timesFatness;
 				} else {
 					if (burger.x - cameraX > canvas.width / -2 && burger.x - cameraX < canvas.width / 2 && burger.y - cameraY > canvas.height / -2 && burger.y - cameraY < canvas.height / 2) {
 						burger.draw();
@@ -323,19 +353,23 @@
 					burger.time--;
 				};
 			});
+		};
+		function shopTick() {
+			document.getElementById("shop").style.display = shopOpen ? "block" : "none";
+			if (!shopOpen) return;
 
-			ctx.fillStyle = "black";
-			`fatness: ${fatness}\nx: ${round(playerX)}\ny: ${round(playerY)}\nxv: ${round(playerXV)}\nyv: ${round(playerYV)}\ncamera x offset: ${round(cameraX - playerX)}\ncamera y offset: ${round(cameraY - playerY)}\nfps: ${round(fps)}`.split("\n").forEach((text, i) => {
-				ctx.fillText(text, 0, (i + 1) * 20);
-			
-			});
+			document.getElementById("times-fatness-button").disabled = fatness < timesFatnessPrice;
+			document.getElementById("times-fatness-button").innerText = `${timesFatness * 2}x fatness: ${Math.ceil(timesFatnessPrice)} fatness`;
+			document.getElementById("upgrade-guy-button").disabled = true;
 		};
 
-		var lastTick = Date.now();
+		var lastgameTick = Date.now();
 		function loop() {
-			tick();
-			fps = 1000 / (Date.now() - lastTick);
-			lastTick = Date.now();
+			gameTick();
+			shopTick();
+			document.getElementById("stats").innerText = `fatness: ${Math.floor(fatness)}\ntimes fatness: ${timesFatness}` + (debug ? `\nx: ${round(playerX)}\ny: ${round(playerY)}\nxv: ${round(playerXV)}\nyv: ${round(playerYV)}\ncamera x offset: ${round(cameraX - playerX)}\ncamera y offset: ${round(cameraY - playerY)}\nfps: ${round(fps)}` : ``);
+			fps = 1000 / (Date.now() - lastgameTick);
+			lastgameTick = Date.now();
 			requestAnimationFrame(loop);
 		};
 		requestAnimationFrame(loop);

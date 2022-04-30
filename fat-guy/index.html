@@ -147,9 +147,9 @@
 			<canvas id="canvas"></canvas>
 			<div id="shop">
 				<p id="guy-name">guy: anina</p>
-				<img src="./assets/textures/anina.png" alt="guy image" id="guy-image">
+				<img src="./assets/textures/guys/anina.png" alt="guy image" id="guy-image" height="200">
 				<button id="times-fatness-button" onclick="upgradeTimesFatness();">2x fatness: 50 fatness</button><br>
-				<button id="upgrade-guy-button">upgrade guy: 100 fatness</button>
+				<button id="upgrade-guy-button" onclick="upgradeGuy();">upgrade guy: 100 fatness</button>
 				<button id="debug-button" onclick="toggleDebug();">toggle debug</button>
 			</div>
 			<button id="shop-button" onclick="toggleShop();">SHOP</button>
@@ -308,6 +308,14 @@
 				timesFatnessPrice *= 2.5;
 			};
 		};
+		function upgradeGuy() {
+			if (fatness >= upgradeGuyPrice) {
+				fatness -= upgradeGuyPrice;
+				guyNumber++;
+				guy = new Guy(guys[Object.keys(guys)[guyNumber]]);
+				upgradeGuyPrice *= 3.5;
+			};
+		};
 		function toggleDebug() {
 			debug = !debug;
 		};
@@ -412,10 +420,12 @@
 			document.getElementById("shop").style.display = shopOpen ? "block" : "none";
 			if (!shopOpen) return;
 
+			document.getElementById("guy-image").src = guy.image.src;
+			document.getElementById("guy-name").innerText = "guy: " + guy.guy;
 			document.getElementById("times-fatness-button").disabled = fatness < timesFatnessPrice;
 			document.getElementById("times-fatness-button").innerText = `${timesFatness * 2}x fatness: ${Math.ceil(timesFatnessPrice)} fatness`;
 			document.getElementById("upgrade-guy-button").disabled = fatness < upgradeGuyPrice;
-			document.getElementById("upgrade-guy-button").innerText = `upgrade guy: ${upgradeGuyPrice} fatness`;
+			document.getElementById("upgrade-guy-button").innerText = `upgrade guy: ${Math.ceil(upgradeGuyPrice)} fatness`;
 		};
 
 		var lastGameTick = Date.now();

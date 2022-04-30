@@ -113,7 +113,33 @@
 			<img src="./assets/textures/burgers/pumin.png" id="img-burger-pumin">
 			<img src="./assets/textures/burgers/pi.png" id="img-burger-pi">
 
-			<img src="./assets/textures/guys/anina.png" id="img-anina">
+			<img src="./assets/textures/guys/anina.png" id="img-guy-anina">
+			<img src="./assets/textures/guys/amon.png" id="img-guy-amon">
+			<img src="./assets/textures/guys/champ99.png" id="img-guy-champ99">
+			<img src="./assets/textures/guys/frank.png" id="img-guy-frank">
+			<img src="./assets/textures/guys/santa.png" id="img-guy-santa">
+			<img src="./assets/textures/guys/bug chungus.png" id="img-guy-big-chungus">
+			<img src="./assets/textures/guys/fat belly.png" id="img-guy-fat-belly">
+			<img src="./assets/textures/guys/pikachu.png" id="img-guy-pikachu">
+			<img src="./assets/textures/guys/fat rat.png" id="img-guy-fat-rat">
+			<img src="./assets/textures/guys/buzz.png" id="img-guy-buzz">
+			<img src="./assets/textures/guys/superman.png" id="img-guy-superman">
+			<img src="./assets/textures/guys/sans.png" id="img-guy-sans">
+			<img src="./assets/textures/guys/shrek.png" id="img-guy-shrek">
+			<img src="./assets/textures/guys/im luggin it.png" id="img-guy-im-luggin-it">
+			<img src="./assets/textures/guys/stranger.png" id="img-guy-stranger">
+			<img src="./assets/textures/guys/gun guy.png" id="img-guy-gun-guy">
+			<img src="./assets/textures/guys/ash.png" id="img-guy-ash">
+			<img src="./assets/textures/guys/gabe the dog.png" id="img-guy-gabe-the-dog">
+			<img src="./assets/textures/guys/fatty.png" id="img-guy-fatty">
+			<img src="./assets/textures/guys/ronald mcdonald.png" id="img-guy-ronald-mcdonald">
+			<img src="./assets/textures/guys/albert einstein.png" id="img-guy-albert-einstein">
+			<img src="./assets/textures/guys/dentist.png" id="img-guy-dentist">
+			<img src="./assets/textures/guys/steve.png" id="img-guy-steve">
+			<img src="./assets/textures/guys/lumberjack.png" id="img-guy-lumberjack">
+			<img src="./assets/textures/guys/bob ross.png" id="img-guy-bob-ross">
+			<img src="./assets/textures/guys/thanos.png" id="img-guy-thanos">
+			<img src="./assets/textures/guys/donald trump.png" id="img-guy-donald-trump">
 		</div>
 	</head>
 	<body>
@@ -131,6 +157,7 @@
 		</div>
 	</body>
 	<script>
+	try {
 		class Burger { // type, fatness, image, scale, spawnRequirement, eatRequirement, eatFunction
 			constructor(args) {
 
@@ -160,32 +187,35 @@
 					top: this.y - (this.image.height / 2) * this.scale,
 					bottom: this.y + (this.image.height / 2) * this.scale
 				};
-			}
+			};
 		};
-		class Guy { // guy, image, scale, health, speed, eats
+		class Guy { // guy, image, scale, health, speed, eats, shows
 			constructor(args) {
 				this.guy = args.guy;
 				this.image = document.getElementById("img-" + args.image);
 				this.scale = args.scale;
 				this.health = args.health;
 				this.speed = args.speed;
+				this.eats = args.eats;
+				this.shows = args.shows;
+			};
+			draw() {
+				ctx.drawImage(this.image, coordinateX(this.hitbox.left), coodinateY(this.hitbox.top), this.image.width * this.scale, this.image.height * this.scale);
 			};
 			get hitbox() {
 				return {
-					left: this.x - (this.image.width / 2) * this.scale,
-					right: this.x + (this.image.width / 2) * this.scale,
-					top: this.y - (this.image.height / 2) * this.scale,
-					bottom: this.y + (this.image.height / 2) * this.scale
+					left: playerX - (this.image.width / 2) * this.scale,
+					right: playerX + (this.image.width / 2) * this.scale,
+					top: playerY - (this.image.height / 2) * this.scale,
+					bottom: playerY + (this.image.height / 2) * this.scale
 				};
-			}
+			};
 		};
 
 		const canvas = document.getElementById("canvas");
 		canvas.width = innerWidth;
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
-
-		ctx.font = "20px monospace";
 
 		var playerX = 0;
 		var playerY = 0; // max player = 72057594037927940
@@ -200,7 +230,6 @@
 		var burgers = [];
 		var shopOpen = false;
 		var fps = 0;
-		var playerImage = document.getElementById("img-anina");
 		var guyNumber = 0;
 		var upgradeGuyPrice = 100;
 		var timesFatness = 1;
@@ -208,34 +237,35 @@
 		var debug = false;
 
 		var guys = {
-			"anina":			{guy: "anina",				image: "guy-anina",				scale: 1, health: 0, speed: 5, eats: ["bobo"]},
-			"amon":				{guy: "amon",				image: "guy-amon",				scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"champ99":			{guy: "champ99",			image: "guy-champ99",			scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"frank":			{guy: "frank",				image: "guy-frank",				scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"santa":			{guy: "santa",				image: "guy-santa",				scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"big chungus":		{guy: "big chungus",		image: "guy-bug-chungus",		scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"fat belly":		{guy: "fat belly",			image: "guy-fat-belly",			scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"pikachu":			{guy: "pikachu",			image: "guy-pikachu",			scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"fat rat":			{guy: "fat rat",			image: "guy-fat-rat",			scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"buzz":				{guy: "buzz",				image: "guy-buzz",				scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"superman":			{guy: "superman",			image: "guy-superman",			scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"sans":				{guy: "sans",				image: "guy-sans",				scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"shrek":			{guy: "shrek",				image: "guy-shrek",				scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"im luggin it":		{guy: "im luggin it",		image: "guy-im-luggin-it",		scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"stranger":			{guy: "stranger",			image: "guy-stranger",			scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"gun guy":			{guy: "gun guy",			image: "guy-gun-guy",			scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"ash":				{guy: "ash",				image: "guy-ash",				scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"gabe the dog":		{guy: "gabe the dog",		image: "guy-gabe-the-dog",		scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"fatty":			{guy: "fatty",				image: "guy-fatty",				scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"ronald mcdonald":	{guy: "ronald mcdonald",	image: "guy-ronald-mcdonald",	scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"albert einstein":	{guy: "albert einstein",	image: "guy-albert-einstein",	scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"dentist":			{guy: "dentist",			image: "guy-dentist",			scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"steve":			{guy: "steve",				image: "guy-steve",				scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"lumberjack":		{guy: "lumberjack",			image: "guy-lumberjack",		scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"bob ross":			{guy: "bob ross",			image: "guy-bob-ross",			scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"thanos":			{guy: "thanos",				image: "guy-thanos",			scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]},
-			"donald trump":		{guy: "donald trump",		image: "guy-donald-trump",		scale: 1, health: 0, speed: 5, eats: ["bobo", "wate"]}
+			"anina":			{guy: "anina",				image: "guy-anina",				scale: 1, health: 1000, speed: 5, eats: ["bobo"],				shows: ["bobo, wate"]},
+			"amon":				{guy: "amon",				image: "guy-amon",				scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"champ99":			{guy: "champ99",			image: "guy-champ99",			scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"frank":			{guy: "frank",				image: "guy-frank",				scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"santa":			{guy: "santa",				image: "guy-santa",				scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"big chungus":		{guy: "big chungus",		image: "guy-bug-chungus",		scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"fat belly":		{guy: "fat belly",			image: "guy-fat-belly",			scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"pikachu":			{guy: "pikachu",			image: "guy-pikachu",			scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"fat rat":			{guy: "fat rat",			image: "guy-fat-rat",			scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"buzz":				{guy: "buzz",				image: "guy-buzz",				scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"superman":			{guy: "superman",			image: "guy-superman",			scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"sans":				{guy: "sans",				image: "guy-sans",				scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"shrek":			{guy: "shrek",				image: "guy-shrek",				scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"im luggin it":		{guy: "im luggin it",		image: "guy-im-luggin-it",		scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"stranger":			{guy: "stranger",			image: "guy-stranger",			scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"gun guy":			{guy: "gun guy",			image: "guy-gun-guy",			scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"ash":				{guy: "ash",				image: "guy-ash",				scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"gabe the dog":		{guy: "gabe the dog",		image: "guy-gabe-the-dog",		scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"fatty":			{guy: "fatty",				image: "guy-fatty",				scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"ronald mcdonald":	{guy: "ronald mcdonald",	image: "guy-ronald-mcdonald",	scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"albert einstein":	{guy: "albert einstein",	image: "guy-albert-einstein",	scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"dentist":			{guy: "dentist",			image: "guy-dentist",			scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"steve":			{guy: "steve",				image: "guy-steve",				scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"lumberjack":		{guy: "lumberjack",			image: "guy-lumberjack",		scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"bob ross":			{guy: "bob ross",			image: "guy-bob-ross",			scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"thanos":			{guy: "thanos",				image: "guy-thanos",			scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]},
+			"donald trump":		{guy: "donald trump",		image: "guy-donald-trump",		scale: 1, health: 1000, speed: 5, eats: ["bobo", "wate"],		shows: ["bobo, wate"]}
 		};
+		var guy = new Guy(guys["anina"]);
 
 		Array.prototype.random = function random() {
 			return this[Math.floor(Math.random() * this.length)];
@@ -294,14 +324,6 @@
 			mouseX = e.clientX - canvas.width / 2;
 			mouseY = e.clientY - canvas.height / 2;
 		};
-		function playerHitbox() {
-			return {
-				left: playerX - playerImage.width / 2,
-				right: playerX + playerImage.width / 2,
-				top: playerY - playerImage.height / 2,
-				bottom: playerY + playerImage.height / 2
-			};
-		};
 		function deg2rad(degrees) {
 			return degrees * (Math.PI / 180);
 		};
@@ -328,7 +350,7 @@
 
 			if (Math.random() < 1 / 100) {
 				//for (let i = 0; i < 1; i++) {
-					burgers.push(createBurger(Object.keys(burgerTypes).random()));
+					burgers.push(createBurger(Object.keys(guy.shows).random()));
 					//burgers[burgers.length - 1].x = playerX;
 					//burgers[burgers.length - 1].y = playerY;
 				//};
@@ -369,16 +391,16 @@
 			ctx.fillRect(coordinateX(-72057594037927940), 0, 10, canvas.height);
 			ctx.fillRect(0, coordinateY(-72057594037927940), canvas.width, 10);
 
-			ctx.drawImage(playerImage, coordinateX(playerX - playerImage.width / 2), coordinateY(playerY - playerImage.height / 2));
+			guy.draw();
 
 			ctx.fillStyle = "white";
 			burgers.forEach((burger, i) => {
 				//console.log("drawing burger: " + burger.type);
-				if ((playerHitbox().right > burger.hitbox.left && playerHitbox().left < burger.hitbox.right && playerHitbox().bottom > burger.hitbox.top && playerHitbox().top < burger.hitbox.bottom) || burger.time <= 0) {
+				if ((guy.hitbox.right > burger.hitbox.left && guy.hitbox.left < burger.hitbox.right && guy.hitbox.bottom > burger.hitbox.top && guy.hitbox.top < burger.hitbox.bottom) || burger.time <= 0) {
 					burger.eat();
 					burgers.splice(i, 1);
 				} else {
-						if (coordinateX(burger.hitbox.left) < canvas.width && coordinateX(burger.hitbox.right) > 0 && coordinateY(burger.hitbox.top) < canvas.height && coordinateY(burger.hitbox.bottom) > 0) {
+					if (coordinateX(burger.hitbox.left) < canvas.width && coordinateX(burger.hitbox.right) > 0 && coordinateY(burger.hitbox.top) < canvas.height && coordinateY(burger.hitbox.bottom) > 0) {
 						burger.draw();
 						//ctx.fillText(burger.time, coordinateX(burger.x), coordinateY(burger.y));
 					};
@@ -406,5 +428,8 @@
 			requestAnimationFrame(loop);
 		};
 		requestAnimationFrame(loop);
+	} catch (e) {
+		document.getElementById("stats").innerText = e.message;
+	};
 	</script>
 </html>

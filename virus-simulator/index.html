@@ -67,9 +67,13 @@
 				transform: translateY(200px);
 				transition-duration: 0.4s;
 				transition-timing-function: cubic-bezier(0.25,0.5,0,1);
+				pointer-events: none;
 			}
 			#shop-wrapper.open {
 				transform: translateY(0px);
+			}
+			#shop-wrapper > * {
+				pointer-events: all;
 			}
 			#stats {
 				font-size: 30px;
@@ -83,9 +87,11 @@
 				top: 0px;
 				left: 0px;
 				width: 100%;
+				pointer-events: none;
 			}
 			#top-bar > * {
 				display: inline;
+				pointer-events: all;
 			}
 			#images {
 				display: none;
@@ -108,25 +114,26 @@
 		</style>
 		<div id="images">
 			<img src="./tiles.png" id="img-tiles">
+			<img src="./mask_dispenser.jpg" id="img-mask-dispenser">
 		</div>
 	</head>
 	<body onmouseup="gameSpeed = 1">
-		<div id="game-wrapper" tabindex="0" onmousemove="mouseMove(event);">
+		<div id="game-wrapper" tabindex="0" onmousemove="mouseMove(event);" onclick="placeBuilding(event);">
 			<canvas id="canvas"></canvas>
-			<div id="top-bar">
-				<button id="pause-button" onclick="pause();">||</button>
-				<pre id="stats"></pre>
-				<button id="speed-up-button" onmousedown="gameSpeed = 15">>></button>
-				<button id="speed-up-button2" onmousedown="gameSpeed = 50">>>>></button>
-			</div>
-			<div id="shop-wrapper">
-				<button id="shop-tab" onclick="toggleShop();">Shop</button>
-				<div id="shop">
-					<button class="shop-item">
-						<img src="" alt="mask dispenser">
-						<b>Mask dispenser</b>
-					</button>
-				</div>
+		</div>
+		<div id="top-bar">
+			<button id="pause-button" onclick="pause();">||</button>
+			<pre id="stats"></pre>
+			<button id="speed-up-button" onmousedown="gameSpeed = 15">>></button>
+			<button id="speed-up-button2" onmousedown="gameSpeed = 50">>>>></button>
+		</div>
+		<div id="shop-wrapper">
+			<button id="shop-tab" onclick="toggleShop();">Shop</button>
+			<div id="shop">
+				<button class="shop-item" onclick="selectBuilding('mask dispenser');closeShop();">
+					<img src="./mask_dispenser.jpg" height="100" alt="mask dispenser">
+					<b>Mask dispenser<br>$400.00</b>
+				</button>
 			</div>
 		</div>
 	</body>
@@ -155,6 +162,23 @@
 				draw.circle(this.x, this.y, this.radius);
 			};
 		};
+		class Building {
+			constructor(type, x, y, width, height) {
+				this.type = type;
+				this.x = x;
+				this.y = y;
+				this.width = width;
+				this.height = height;
+			};
+			get hitbox() {
+				return {
+					top: this.y,
+					bottom: this.y + this.width,
+					left: this.x,
+					right: this.x + this.height
+				};
+			};
+		};
 		const canvas = document.getElementById("canvas");
 		canvas.width = innerWidth;
 		canvas.height = innerHeight;
@@ -176,9 +200,11 @@
 		var gameSpeed = 1;
 		var shopOpen = false;
 		var gamePaused = false;
+		var selectedBuilding = null;
 
 		var game = {
-			people: new Array(100).realMap(person => new Person()),
+			people: new Array(500).realMap(person => new Person()),
+			buildings: [],
 			money: 400
 		};
 		game.people.random().infected = true;
@@ -191,6 +217,16 @@
 		};
 
 
+		function selectBuilding(name) {
+			selectedBuilding = name;
+		};
+		function placeBuilding(e) {
+			if (selectedBuilding !== null && game.money >= 400) {
+				game.buildings.push(new Building(selectedBuilding, Math.floor(mouseX / 20) * 20 - 20, Math.floor(mouseY / 20) * 20 - 20, 60, 60));
+				game.money -= 400;
+				selectedBuilding = null;
+			};
+		};
 		function mouseMove(e) {
 			mouseX = e.clientX;
 			mouseY = e.clientY;
@@ -210,12 +246,18 @@
 		};
 		function toggleShop() {
 			if (shopOpen) {
-				shopOpen = false;
-				document.getElementById("shop-wrapper").className = "";
+				closeShop();
 			} else {
-				shopOpen = true;
-				document.getElementById("shop-wrapper").className = "open";
+				openShop();
 			};
+		};
+		function closeShop() {
+			shopOpen = false;
+			document.getElementById("shop-wrapper").className = "";
+		};
+		function openShop() {
+			shopOpen = true;
+			document.getElementById("shop-wrapper").className = "open";
 		};
 		function money(amount) {
 			return "$" + amount.toString()
@@ -231,6 +273,12 @@
 					for (let x = 0; x < canvas.width; x += size) {
 						ctx.drawImage(document.getElementById("img-tiles"), x, y, size, size);
 					};
+				};
+				game.buildings.forEach(building => {
+					ctx.drawImage(document.getElementById("img-mask-dispenser"), building.x, building.y, building.width, building.height);
+				});
+				if (selectedBuilding == "mask dispenser") {
+					ctx.drawImage(document.getElementById("img-mask-dispenser"), Math.floor(mouseX / 20) * 20 - 20, Math.floor(mouseY / 20) * 20 - 20, 60, 60);
 				};
 				game.people.forEach((person, personNumber) => {
 					person.dir += lerp(-15, 15, Math.random());
@@ -255,6 +303,12 @@
 							person.infectedTime = 0;
 						};
 					};
+					game.buildings.forEach(building => {
+						if (person.infected && person.hitbox.right > building.hitbox.left && person.hitbox.left < building.hitbox.right && person.hitbox.bottom > building.hitbox.top && person.hitbox.top < building.hitbox.bottom) {
+							person.infected = false;
+							game.money += 100;
+						};
+					});
 					
 					ctx.fillStyle = person.infected ? "red" : "black";
 					person.draw();
@@ -271,4 +325,4 @@
 		};
 		loop();
 	</script>
-</html
+</html>

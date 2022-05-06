@@ -163,12 +163,13 @@
 			};
 		};
 		class Building {
-			constructor(type, x, y, width, height) {
+			constructor(type, image, x, y, width, height) {
 				this.type = type;
 				this.x = x;
 				this.y = y;
 				this.width = width;
 				this.height = height;
+				this.image = image;
 			};
 			get hitbox() {
 				return {
@@ -207,6 +208,9 @@
 			buildings: [],
 			money: 400
 		};
+		var buildingTypes = {
+			"mask dispenser": {name: "mask dispenser", image: document.getElementById("img-mask-dispenser"), cost: 400}
+		};
 		game.people.random().infected = true;
 		var draw = {
 			circle: function(x, y, radius){
@@ -222,7 +226,9 @@
 		};
 		function placeBuilding(e) {
 			if (selectedBuilding !== null && game.money >= 400) {
-				game.buildings.push(new Building(selectedBuilding, Math.floor(mouseX / 20) * 20 - 20, Math.floor(mouseY / 20) * 20 - 20, 60, 60));
+				game.buildings.push(
+					new Building(buildingTypes[selectedBuilding].name, buildingTypes[selectedBuilding].image, Math.floor(mouseX / 20) * 20 - 20, Math.floor(mouseY / 20) * 20 - 20, 60, 60)
+				);
 				game.money -= 400;
 				selectedBuilding = null;
 			};
@@ -275,10 +281,10 @@
 					};
 				};
 				game.buildings.forEach(building => {
-					ctx.drawImage(document.getElementById("img-mask-dispenser"), building.x, building.y, building.width, building.height);
+					ctx.drawImage(building.image, building.x, building.y, building.width, building.height);
 				});
 				if (selectedBuilding == "mask dispenser") {
-					ctx.drawImage(document.getElementById("img-mask-dispenser"), Math.floor(mouseX / 20) * 20 - 20, Math.floor(mouseY / 20) * 20 - 20, 60, 60);
+					ctx.drawImage(buildingTypes[selectedBuilding].image, Math.floor(mouseX / 20) * 20 - 20, Math.floor(mouseY / 20) * 20 - 20, 60, 60);
 				};
 				game.people.forEach((person, personNumber) => {
 					person.dir += lerp(-15, 15, Math.random());
@@ -293,8 +299,8 @@
 						person.y = oldY;
 					};
 					person.infectedTime += person.infected;
-					person.infected = person.infected || game.people.some(otherperson => person !== otherperson && distance([person.x, person.y], [otherperson.x, otherperson.y]) < 20 && otherperson.infected && Math.random() < 1/50);
-					if (person.infectedTime > 5000) {
+					person.infected = person.infected || game.people.some(otherperson => person !== otherperson && distance([person.x, person.y], [otherperson.x, otherperson.y]) < 20 && otherperson.infected && Math.random() < 1 / (100 + (person.infected * 300 + otherperson.infected * 300)));
+					if (person.infectedTime > 1000) {
 						if (Math.random() < 1/4) {
 							game.people.splice(personNumber, 1);
 							return;
@@ -304,13 +310,13 @@
 						};
 					};
 					game.buildings.forEach(building => {
-						if (person.infected && person.hitbox.right > building.hitbox.left && person.hitbox.left < building.hitbox.right && person.hitbox.bottom > building.hitbox.top && person.hitbox.top < building.hitbox.bottom) {
-							person.infected = false;
-							game.money += 100;
+						if (!person.mask && person.hitbox.right > building.hitbox.left && person.hitbox.left < building.hitbox.right && person.hitbox.bottom > building.hitbox.top && person.hitbox.top < building.hitbox.bottom) {
+							person.mask = true;
+							game.money += 10;
 						};
 					});
 					
-					ctx.fillStyle = person.infected ? "red" : "black";
+					ctx.fillStyle = person.infected ? (person.mask ? "orange" : "red") : (person.mask ? "gray" : "black");
 					person.draw();
 
 					document.getElementById("stats").innerHTML = money(game.money);

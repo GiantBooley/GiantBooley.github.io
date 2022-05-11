@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>brain</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100px;
+			}
+			body {
+				margin: 0;
+			}
+			table {
+				border-collapse: collapse;
+			}
+			table,th,td {
+				border: 1px solid black;
+				font-family: monospace;
+			}
+			th,td {
+				padding: 2px;
+			}
+		</style>
+	</head>
+	<body>
+		<button onclick="doit();">do it</button>
+		<table id="table">
+			<tr>
+				<th>barbarian</th>
+			</tr>
+		</table>
+	</body>
+	<script>
+		String.prototype.replaceAt = function(index, replacement) {
+			console.log(replacement);
+			return this.substring(0, index) + replacement + this.substring(index + replacement.length);
+		};
+		Array.prototype.random = function(){
+			return this[Math.floor(Math.random() * this.length)];
+		};
+		function editDistance(s1, s2) {
+			let costs = new Array();
+			for (let i = 0; i <= s1.length; i++) {
+				let lastValue = i;
+				for (let j = 0; j <= s2.length; j++) {
+					if (i == 0) {
+						costs[j] = j;
+					} else {
+						if (j > 0) {
+							let newValue = costs[j - 1];
+							if (s1.charAt(i - 1) != s2.charAt(j - 1))
+								newValue = Math.min(Math.min(newValue, lastValue),
+									costs[j]) + 1;
+							costs[j - 1] = lastValue;
+							lastValue = newValue;
+						};
+					};
+				};
+				if (i > 0) {
+					costs[s2.length] = lastValue;
+				};
+			};
+			return costs[s2.length];
+		};
+		function similarity(s1, s2) {
+			let longer = s1;
+			let shorter = s2;
+			if (s1.length < s2.length) {
+				longer = s2;
+				shorter = s1;
+			};
+			let longerLength = longer.length;
+			if (longerLength == 0) {
+				return 1.0;
+			};
+			return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+		};
+		function evolve(str) {
+			return str.replaceAt(Math.floor(Math.random() * str.length), generateStr(1));
+		};
+		function generateStr(length) {
+			let returnedStr = "";
+			for (let i = 0; i < length; i++) {
+				returnedStr += "abcdefghijklmnopqrstuvwxyz ".split("").random();
+			};
+			return returnedStr;
+		};
+		function update() {
+			document.getElementById("table").innerHTML = `<tr><th>${targetStr}</th></tr><tr><td>${strs.join("</td></tr><tr><td>")}<tr></td>`;
+		};
+
+		var targetStr = "cifenqctudkypnfz"; // length: 9
+		var strs = [];
+		for (let i = 0; i < 500; i++) {
+			strs[i] = generateStr(targetStr.length);
+		};
+		update();
+		function doit() {
+			strs = strs.sort((a, b) => similarity(targetStr, b) - similarity(targetStr, a));
+			for (let i = 1; i < strs.length; i++) {
+				strs[i] = evolve(evolve(evolve(evolve(strs[0]))));
+			};
+			update();
+		};
+		setInterval(doit, 1);
+	</script>
+</html>

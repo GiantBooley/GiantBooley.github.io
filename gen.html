@@ -1,37 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<meta charset="UTF-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Boffnop</title>
-		<style>
-			* {
-				box-sizing: border-box;
-			}
-			html,body {
-				width: 100%;
-				height: 100%;
-			}
-			body {
-				margin: 0;
-				overflow: hidden;
-			}
-			#canvas-wrapper {
-				width: 100%;
-				height: 100%;
-				outline: none;
-			}
-			#canvas {
-				width: 100%;
-				height: 100%;
-			}
-		</style>
-	</head>
+	   <meta charset="UTF-8">
+	   <meta http-equiv="X-UA-Compatible" content="IE=edge">
+	   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	   <title>it</title>
+	   <style>
+		   * {
+			   box-sizing: border-box;
+		   }
+		   html,body {
+			   width: 100%;
+			   height: 100%;
+		   }
+		   body {
+			   margin: 0;
+			   overflow: hidden;
+		   }
+		   #canvas-wrapper {
+			   width: 100%;
+			   height: 100%;
+			   outline: none;
+		   }
+		   #canvas {
+			   width: 100%;
+			   height: 100%;
+		   }
+		   #output {
+			   display: none;
+			   z-index: 10;
+			   position: absolute;
+			   top: 0px;
+			   left: 0px;
+		   }
+	   </style>
+	</html>
 	<body>
-		<div id="canvas-wrapper">
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keypress(event);" onmousemove="mousemove(event);" onmousedown="mousedown(event);" onmouseup="mouseup(event);">
 			<canvas id="canvas"></canvas>
 		</div>
+		<textarea id="output" cols="30" rows="10"></textarea>
 	</body>
 	<script>
 		const canvas = document.getElementById("canvas");
@@ -39,37 +47,47 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 
-		function getPixel(x, y, z) {
-			if (x > 200 || x < -200 || y > 200 || y < -200 || z > 200 || z < -200) {
-				return [0, 0, 255, 1];
+		var mouseX = 0;
+		var mouseY = 0;
+		var mouseDown = false;
+		var startPos = 0;
+		var buffer = [[0, 0, canvas.width, 12], [0, 12, 12, canvas.height], [canvas.width - 12, 0, 12, canvas.height], [0, canvas.height - 12, canvas.width, 12]];
+		ctx.fillStyle = "rgb(200, 200, 0)";
+
+		function mousedown(e) {
+			mouseDown = true;
+			startPos = [mouseX, mouseY];
+		};
+		function mousemove(e) {
+			mouseX = Math.floor(e.clientX / 5) * 5;
+			mouseY = Math.floor(e.clientY / 5) * 5;
+		};
+
+		setInterval(function(){
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			buffer.forEach(rect => {
+				ctx.fillRect(rect[0], rect[1], rect[2], rect[3]);
+			});
+			if (mouseDown) {
+				ctx.fillRect(startPos[0], startPos[1], mouseX - startPos[0], mouseY - startPos[1]);
 			};
-			return [0, 0, 0, 0];
-		};
-		function deg2rad(degrees) {
-			return degrees * (Math.PI / 180);
-		};
-		function render() {
-			for (let pixelX = 0; pixelX < canvas.width; pixelX += 90 / canvas.width) {
-				for (let pixelY = 0; pixelY < canvas.height; pixelY += 60 / canvas.height) {
-					let rayDirX = pixelX * (90 / canvas.width);
-					let rayDirY = pixelY * (60 / canvas.height);
-					let rayXV = Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
-					let rayYV = Math.sin(deg2rad(rayDirX));
-					let rayZV = Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
-					let rayX = 0;
-					let rayY = 0;
-					let rayZ = 0;
-					while (getPixel(rayX, rayY, rayZ)[3] == 0) {
-						rayX += rayXV;
-						rayY += rayYV;
-						rayZ += rayZV;
-					};
-					let color = getPixel(rayX, rayY, rayZ);
-					ctx.fillStyle = `rgba(${color.join(", ")})`;
-					ctx.fillRect(pixelX, pixelY, 1, 1);
-				};
+		}, 10);
+		function mouseup(e) {
+			mouseDown = false;
+			if (mouseX !== startPos[0] && mouseY !== startPos[1] ) {
+				buffer.push([startPos[0], startPos[1], mouseX - startPos[0], mouseY - startPos[1]]);
 			};
 		};
-		//render();
+		function keypress(e) {
+			if (e.code == "Space") {
+				document.getElementById("output").style.display = "block";
+				document.getElementById("output").value = "";
+				buffer.forEach(it => {
+					document.getElementById("output").value += `ctx.fillRect(${it[0]}, ${it[1]}, ${it[2]}, ${it[3]});\n`;
+				});
+			} else if (e.ctrlKey && e.code == "KeyZ") {
+				buffer.pop();
+			};
+		};
 	</script>
 </html>

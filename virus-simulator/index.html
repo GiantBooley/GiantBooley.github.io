@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Virus simulator</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#game-wrapper {
+				outline: none;
+				width: 100%;
+				height: 100%;
+				cursor: default;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+			button:not(.shop-item) {
+				user-select: none;
+				border: 5px ridge blue;
+				background-color: lightgray;
+				border-radius: 10px;
+				padding: 0.5em 1em;
+				cursor: pointer;
+				color: yellow;
+				text-shadow: 0px 0px 3px black;
+				font-size: 20px;
+				font-family: monospace;
+				font-weight: bold;
+			}
+			button:not(.shop-item):hover {
+				background-color: lightblue;
+			}
+			button:not(.shop-item):active {
+				background-color: #AAAAFF;
+			}
+			#shop-tab {
+				transform: translateX(20px);
+				border-radius: 10px 10px 0px 0px;
+				border-bottom: none;
+			}
+			#shop {
+				background-color: lightgray;
+				border-top: 5px ridge blue;
+				width: 100%;
+				height: 200px;
+				overflow-y: hidden;
+				overflow-x: auto;
+			}
+			#shop-wrapper {
+				position: absolute;
+				bottom: 0px;
+				left: 0px;
+				width: 100%;
+				transform: translateY(200px);
+				transition-duration: 0.4s;
+				transition-timing-function: cubic-bezier(0.25,0.5,0,1);
+				pointer-events: none;
+			}
+			#shop-wrapper.open {
+				transform: translateY(0px);
+			}
+			#shop-wrapper > * {
+				pointer-events: all;
+			}
+			#stats {
+				font-size: 30px;
+				font-family: monospace;
+				margin: 5px;
+				color: green;
+				text-shadow: 0px 0px 3px yellow;
+			}
+			#top-bar {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 100%;
+				pointer-events: none;
+			}
+			#top-bar > * {
+				display: inline;
+				pointer-events: all;
+			}
+			#images {
+				display: none;
+			}
+			.shop-item {
+				height: 90%;
+				display: inline-block;
+				margin: 10px;
+				border: 5px ridge blue;
+				background-color: lightblue;
+				border-radius: 10px;
+				cursor: pointer;
+			}
+			.shop-item > b {
+				color: brown;
+				font-family: monospace;
+				display: block;
+				margin: 0;
+			}
+		</style>
+		<div id="images">
+			<img src="./tiles.png" id="img-tiles">
+			<img src="./mask_dispenser.jpg" id="img-mask-dispenser">
+			<img src="./vaccine_clinic.jpeg" id="img-vaccine-clinic">
+			<img src="./sunk.jpg" id="img-sink">
+		</div>
+	</head>
+	<body onmouseup="gameSpeed = 1">
+		<div id="game-wrapper" tabindex="0" onmousemove="mouseMove(event);" onclick="placeBuilding(event);">
+			<canvas id="canvas"></canvas>
+		</div>
+		<div id="top-bar">
+			<button id="pause-button" onclick="pause();">||</button>
+			<pre id="stats"></pre>
+			<button id="speed-up-button" onmousedown="gameSpeed = 15">>></button>
+		</div>
+		<div id="shop-wrapper">
+			<button id="shop-tab" onclick="toggleShop();">Shop</button>
+			<div id="shop">
+				<button class="shop-item" onclick="selectBuilding('mask dispenser');closeShop();">
+					<img src="./mask_dispenser.jpg" height="100" alt="mask dispenser">
+					<b>Mask dispenser<br>$20.00</b>
+				</button>
+				<button class="shop-item" onclick="selectBuilding('sink');closeShop();">
+					<img src="sunk.jpg" height="100" alt="sink">
+					<b>Sink<br>$200.00</b>
+				</button>
+				<button class="shop-item" onclick="selectBuilding('vaccine clinic');closeShop();">
+					<img src="vaccine_clinic.jpeg" height="100" alt="vaccine clinic">
+					<b>Vaccine clinic<br>$1500.00</b>
+				</button>
+			</div>
+		</div>
+	</body>
+	<script>
+		window.addEventListener("error", function(e){
+			alert("critical error: " + e.message);
+		});
+		/* TODO
+			make the textures
+		*/
+		class Person {
+			constructor() {
+				this.radius = 10;
+				this.x = lerp(this.radius, canvas.width - this.radius, Math.random());
+				this.y = lerp(this.radius, canvas.height - this.radius, Math.random());
+				this.dir = lerp(0, 360, Math.random());
+				this.speed = 5;
+				this.infected = false;
+				this.infectedTime = 0;
+				this.mask = false;
+				this.vaccinated = false;
+				this.cleanness = 0.5;
+			};
+			get hitbox() {
+				return {
+					top: this.y - this.radius,
+					bottom: this.y + this.radius,
+					left: this.x - this.radius,
+					right: this.x + this.radius
+				};
+			};
+			draw() {
+				draw.circle(this.x, this.y, this.radius);
+			};
+		};
+		class Building {
+			constructor(type, image, x, y, width, height) {
+				this.type = type;
+				this.x = x;
+				this.y = y;
+				this.width = width;
+				this.height = height;
+				this.image = image;
+				this.uses = 0;
+			};
+			get hitbox() {
+				return {
+					top: this.y,
+					bottom: this.y + this.width,
+					left: this.x,
+					right: this.x + this.height
+				};
+			};
+		};
+		const canvas = document.getElementById("canvas");
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+		const ctx = canvas.getContext("2d");
+		ctx.font = "200px sans-serif";
+
+		Array.prototype.realMap = function(mapFunction){
+			let newArray = [...this];
+			for (let i = 0; i < this.length; i++) {
+				newArray[i] = mapFunction(this[i], i, this);
+			};
+			return newArray;
+		};
+		Array.prototype.random = function(){
+			return this[Math.floor(Math.random() * this.length)];
+		};
+		var draw = {
+			circle: function(x, y, radius){
+				ctx.beginPath();
+				ctx.arc(x, y, radius, 0, 2 * Math.PI);
+				ctx.fill();
+			}
+		};
+
+		var mouseX = 0;
+		var mouseY = 0;
+		var gameSpeed = 1;
+		var shopOpen = false;
+		var gamePaused = false;
+		var selectedBuilding = null;
+		var totalPeople = 500;
+		var gameRunning = true;
+
+		var game = {
+			people: new Array(totalPeople).realMap(person => new Person()),
+			buildings: [],
+			money: 400
+		};
+		var buildingTypes = {
+			"mask dispenser": {name: "mask dispenser", image: document.getElementById("img-mask-dispenser"), cost: 20},
+			"sink": {name: "sink", image: document.getElementById("img-sink"), cost: 200},
+			"vaccine clinic": {name: "vaccine clinic", image: document.getElementById("img-vaccine-clinic"), cost: 1500}
+		};
+		game.people.random().infected = true;
+
+
+		function selectBuilding(name) {
+			if (game.money >= buildingTypes[name].cost) {
+				selectedBuilding = name;
+			};
+		};
+		function placeBuilding(e) {
+			if (selectedBuilding !== null && game.money >= buildingTypes[selectedBuilding].cost) {
+				game.buildings.push(
+					new Building(buildingTypes[selectedBuilding].name, buildingTypes[selectedBuilding].image, Math.floor(mouseX / 20) * 20 - 20, Math.floor(mouseY / 20) * 20 - 20, 60, 60)
+				);
+				game.money -= buildingTypes[selectedBuilding].cost;
+				selectedBuilding = null;
+			};
+		};
+		function mouseMove(e) {
+			mouseX = e.clientX;
+			mouseY = e.clientY;
+		};
+		function pause() {
+			gamePaused = !gamePaused;
+			document.getElementById("pause-button").innerHTML = gamePaused ? ">" : "||";
+		};
+		function distance(p1, p2) {
+			return Math.sqrt(((p1[0] - p2[0]) ** 2) + ((p1[1] - p2[1]) ** 2));
+		};
+		function lerp(min, max, mult) {
+			return (max - min) * mult + min;
+		};
+		function deg2rad(degrees) {
+			return degrees * (Math.PI / 180);
+		};
+		function toggleShop() {
+			if (shopOpen) {
+				closeShop();
+			} else {
+				openShop();
+			};
+		};
+		function closeShop() {
+			shopOpen = false;
+			document.getElementById("shop-wrapper").className = "";
+		};
+		function openShop() {
+			shopOpen = true;
+			document.getElementById("shop-wrapper").className = "open";
+		};
+		function money(amount) {
+			return "$" + amount.toString()
+				.replaceAll(/(?<=^\d+)$/g, ".00")
+				.replaceAll(/(?<=\.\d\d)\d+$/g, "");
+		};
+		function win() {
+			gameRunning = false;
+			ctx.fillStyle = "green";
+			ctx.fillText("YOU WON", 200, 300);
+		};
+		function lose() {
+			gameRunning = false;
+			ctx.fillStyle = "red";
+			ctx.fillText("YOU LOST", 200, 300);
+		};
+
+		function tick() {
+			for (let i = 0; i < gameSpeed; i++) {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				let size = 80;
+				for (let y = 0; y < canvas.height; y += size) {
+					for (let x = 0; x < canvas.width; x += size) {
+						ctx.drawImage(document.getElementById("img-tiles"), x, y, size, size);
+					};
+				};
+				game.buildings.forEach(building => {
+					ctx.drawImage(building.image, building.x, building.y, building.width, building.height);
+				});
+				if (selectedBuilding !== null) {
+					ctx.drawImage(buildingTypes[selectedBuilding].image, Math.floor(mouseX / 20) * 20 - 20, Math.floor(mouseY / 20) * 20 - 20, 60, 60);
+				};
+				game.people.forEach((person, personNumber) => {
+					person.dir += lerp(-15, 15, Math.random());
+					let oldX = person.x;
+					let oldY = person.y;
+					person.x += Math.sin(deg2rad(person.dir));
+					if (person.hitbox.left < 0 || person.hitbox.right > canvas.width) {
+						person.x = oldX;
+					};
+					person.y += Math.cos(deg2rad(person.dir));
+					if (person.hitbox.top < 0 || person.hitbox.bottom > canvas.height) {
+						person.y = oldY;
+					};
+					person.cleanness += 0.005;
+					person.infectedTime += person.infected;
+					person.infected = person.infected || game.people.some(otherperson => person !== otherperson && distance([person.x, person.y], [otherperson.x, otherperson.y]) < 20 && otherperson.infected && Math.random() < 1 / (100 + (person.mask * 300 + otherperson.mask * 300) + (person.vaccinated * 3000 + otherperson.vaccinated * 3000)));
+					if (person.infectedTime > 1000) {
+						if (Math.random() < 1/4) {
+							game.people.splice(personNumber, 1);
+							return;
+						} else {
+							person.infected = false;
+							person.infectedTime = 0;
+						};
+					};
+					game.buildings.forEach(building => {
+						if (person.hitbox.right > building.hitbox.left && person.hitbox.left < building.hitbox.right && person.hitbox.bottom > building.hitbox.top && person.hitbox.top < building.hitbox.bottom) {
+							if (!person.mask && building.type == "mask dispenser") {
+								person.mask = true;
+								game.money += 3;
+							};
+							if (!person.vaccinated && building.type == "vaccine clinic") {
+								person.vaccinated = true;
+								game.money += 25;
+							};
+							if (building.type == "sink") {
+								person.cleanness = 1;
+								game.money += 7;
+							};
+						};
+					});
+					
+					ctx.fillStyle = person.infected ? (person.mask ? "orange" : "red") : (person.mask ? "gray" : "black");
+					person.draw();
+					if (game.people.filter(person => person.infected).length == 0) {
+						if (game.people.length >= totalPeople / 2) {
+							win();
+						} else {
+							lose();
+						};
+					};
+
+					document.getElementById("stats").innerHTML = money(game.money) + " people: " + game.people.length + "/" + totalPeople;
+				});
+			};
+		};
+		function loop() {
+			if (!gamePaused && gameRunning) {
+				tick();
+			};
+			requestAnimationFrame(loop);
+		};
+		loop();
+	</script>
+</html>

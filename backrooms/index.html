@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Boffnop</title>
+		<title>backrooms</title>
 		<style>
 			* {
 				box-sizing: border-box;
@@ -15,279 +15,74 @@
 			}
 			body {
 				margin: 0;
-				overflow: hidden;
 			}
-			#canvas-wrapper {
-				width: 100%;
-				height: 100%;
-				outline: none;
-			}
-			#canvas {
-				width: 100%;
-				height: 100%;
-			}
-			#settings {
-				background-color: white;
-				position: absolute;
-				top: 0px;
-				right: 0px;
-				z-index: 19;
+			button {
+				padding: 3rem;
+				font-size: 20px;
 				font-family: monospace;
-				outline: 5px ridge gray;
-				box-shadow: inset 3px 0px 10px gray;
-			}
-			input {
-				width: 200px;
-			}
-			#time-map {
-				width: 100%;
-				height: 100%;
-				position: absolute;
-				top: 0px;
-				left: 0px;
-				display: none;
 			}
 		</style>
 	</head>
 	<body>
-		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true; if (event.key == ' ') {renderreal()}" onkeyup="keysDown[event.key] = false;">
-			<canvas id="canvas"></canvas>
-		</div>
-		<canvas id="time-map"></canvas>
-		<div id="settings">
-			<label for="fps">fps: </label><b id="fps">0</b><br>
-			<label for="fovX">fov x:</label><input type="range" id="fovX" min="0" max="360" value="90"><br>
-			<label for="fovY">fov y:</label><input type="range" id="fovY" min="0" max="360" value="90"><br>
-			<label for="resX">res x:</label><input type="range" id="resX" min="0" max="360" value="10"><br>
-			<label for="resY">res y:</label><input type="range" id="resY" min="0" max="360" value="10"><br>
-			<label for="resY">res z:</label><input type="number" id="resZ"value="1"><br>
-			<button onclick="toggleTimeMap();">toggle time map</button>
-		</div>
+		<video src="" id="video" controls height="500"></video><br>
+		<button onclick="videoEl.currentTime -= 3">&lt&lt</button>
+		<button onclick="videoEl.currentTime -= 1/30">&lt</button>
+		<button onclick="pauseButton();" id="pauseButton">▶</button>
+		<button onclick="videoEl.currentTime += 1/30">&gt</button>
+		<button onclick="videoEl.currentTime += 3">&gt&gt</button>
+		<select id="videoName" onchange="video = this.value; updateVideo();">
+			<option value="Backrooms - Prototype">Backrooms - Prototype</option>
+			<option value="Backrooms - The Third Test">Backrooms - The Third Test</option>
+			<option value="Backrooms - First Contact">Backrooms - First Contact</option>
+			<option value="collateral.mov">collateral.mov</option>
+			<option value="Backrooms - Missing Persons">Backrooms - Missing Persons</option>
+			<option value="Backrooms - Autopsy Report">Backrooms - Autopsy Report</option>
+			<option value="Backrooms - Informational Video">Backrooms - Informational Video</option>
+			<option value="Backrooms - Motion Detected">Backrooms - Motion Detected</option>
+			<option value="Mar11_90_ARCHIVE.tar">Mar11_90_ARCHIVE.tar</option>
+			<option value="Backrooms - Pitfalls">Backrooms - Pitfalls</option>
+			<option value="Backrooms - Report">Backrooms - Report</option>
+			<option value="9780415263573">9780415263573</option>
+			<option value="Backrooms - Presentation">Backrooms - Presentation</option>
+			<option value="Simpsons">Simpsons</option>
+			<option value="The Backrooms (Found Footage)" selected>The Backrooms (Found Footage)</option>
+		</select>
 	</body>
 	<script>
-		const canvas = document.getElementById("canvas");
-		canvas.width = innerWidth;
-		canvas.height = innerHeight;
-		const ctx = canvas.getContext("2d");
-
-		const timeMap = document.getElementById("time-map");
-		timeMap.width = canvas.width;
-		timeMap.height = canvas.height;
-		const tmctx = timeMap.getContext("2d");
-
-		var fovX = 90;
-		var fovY = 60;
-		var resX = 90;
-		var resY = 60;
-		var resZ = 1;
-		var playerX = 0;
-		var playerY = 0;
-		var playerZ = 0;
-		var playerDirX = 0;
-		var playerDirY = 90;
-		var keysDown = {};
-		var finalRender = false;
-		var fps = 0;
-
-		Math.mod = function mod(n, t) {
-			return ((n % t) + t) % t;
+		var video = "The Backrooms (Found Footage)";
+		var videos = {
+			"Backrooms - Prototype":			{id: "9_UN1dsZ9Vg"},
+			"Backrooms - The Third Test":		{id: "tvmEc7JhR0E"},
+			"Backrooms - First Contact":		{id: "eXdIDjzy6KY"},
+			"collateral.mov":					{id: "mWFMDnMDI2o"},
+			"Backrooms - Missing Persons":		{id: "py6c5NaHeB8"},
+			"Backrooms - Autopsy Report":		{id: "2AN6j7JYc1g"},
+			"Backrooms - Informational Video":	{id: "ZIFhglHn3W0"},
+			"Backrooms - Motion Detected":		{id: "4FDotUHfpWk"},
+			"Mar11_90_ARCHIVE.tar":				{id: "k0L8SM32ENI"},
+			"Backrooms - Pitfalls":				{id: "0XwlWXtpaCM"},
+			"Backrooms - Report":				{id: "ywVxpZ4XUBM"},
+			"9780415263573":					{id: "a7ckzgIgx_o"},
+			"Backrooms - Presentation":			{id: "ITuGdHxHi0A"},
+			"Simpsons":							{id: "5akGUmdjxv4"},
+			"The Backrooms (Found Footage)":	{id: "H4dGpz6cnHo"}
 		};
+		const videoEl = document.getElementById("video");
 
-		function toggleTimeMap() {
-			if (window.getComputedStyle(document.getElementById('time-map'), null).getPropertyValue('display') == 'block') {
-				document.getElementById('time-map').style.display = 'none';
+		function updateVideo() {
+			videoEl.src = `videos/${video}.mp4`;
+		};
+		updateVideo();
+
+		function pauseButton() {
+			let button = document.getElementById("pauseButton");
+			if (videoEl.paused) {
+				videoEl.play();
+				button.innerHTML = "⏸";
 			} else {
-				document.getElementById('time-map').style.display = 'block';
+				videoEl.pause();
+				button.innerHTML = "▶";
 			};
-		};
-		function isDown(key) {
-			return keysDown[key] ?? false;
-		};
-		function getPixel(x, y, z) {
-			/*
-				[r, g, b, a, reflectiveness]
-			*/
-			if (x > 200 || x < -200) {
-				if (Math.mod(z, 10) < 2 || (Math.mod(z + (y / 4), 10) < 2 && Math.mod(z, 10) > 5) || (Math.mod(z - (y / 4), 10) < 2 && Math.mod(z, 10) < 5)) {
-					return [200, 200, 50, 1, 0];
-				};
-				return [255, 255, 100, 1, 0];
-			};
-			if (y > 200) { // roof
-				if (Math.mod(x, 20) < 2 || Math.mod(z, 20) < 2) {
-					return [200, 200, 200, 1, 0.1];
-				};
-				return [240, 240, 230, 1, 0];
-			};
-			if (y < -200) { // floor
-				if (x < 150 && x > -150 && z < 150 && z > -150) {
-					if (y > -300) {
-						return [0, 0, 0, 0, 0];
-					};
-					return [0, 0, 255, 1, 0.8];
-				};
-				if (Math.sin(x * .1) > Math.sin(z * .1)) {
-					return [234, 235, 190, 1, 0];
-				};
-				return [223, 224, 177, 1, 0];
-			};
-			if (z > 400 || z < -400) {
-				if (Math.mod(x, 10) < 2 || (Math.mod(x + (y / 4), 10) < 2 && Math.mod(x, 10) > 5) || (Math.mod(x - (y / 4), 10) < 2 && Math.mod(x, 10) < 5)) {
-					return [200, 200, 50, 1, 0];
-				};
-				return [255, 255, 100, 1, 0];
-			};
-			return [0, 0, 0, 0];
-		};
-		function deg2rad(degrees) {
-			return degrees * (Math.PI / 180);
-		};
-		function average(number1, number2) {
-			return (number1 + number2) / 2;
-		};
-		function inbetween(first, second, percent) {
-			return ((second - first) * percent) + first;
-		};
-		function render(clear) {
-			let time = performance.now();
-			
-
-			if (!finalRender) {
-				fovX = document.getElementById("fovX").valueAsNumber;
-				fovY = document.getElementById("fovY").valueAsNumber;
-				resX = document.getElementById("resX").valueAsNumber;
-				resY = document.getElementById("resY").valueAsNumber;
-				resZ = document.getElementById("resZ").valueAsNumber || 1;
-
-				playerDirX += (isDown("ArrowDown") - isDown("ArrowUp"));
-				playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft"));
-				let playerSpeed = 3;
-
-				let oldPlayerX = playerX;
-				let oldPlayerZ = playerZ;
-
-				playerX += playerSpeed * (isDown("w") - isDown("s")) * Math.sin(deg2rad(playerDirY));
-				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
-					playerX = oldPlayerX;
-				};
-				playerZ += playerSpeed * (isDown("w") - isDown("s")) * Math.cos(deg2rad(playerDirY));
-				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
-					playerZ = oldPlayerZ;
-				};
-				
-				playerX += playerSpeed * (isDown("d") - isDown("a")) * Math.sin(deg2rad(playerDirY + 90));
-				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
-					playerX = oldPlayerX;
-				};
-				playerZ += playerSpeed * (isDown("d") - isDown("a")) * Math.cos(deg2rad(playerDirY + 90));
-				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
-					playerZ = oldPlayerZ;
-				};
-			
-			};
-
-			if (clear) {
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
-				tmctx.clearRect(0, 0, timeMap.width, timeMap.height);
-			};
-
-			let singleRay = function singleRay(pixelX, pixelY) {
-				let rayDirX = (pixelY * (fovY / .5 / canvas.width)) + playerDirX;
-				let rayDirY = ((pixelX * (fovX / 2 / canvas.height)) + playerDirY);
-				let rayXV = resZ * Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
-				let rayYV = -resZ * Math.sin(deg2rad(rayDirX));
-				let rayZV = resZ * Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
-				let rayX = playerX;
-				let rayY = playerY;
-				let rayZ = playerZ;
-
-				let bounceColors = [];
-				let bounces = 0;
-				let maxBounces = 2;
-				while (!(getPixel(rayX, rayY, rayZ)[3] != 0)) {
-					rayX += rayXV;
-					if (getPixel(rayX, rayY, rayZ)[3] != 0 && bounces < maxBounces) {
-						rayXV *= -1;
-						bounceColors.push(getPixel(rayX, rayY, rayZ));
-						rayX += rayXV;
-						bounces++;
-					};
-					rayY += rayYV;
-					if (getPixel(rayX, rayY, rayZ)[3] != 0 && bounces < maxBounces) {
-						rayYV *= -1;
-						bounceColors.push(getPixel(rayX, rayY, rayZ));
-						rayY += rayYV;
-						bounces++;
-					};
-					rayZ += rayZV;
-					if (getPixel(rayX, rayY, rayZ)[3] != 0 && bounces < maxBounces) {
-						rayZV *= -1;
-						bounceColors.push(getPixel(rayX, rayY, rayZ));
-						rayZ += rayZV;
-						bounces++;
-					};
-				};
-
-				let color = [
-					inbetween(bounceColors[0][0], bounceColors[1][0], bounceColors[0][4]),
-					inbetween(bounceColors[0][1], bounceColors[1][1], bounceColors[0][4]),
-					inbetween(bounceColors[0][2], bounceColors[1][2], bounceColors[0][4]),
-					bounceColors[0][3]
-				];
-
-				/*let colorOffset = 1.3;
-
-				if (getPixel(rayX - rayXV, rayY, rayZ)[3] == 0) {
-					color[0] *= colorOffset;
-					color[1] *= colorOffset;
-					color[2] *= colorOffset;
-				} else if (getPixel(rayX, rayY, rayZ - rayZV)[3] == 0) {
-					color[0] /= colorOffset;
-					color[1] /= colorOffset;
-					color[2] /= colorOffset;
-				};*/
-				
-				ctx.fillStyle = `rgba(${color.join(", ")})`;
-				ctx.fillRect(pixelX + (canvas.width / 2), pixelY + (canvas.height / 2), canvas.width / resX, canvas.height / resY);
-			};
-
-			if (finalRender) {
-				let pixelX = canvas.width / -2;
-				let pixelY = canvas.height / -2;
-				let loopX = setInterval(function(){
-					//for (let i = 0; i < 10; i++) {
-						for (let pixelX = canvas.width / -2; pixelX < canvas.width; pixelX += canvas.width / resX) {
-							let timeReal = performance.now();
-							singleRay(pixelX, pixelY);
-							let colorReal = (performance.now() - timeReal) * 1000;
-							tmctx.fillStyle = `rgba(${colorReal}, ${colorReal}, ${colorReal}, 1)`;
-							tmctx.fillRect(pixelX + (timeMap.width / 2), pixelY + (timeMap.height / 2), timeMap.width / resX, timeMap.height / resY);
-						};
-						pixelY += canvas.height / resY;
-						if (!(pixelY < canvas.height)) {
-							clearInterval(loopY);
-						};
-					//};
-				}, 0);
-			} else {
-				for (let pixelY = canvas.height / -2; pixelY < canvas.height; pixelY += canvas.height / resY) {
-					for (let pixelX = canvas.width / -2; pixelX < canvas.width; pixelX += canvas.width / resX) {
-						singleRay(pixelX, pixelY);
-					};
-				};
-			};
-			// console.log("render took " + (Math.floor(((performance.now() - time) / 1000) * 10) / 10) + "s");
-			fps = 1000 / (performance.now() - time);
-			document.getElementById("fps").innerText = fps;
-			return performance.now() - time;
-		};
-		var bud = setInterval(render, 10, true);
-		function renderreal() {
-			clearInterval(bud);
-			finalRender = true;
-			resX = canvas.width / 2;
-			resY = canvas.height / 2;
-			render(true);
 		};
 	</script>
 </html>

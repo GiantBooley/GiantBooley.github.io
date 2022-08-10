@@ -19,11 +19,7 @@
 		</style>
 	</head>
 	<body>
-		<div id="settings">
-			<button onmousedown="zooming = 1;">zoom+</button><br>
-			<button onmousedown="">zoom-</button>
-		</div>
-		<div id="canvas-wrapper">
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keyDown(event)" onkeyup="keyUp(event)" onmousedown="startLine(event.clientX, event.clientY)" onmouseup="endLine(event.clientX, event.clientY)" onmousemove="moveMouse(event)">
 			<canvas id="canvas"></canvas>
 		</div>
 	</body>
@@ -33,44 +29,71 @@
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 
+		var mouseX = 0;
+		var mouseY = 0;
+		var drawingLine = false;
+		var keysDown = {};
+
+		function isDown(key) {
+			return keysDown[key] ?? false;
+		};
+		function moveMouse(e) {
+			mouseX = e.clientX;
+			mouseY = e.clientY;
+		};
+		function drawLine(p1, p2) {
+			ctx.beginPath();
+			ctx.moveTo(p1[0], p1[1]);
+			ctx.lineTo(p2[0], p2[1]);
+			ctx.stroke();
+		};
 		function axisLine(axis, offset) {
 			if (axis == "x") {
-				ctx.beginPath();
-				ctx.moveTo(0, offset);
-				ctx.lineTo(canvas.width, offset);
-				ctx.stroke();
+				drawLine([0, offset], [canvas.width, offset]);
 			} else if (axis == "y") {
-				ctx.beginPath();
-				ctx.moveTo(offset, 0);
-				ctx.lineTo(offset, canvas.height);
-				ctx.stroke();
+				drawLine([offset, 0], [offset, canvas.height]);
 			};
 		};
+		var currentStart = null;
+		function startLine(x, y) {
+			currentStart = [x, y];
+			drawingLine = true;
+		};
+		function endLine(x, y) {
+			lines.push([currentStart, [x, y]]);
+			currentStart = null;
+			drawingLine = false;
+		};
+		function keyDown(e) {
+			keysDown[e.key] = true;
+		};
+		function keyUp(e) {
+			keysDown[e.key] = false;
+		};
 
-		var grid = [];
+		var lines = [];
 		var zoom = 1;
 		var zooming = 0;
 		function loop() {
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.strokeStyle = "#AAAAFF";
 			ctx.lineWidth = 1;
-			for (let x = 0; x < canvas.width; x += zoom+10) {
+			for (let x = 0; x < canvas.width; x += 20) {
 				axisLine("y", x);
 			};
-			for (let y = 0; y < canvas.height; y += zoom+10) {
+			for (let y = 0; y < canvas.height; y += 20) {
 				axisLine("x", y);
+			};
+			ctx.strokeStyle = "black";
+			lines.forEach(line => {
+				drawLine(line[0], line[1]);
+			});
+			if (drawingLine) {
+				drawLine(currentStart, [mouseX, mouseY]);
 			};
 
 			requestAnimationFrame(loop);
 		};
 		loop();
-
-		canvas.addEventListener("gestureend", function(e) {
-			if (e.scale < 1.0) {
-				console.log(scale);
-			} else if (e.scale > 1.0) {
-				console.log(scale);
-			}
-		}, false);
 	</script>
 </html>

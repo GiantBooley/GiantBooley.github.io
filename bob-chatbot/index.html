@@ -199,7 +199,7 @@
 		wordsAfter[whatBobSaidLast].push(input);
 		if (typeof wordsAfter[input] == "undefined") {
 			// bobMessageToSend = choose(responsesToUnknown);
-			bobMessageToSend = choose(wordsAfter[wordsAfter.sort((a, b) => similarity(b, input) - similarity(a, input))[0]]);
+			bobMessageToSend = choose(wordsAfter[Object.keys(wordsAfter).sort((a, b) => similarity(wordsAfter[b], input) - similarity(wordsAfter[a], input))[0]]);
 		} else {
 			bobMessageToSend = choose(wordsAfter[input]);
 		};

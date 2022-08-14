@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -33,7 +32,7 @@
 			border-bottom-right-radius: var(--roundness);
 			border-top: none;
 		}
-		#input:focus {
+		#input:focus,#sendButton:focus {
 			box-shadow: 0 0 10px gray;
 			width: calc(100% - 128px);
 			border-bottom-right-radius: 0px;
@@ -199,7 +198,7 @@
 		wordsAfter[whatBobSaidLast].push(input);
 		if (typeof wordsAfter[input] == "undefined") {
 			// bobMessageToSend = choose(responsesToUnknown);
-			bobMessageToSend = choose(wordsAfter[Object.keys(wordsAfter).sort((a, b) => similarity(wordsAfter[b], input) - similarity(wordsAfter[a], input))[0]]);
+			bobMessageToSend = choose(wordsAfter[Object.keys(wordsAfter).sort((a, b) => similarity(b, input) - similarity(a, input))[0]]);
 		} else {
 			bobMessageToSend = choose(wordsAfter[input]);
 		};
@@ -213,18 +212,18 @@
 	};
 
 	function editDistance(s1, s2) { // tab this
-	s1 = s1.toLowerCase();
-	s2 = s2.toLowerCase();
+		s1 = s1.toLowerCase();
+		s2 = s2.toLowerCase();
 
-	var costs = new Array();
-	for (var i = 0; i <= s1.length; i++) {
-		var lastValue = i;
-		for (var j = 0; j <= s2.length; j++) {
-			if (i == 0) {
-				costs[j] = j;
-			} else {
-				if (j > 0) {
-					var newValue = costs[j - 1];
+		let costs = new Array();
+		for (let i = 0; i <= s1.length; i++) {
+			let lastValue = i;
+			for (let j = 0; j <= s2.length; j++) {
+				if (i == 0) {
+					costs[j] = j;
+				} else {
+					if (j > 0) {
+					let newValue = costs[j - 1];
 					if (s1.charAt(i - 1) != s2.charAt(j - 1))
 						newValue = Math.min(Math.min(newValue, lastValue),
 							costs[j]) + 1;
@@ -240,13 +239,13 @@
 		return costs[s2.length];
 	};
 	function similarity(s1, s2) {
-		var longer = s1;
-		var shorter = s2;
+		let longer = s1;
+		let shorter = s2;
 		if (s1.length < s2.length) {
 			longer = s2;
 			shorter = s1;
 		};
-		var longerLength = longer.length;
+		let longerLength = longer.length;
 		if (longerLength == 0) {
 			return 1.0;
 		};

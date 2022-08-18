@@ -241,7 +241,7 @@
 	};
 	function load() {
 		let bobChatbotSave = JSON.parse(localStorage.getItem("bobChatbotSave"))
-		responses = {...responsesBob, ...ChatbotSave.responses};
+		responses = {...responses, ...bobChatbotSave.responses};
 		whatBobSaidLast = bobChatbotSave.whatBobSaidLast;
 		bobMessageToSend = bobChatbotSave.bobMessageToSend;
 		document.getElementById("output").innerHTML = "";

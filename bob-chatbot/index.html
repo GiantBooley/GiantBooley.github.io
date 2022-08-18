@@ -32,7 +32,7 @@
 			border-bottom-right-radius: var(--roundness);
 			border-top: none;
 		}
-		#input:focus,#sendButton:focus {
+		#input:focus {
 			box-shadow: 0 0 10px gray;
 			width: calc(100% - 128px);
 			border-bottom-right-radius: 0px;
@@ -61,11 +61,19 @@
 		#input:focus + #sendButton {
 			transform: translate(-2px, 1px);
 		}
+		#settings {
+			outline: 2px solid black;
+			background-color: lightblue;
+			border-radius: 3px;
+		}
 	</style>
 </head>
 <body>
 	<h1>Bob chatbot</h1>
 	<hr>
+	<div id="settings">
+		Settings:<button onclick="save();">Save</button><button onclick="load();">Load</button>
+	</div>
 	<div id="outline">
 		<div id="output"></div>
 		<input autocomplete="off" placeholder="Message bob..." type="text" id="input" onkeypress="enter(event);">
@@ -73,8 +81,7 @@
 	</div>
 </body>
 <script>
-
-	var wordsAfter = {
+	var responses = {
 		"idk": ["why dont you know", "i dont know isnt an answer", "answer", "answer but dont do idk", "tell me"],
 		"how could you say that": ["because i can"],
 		"say bob": ["bob"],
@@ -142,7 +149,7 @@
 		"where is bobs hometown": ["REDACTED", "bob knows where"],
 		"where is somewhere": ["where some is", "idk"],
 		"good": ["why is it good"],
-		"are you weird": ["yes", "no", "maybe", "so"],
+		"are you weird": ["yes", "no", "maybe"],
 		"say bob but big": ["<br>#..........................#..........<br>#..........................#..........<br>#..........................#..........<br>#####......####....#####..<br>#........#..#........#..#........#<br>#........#..#........#..#........#<br>#####......####....#####.."],
 		"tom": ["why did you say your own name", "why did you say your name"],
 		"Message bob...": ["why did you type whats in the box", "i ate a brick, to: bob, from: bob"],
@@ -157,8 +164,20 @@
 		"are you bob": ["yes", "read my name"],
 		"r u tom": ["no", "you are"],
 		"are u tom": ["no", "you are"],
-		"hello": ["hi", "hello"]
-		
+		"hello": ["hi", "hello"],
+		"say bob 3 times": ["bob bob bob"],
+		"you dont": ["why", "why dont i", "i do"],
+		"woercyinutwtoreymxuimyxermyiueywryntoiucyeroitucykasqwertyuiopasdfghjklzxcvbnm": ["why did u smash ur keyboard"],
+		"are you a robot": ["yes", "maybe yes maybe no"],
+		"are you a dream stan": ["yes", "no", "maybe"],
+		"are you the grinch": ["no", "are you?", "im not the grinch and i didnt steal christmas"],
+		"crash your system": ["101001110101011110101010", "afuiagfswugasdjfhbasdc hj", "19563528548"],
+		"how old are you": ["87", "87 yo", "87 years old"],
+		"ok": ["ok", "okay", "ask a random question"],
+		"okay": ["ok", "okay", "ask a random question"],
+		"are you friends with tom": ["you are tom", "thats you", "maybe", "idk", "i dont know"],
+		"are you friends with fred": ["who is fred", "says tom"],
+		"are you friends with mike": ["no", "maybe", "mike is trash"]
 	};
 	var startingMessages = [
 		"i have a mission for you tom",
@@ -175,15 +194,17 @@
 		"i dont know what you just said",
 		"what you said bob cant comprehend",
 		"say something bob knows",
-		"why are you saying stuff that i dont know"
+		"why are you saying stuff that i dont know",
+		"i didnt quite get that"
 	];
+	var messages = [];
 	var whatBobSaidLast = choose(startingMessages);
 	var bobMessageToSend = "";
 
 	sendMessage("Bob", whatBobSaidLast);
 
 	function choose(arr) {
-		return arr[Math.floor(Math.random()*arr.length)];
+		return arr[Math.floor(Math.random() * arr.length)];
 	};
 
 	function enter(e) {
@@ -193,14 +214,18 @@
 	};
 	function send() {
 		let input = document.getElementById("input").value.trim();
+		let mostSimilar = Object.keys(responses).sort((a, b) => similarity(b, input) - similarity(a, input))[0];
 		sendMessage("You", input);
-		wordsAfter[whatBobSaidLast] = wordsAfter[whatBobSaidLast] ?? [];
-		wordsAfter[whatBobSaidLast].push(input);
-		if (typeof wordsAfter[input] == "undefined") {
-			// bobMessageToSend = choose(responsesToUnknown);
-			bobMessageToSend = choose(wordsAfter[Object.keys(wordsAfter).sort((a, b) => similarity(b, input) - similarity(a, input))[0]]);
+		responses[whatBobSaidLast] = responses[whatBobSaidLast] ?? [];
+		responses[whatBobSaidLast].push(input);
+		if (typeof responses[input] == "undefined") {
+			if (similarity(input, mostSimilar) >= 0.1) {
+				bobMessageToSend = choose(responses[mostSimilar]);
+			} else {
+				bobMessageToSend = choose(responsesToUnknown);
+			};
 		} else {
-			bobMessageToSend = choose(wordsAfter[input]);
+			bobMessageToSend = choose(responses[input]);
 		};
 		sendMessage("Bob", bobMessageToSend);
 		whatBobSaidLast = bobMessageToSend;
@@ -209,9 +234,23 @@
 	}
 	function sendMessage(guyName, messageToSend) {
 		document.getElementById("output").innerHTML +=`<b>${guyName}:</b> ${messageToSend}<br>`;
+		messages.push([guyName, messageToSend]);
+	};
+	function save() {
+		localStorage.setItem("bobChatbotSave", JSON.stringify({responses, messages, whatBobSaidLast, bobMessageToSend}));
+	};
+	function load() {
+		let bobChatbotSave = JSON.parse(localStorage.getItem("bobChatbotSave"))
+		responses = {...responsesBob, ...ChatbotSave.responses};
+		whatBobSaidLast = bobChatbotSave.whatBobSaidLast;
+		bobMessageToSend = bobChatbotSave.bobMessageToSend;
+		document.getElementById("output").innerHTML = "";
+		bobChatbotSave.messages.forEach(message => {
+			sendMessage(message[0], message[1]);
+		});
 	};
 
-	function editDistance(s1, s2) { // tab this
+	function editDistance(s1, s2) {
 		s1 = s1.toLowerCase();
 		s2 = s2.toLowerCase();
 
@@ -223,13 +262,13 @@
 					costs[j] = j;
 				} else {
 					if (j > 0) {
-					let newValue = costs[j - 1];
-					if (s1.charAt(i - 1) != s2.charAt(j - 1))
-						newValue = Math.min(Math.min(newValue, lastValue),
-							costs[j]) + 1;
-					costs[j - 1] = lastValue;
-						lastValue = newValue;
+						let newValue = costs[j - 1];
+						if (s1.charAt(i - 1) != s2.charAt(j - 1)) {
+							newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+							costs[j - 1] = lastValue;
+							lastValue = newValue;
 						};
+					};
 				};
 			};
 			if (i > 0) {

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Mouse Follower</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#canvas-wrapper,#canvas {
+				width: 100%;
+				height: 100%;
+				outline: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="canvas-wrapper" tabindex="0" onmousemove="mouseMove(event);" onkeypress="generation(event);">
+			<canvas id="canvas"></canvas>
+		</div>
+	</body>
+	<script>
+		const canvas = document.getElementById("canvas");
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+		const ctx = canvas.getContext("2d");
+
+		class Cube {
+			constructor(brain) {
+				this.x = 100;
+				this.y = canvas.height / 2;
+				this.brain = brain ?? new NeuralNetwork([numberOfRays, 10, 10, 4]); // distx, disty, mousexvel, mouseyvel
+				this.dead = false;
+			};
+		};
+
+		var mouseX = canvas.width / 2;
+		var mouseY = canvas.height / 2;
+		var mouseVelX = 0;
+		var mouseVelY = 0;
+		ctx.font = "16px monospace";
+		ctx.strokeStyle = "yellow";
+		ctx.lineWidth = 4;
+
+		class NeuralNetwork {
+			constructor(neuronCounts) {
+				this.levels = [];
+				for (let i = 0; i < neuronCounts.length - 1; i++) {
+					this.levels.push(new Level(
+						neuronCounts[i], neuronCounts[i + 1]
+					));
+				};
+			};
+
+			static feedForward(givenInputs, network) {
+				let outputs = Level.feedForward(
+					givenInputs, network.levels[0]);
+				for (let i = 1; i < network.levels.length; i++) {
+					outputs = Level.feedForward(
+						outputs, network.levels[i]);
+				};
+				return outputs;
+			};
+		};
+
+		class Level {
+			constructor(inputCount, outputCount) {
+				this.inputs = new Array(inputCount);
+				this.outputs = new Array(outputCount);
+				this.biases = new Array(outputCount);
+
+				this.weights = [];
+				for (let i = 0; i < inputCount; i++) {
+					this.weights[i] = new Array(outputCount);
+				};
+
+				Level.#randomize(this);
+			};
+
+			static #randomize(level) {
+				for (let i = 0; i < level.inputs.length; i++) {
+					for (let j = 0; j < level.outputs.length; j++) {
+						level.weights[i][j] = Math.random() * 2 - 1;
+					};
+				};
+
+				for (let i = 0; i < level.biases.length; i++) {
+					level.biases[i] = Math.random() * 2 - 1;
+				};
+			};
+
+			static feedForward(givenInputs, level) {
+				for (let i = 0; i < level.inputs.length; i++) {
+					level.inputs[i] = givenInputs[i];
+				};
+
+				for (let i = 0; i < level.outputs.length; i++) {
+					let sum = 0;
+					for (let j = 0; j < level.inputs.length; j++) {
+						sum += level.inputs[j] * level.weights[j][i];
+					};
+
+					if (sum > level.biases[i]) {
+						level.outputs[i] = 1;
+					} else {
+						level.outputs[i] = 0;
+					};
+				};
+
+				return level.outputs;
+			};
+		};
+		//var cubeBrain = new NeuralNetwork( // distx, disty, mousexvel, mouseyvel
+		//	[4, 6, 4]
+		//);
+		var cubes = [];
+		var numberOfCubes = 300;
+		var numberOfRays = 15;
+		var pixels = [];
+		for (let i = 0; i < numberOfCubes; i++) {
+			cubes.push(new Cube());
+		};
+
+		function drawLevel() {
+			ctx.fillStyle = "black";
+			ctx.fillRect(0, 0, canvas.width, 10);
+			ctx.fillRect(0, 0, 10, canvas.height);
+			ctx.fillRect(canvas.width - 10, 0, 10, canvas.height);
+			ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+
+			ctx.fillRect(400, 100, 400, 400)
+		};
+		drawLevel();
+		let data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+		for (let i = 0; i < data.length; i += 4) {
+			pixels.push([data[i], data[i + 1], data[i + 2], data[i + 3] / 255]);
+		};
+		function getPixel(x, y) {
+			return pixels[Math.floor(x + (y * canvas.width))];
+		};
+		function mouseMove(e) {
+			mouseVelX = e.clientX - mouseX;
+			mouseVelY = e.clientY - mouseY;
+			mouseX = e.clientX;
+			mouseY = e.clientY;
+		};
+		function drawCircle(x, y, r) {
+			ctx.beginPath();
+			ctx.arc(x, y, r, 0, Math.PI*2);
+			ctx.fill();
+		};
+		function distance(p1, p2) {
+			return Math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2);
+		};
+		function mutate(brain) {
+			brain = Object.create(brain);
+			brain.levels.forEach(level => {
+				level.biases = level.biases.map(bias => bias + (Math.random() * 0.01 - 0.005));
+				level.weights = level.weights.map(weight => weight + (Math.random() * 0.01 - 0.005));
+			});
+		};
+		function generation(e) {
+			if (e.key == " ") {
+				cubes = cubes.sort((a, b) => b.x - a.x);
+				cubes.splice(5, cubes.length - 5);
+				cubes.forEach(cube => {
+					cube.x = 100;
+					cube.y = canvas.height / 2;
+				});
+				for (let i = 5; i < numberOfCubes; i++) {
+					cubes.push(new Cube(mutate(cubes[Math.floor(Math.random() * 5)].brain)));
+				};
+			};
+		};
+		function deg2rad(degrees) {
+			return degrees * Math.PI / 180;
+		};
+
+		function loop() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			drawLevel();
+			cubes.forEach((cube, i) => {
+				if (!cube.dead) {
+					let rayDistances = [];
+					for (let rayDir = 0; rayDir < 360; rayDir += 360 / numberOfRays) {
+						rayX = cube.x;
+						rayY = cube.y;
+						while (getPixel(Math.floor(rayX), Math.floor(rayY))[3] == 0) {
+							rayX += Math.sin(deg2rad(rayDir)) * 5;
+							rayY += Math.cos(deg2rad(rayDir)) * 5;
+						};
+						rayDistances.push(distance([cube.x, cube.y], [rayX, rayY]));
+						//ctx.beginPath();
+						//ctx.moveTo(cube.x, cube.y);
+						//ctx.lineTo(rayX, rayY);
+						//ctx.stroke();
+					};
+					let inputs = rayDistances;
+					let outputs = NeuralNetwork.feedForward(inputs, cube.brain); // left right down up
+					let speed = 3;
+					if (outputs[0] == 1) cube.x -= speed;
+					if (outputs[1] == 1) cube.x += speed;
+					if (outputs[2] == 1) cube.y -= speed;
+					if (outputs[3] == 1) cube.y += speed;
+					//cube.x = mouseX;
+					//cube.y = mouseY;
+					if (getPixel(Math.floor(cube.x), Math.floor(cube.y))[3] == 1) {
+						cube.dead = true;
+					};
+				};
+				ctx.fillStyle = cube.dead ? "rgba(255, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.1)";
+				ctx.fillRect(cube.x - 8, cube.y - 8, 16, 16);
+			});
+			//ctx.fillText(JSON.stringify(outputs), 4, 16);
+
+			requestAnimationFrame(loop);
+		};
+		loop();
+	</script>
+</html>

@@ -22,11 +22,26 @@
 				height: 100%;
 				outline: none;
 			}
+			#settings {
+				position: absolute;
+				top: 0px;
+				right: 0px;
+				background-color: white;
+				opacity: 0.6;
+				border: 3px solid black;
+			}
+			#settings:hover {
+				opacity: 1;
+			}
 		</style>
 	</head>
 	<body>
 		<div id="canvas-wrapper" tabindex="0" onmousemove="mouseMove(event);" onkeypress="generation(event);">
 			<canvas id="canvas"></canvas>
+		</div>
+		<div id="settings">
+			<label>mutation:</label><input type="number" id="mutationRate" value="0.04">
+			<button onclick="mode = 'running';">start</button>
 		</div>
 	</body>
 	<script>
@@ -41,6 +56,7 @@
 				this.y = canvas.height / 2;
 				this.brain = brain ?? new NeuralNetwork([numberOfRays, 10, 10, 10, 10, 4]); // distx, disty, mousexvel, mouseyvel
 				this.dead = false;
+				this.direction = 90;
 			};
 		};
 
@@ -143,16 +159,28 @@
 		//	[4, 6, 4]
 		//);
 		var cubes = [];
-		var numberOfCubes = 300;
+		var numberOfCubes = 500;
 		var numberOfRays = 15;
 		var pixels = [];
-		var bestX = 0;
+		var best = [0, 0];
 		for (let i = 0; i < numberOfCubes; i++) {
 			cubes.push(new Cube());
 		};
+		cubes[0].brain = JSON.parse(localStorage.getItem("bestCube"));
 
+		var levelImage = new Image();
+		levelImage.crossOrigin = "anonymous";
+		levelImage.onload = function() {
+			drawLevel();
+			let data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+			for (let i = 0; i < data.length; i += 4) {
+				pixels.push([data[i], data[i + 1], data[i + 2], data[i + 3] / 255]);
+			};
+			loop();
+		};
+		levelImage.src = "https://giantbooley.github.io/scripts/level.png";
 		function drawLevel() {
-			ctx.fillStyle = "black";
+			/*ctx.fillStyle = "black";
 			ctx.fillRect(0, 0, canvas.width, 10);
 			ctx.fillRect(0, 0, 10, canvas.height);
 			ctx.fillRect(canvas.width - 10, 0, 10, canvas.height);
@@ -166,12 +194,8 @@
 			drawLine([1427, 397], [1200, 60]);
 			drawLine([1232, 355], [1063, 123]);
 			ctx.fillRect(1189, 377, 15, 50);
-			ctx.fillRect(1189, 457, 15, 70);
-		};
-		drawLevel();
-		let data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-		for (let i = 0; i < data.length; i += 4) {
-			pixels.push([data[i], data[i + 1], data[i + 2], data[i + 3] / 255]);
+			ctx.fillRect(1189, 457, 15, 70);*/
+			ctx.drawImage(levelImage, 0, 0, canvas.width, canvas.height);
 		};
 		function getPixel(x, y) {
 			return pixels[Math.floor(x + (y * canvas.width))];
@@ -199,20 +223,35 @@
 		function lerp(min, max, mult) {
 			return min * (1 - mult) + max * mult;
 		};
+		function intersects(a,b,c,d,p,q,r,s) {
+			let det, gamma, lambda;
+			det = (c - a) * (s - q) - (r - p) * (d - b);
+			if (det === 0) {
+				return false;
+			} else {
+				lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+				gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+				return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+			}
+		};
 		function generation(e) {
 			if (e.key == " ") {
+				let howMany = 5;
 				cubes = cubes.sort((a, b) => distance([a.x, a.y], [mouseX, mouseY]) - distance([b.x, b.y], [mouseX, mouseY]));
-				cubes.splice(1, cubes.length - 1);
-				bestX = Math.max(bestX, cubes[0].x);
+				cubes.splice(howMany, cubes.length - howMany);
+				best = [cubes[0].x, cubes[0].y];
 				cubes.forEach(cube => {
 					cube.x = 100;
 					cube.y = canvas.height / 2;
 				});
-				for (let i = 1; i < numberOfCubes; i++) {
+				for (let i = howMany; i < numberOfCubes; i++) {
 					cubes.push(new Cube(structuredClone(cubes[Math.floor(Math.random() * 1)].brain)));
-					NeuralNetwork.mutate(cubes[cubes.length - 1].brain, 0.1);
+					NeuralNetwork.mutate(cubes[cubes.length - 1].brain, document.getElementById("mutationRate").valueAsNumber);
 				};
-				cubes.forEach(cube => cube.dead = false);
+				cubes.forEach(cube => {
+					cube.dead = false;
+					cube.direction = 90;
+				});
 			};
 		};
 		function deg2rad(degrees) {
@@ -225,7 +264,8 @@
 			cubes.forEach((cube, i) => {
 				if (!cube.dead) {
 					let rayDistances = [];
-					for (let rayDir = 0; rayDir < 360; rayDir += 360 / numberOfRays) {
+					let fov = 360;
+					for (let rayDir = cube.direction - fov / 2; rayDir < cube.direction + fov / 2; rayDir += fov / numberOfRays) {
 						rayX = cube.x;
 						rayY = cube.y;
 						while (getPixel(Math.floor(rayX), Math.floor(rayY))[3] == 0) {
@@ -235,18 +275,26 @@
 						rayDistances.push(distance([cube.x, cube.y], [rayX, rayY]));
 						ctx.lineWidth = 2;
 						ctx.strokeStyle = "yellow";
-						//ctx.beginPath();
-						//ctx.moveTo(cube.x, cube.y);
-						//ctx.lineTo(rayX, rayY);
-						//ctx.stroke();
+						if (i == 0) {
+							ctx.beginPath();
+							ctx.moveTo(cube.x, cube.y);
+							ctx.lineTo(rayX, rayY);
+							ctx.stroke();
+						};
 					};
 					let inputs = rayDistances;
 					let outputs = NeuralNetwork.feedForward(inputs, cube.brain); // left right down up
 					let speed = 3;
-					if (outputs[0] == 1) cube.x -= speed;
-					if (outputs[1] == 1) cube.x += speed;
-					if (outputs[2] == 1) cube.y -= speed;
-					if (outputs[3] == 1) cube.y += speed;
+					if (outputs[0] == 1) cube.direction -= 5;
+					if (outputs[1] == 1) cube.direction += 5;
+					if (outputs[2] == 1) {
+						cube.x += Math.sin(deg2rad(cube.direction));
+						cube.y += Math.cos(deg2rad(cube.direction));
+					};
+					if (outputs[3] == 1) {
+						cube.x -= Math.sin(deg2rad(cube.direction));
+						cube.y -= Math.cos(deg2rad(cube.direction));
+					};
 					//cube.x = mouseX;
 					//cube.y = mouseY;
 					if (getPixel(Math.floor(cube.x), Math.floor(cube.y))[3] == 1) {
@@ -258,11 +306,11 @@
 			});
 			ctx.fillStyle = "blue";
 			ctx.fillText(`${mouseX}, ${mouseY}`, 16, 32);
-			ctx.fillStyle = "green";
-			ctx.fillRect(bestX - 1, 0, 2, canvas.height);
+			ctx.fillStyle = "rgba(0, 150, 0, 0.2)";
+			ctx.fillRect(best[0] - 1, 0, 2, canvas.height);
+			ctx.fillRect(0, best[1] - 1, canvas.width, 2)
 
 			requestAnimationFrame(loop);
 		};
-		loop();
 	</script>
 </html>

@@ -36,7 +36,7 @@
 		</style>
 	</head>
 	<body>
-		<div id="canvas-wrapper" tabindex="0" onmousemove="mouseMove(event);" onkeypress="generation(event);">
+		<div id="canvas-wrapper" tabindex="0" onmousemove="mouseMove(event);" onkeypress="generation(event);" onclick="addBoundary(event);">
 			<canvas id="canvas"></canvas>
 		</div>
 		<div id="settings">
@@ -54,6 +54,8 @@
 			constructor(brain) {
 				this.x = 100;
 				this.y = canvas.height / 2;
+				this.oldX = this.x;
+				this.oldY = this.y;
 				this.brain = brain ?? new NeuralNetwork([numberOfRays, 10, 10, 10, 10, 4]); // distx, disty, mousexvel, mouseyvel
 				this.dead = false;
 				this.direction = 90;
@@ -159,14 +161,17 @@
 		//	[4, 6, 4]
 		//);
 		var cubes = [];
-		var numberOfCubes = 500;
+		var numberOfCubes = 600;
 		var numberOfRays = 15;
 		var pixels = [];
 		var best = [0, 0];
+		var mode = "drawing";
+		var boundaries = [];
+		var rayDistance = 5000;
 		for (let i = 0; i < numberOfCubes; i++) {
 			cubes.push(new Cube());
 		};
-		cubes[0].brain = JSON.parse(localStorage.getItem("bestCube"));
+		//cubes[0].brain = JSON.parse(localStorage.getItem("bestCube"));
 
 		var levelImage = new Image();
 		levelImage.crossOrigin = "anonymous";
@@ -223,16 +228,33 @@
 		function lerp(min, max, mult) {
 			return min * (1 - mult) + max * mult;
 		};
-		function intersects(a,b,c,d,p,q,r,s) {
-			let det, gamma, lambda;
-			det = (c - a) * (s - q) - (r - p) * (d - b);
-			if (det === 0) {
-				return false;
-			} else {
-				lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
-				gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
-				return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
-			}
+		function getIntersection(p1, p2, p3, p4) {
+			let ua, ub, denom = (p4[1] - p3[1]) * (p2[0] - p1[0]) - (p4[0] - p3[0]) * (p2[1] - p1[1]);
+			if (denom == 0) {
+				return null;
+			};
+			ua = ((p4[0] - p3[0]) * (p1[1] - p3[1]) - (p4[1] - p3[1]) * (p1[0] - p3[0])) / denom;
+			ub = ((p2[0] - p1[0]) * (p1[1] - p3[1]) - (p2[1] - p1[1]) * (p1[0] - p3[0])) / denom;
+			return {
+				x: p1[0] + ua * (p2[0] - p1[0]),
+				y: p1[1] + ua * (p2[1] - p1[1]),
+				seg1: ua >= 0 && ua <= 1,
+				seg2: ub >= 0 && ub <= 1
+			};
+		}
+		function addBoundary(e) {
+			if (mode == "drawing") boundaries.push([e.clientX, e.clientY]);
+		};
+		function drawBoundaries(points, drawDots) {
+			ctx.lineCap = "round";
+			ctx.fillStyle = "gray";
+			ctx.strokeStyle = "gray";
+			ctx.lineWidth = 4;
+			points.forEach((point, i) => {
+				drawLine(point, points[i + 1] ?? points[0]);
+				if (drawDots) drawCircle(point[0], point[1], 4);
+			});
+			ctx.lineCap = "butt";
 		};
 		function generation(e) {
 			if (e.key == " ") {
@@ -243,6 +265,8 @@
 				cubes.forEach(cube => {
 					cube.x = 100;
 					cube.y = canvas.height / 2;
+					cube.oldX = cube.x;
+					cube.oldY = cube.y;
 				});
 				for (let i = howMany; i < numberOfCubes; i++) {
 					cubes.push(new Cube(structuredClone(cubes[Math.floor(Math.random() * 1)].brain)));
@@ -261,49 +285,72 @@
 		function loop() {
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			drawLevel();
-			cubes.forEach((cube, i) => {
-				if (!cube.dead) {
-					let rayDistances = [];
-					let fov = 360;
-					for (let rayDir = cube.direction - fov / 2; rayDir < cube.direction + fov / 2; rayDir += fov / numberOfRays) {
-						rayX = cube.x;
-						rayY = cube.y;
-						while (getPixel(Math.floor(rayX), Math.floor(rayY))[3] == 0) {
-							rayX += Math.sin(deg2rad(rayDir)) * 5;
-							rayY += Math.cos(deg2rad(rayDir)) * 5;
+			if (mode == "running") {
+				drawBoundaries(boundaries, false);
+				cubes.forEach((cube, i) => {
+					if (!cube.dead) {
+						boundaries.forEach((point, i) => {
+							let intersection = getIntersection([cube.x, cube.y], [cube.oldX, cube.oldY], point, boundaries[i + 1] ?? boundaries[0]);
+							if (intersection !== null && (intersection.seg1 && intersection.seg2)) {
+								cube.dead = true;
+							};
+						});
+						if (cube.dead) return;
+						let rayDistances = [];
+						let fov = 360;
+						for (let rayDir = cube.direction - fov / 2; rayDir < cube.direction + fov / 2; rayDir += fov / numberOfRays) {
+							/* rayX = cube.x;
+							rayY = cube.y;
+							while (getPixel(Math.floor(rayX), Math.floor(rayY))[3] == 0) {
+								rayX += Math.sin(deg2rad(rayDir)) * 5;
+								rayY += Math.cos(deg2rad(rayDir)) * 5;
+							}; */
+							let intersections = [];
+							boundaries.forEach((point, i) => {
+								let intersection = getIntersection([cube.x, cube.y], [cube.x + Math.sin(deg2rad(rayDir)) * rayDistance, cube.y + Math.cos(deg2rad(rayDir)) * rayDistance], point, boundaries[i + 1] ?? boundaries[0]);
+								if (intersection !== null && intersection.seg1 && intersection.seg2) {
+									intersections.push([intersection.x, intersection.y]);
+								};
+							});
+							intersections = intersections.sort((a, b) => distance([cube.x, cube.y], a) - distance([cube.x, cube.y], b));
+
+							rayDistances.push(distance([cube.x, cube.y], intersections[0]));
+							ctx.lineWidth = 2;
+							ctx.strokeStyle = "yellow";
+							if (i == 0) {
+								ctx.beginPath();
+								ctx.moveTo(cube.x, cube.y);
+								ctx.lineTo(intersections[0][0], intersections[0][1]);
+								ctx.stroke();
+							};
 						};
-						rayDistances.push(distance([cube.x, cube.y], [rayX, rayY]));
-						ctx.lineWidth = 2;
-						ctx.strokeStyle = "yellow";
-						if (i == 0) {
-							ctx.beginPath();
-							ctx.moveTo(cube.x, cube.y);
-							ctx.lineTo(rayX, rayY);
-							ctx.stroke();
+						let inputs = rayDistances;
+						let outputs = NeuralNetwork.feedForward(inputs, cube.brain); // left right down up
+						let speed = 3;
+
+						cube.oldX = cube.x;
+						cube.oldY = cube.y;
+						if (outputs[0] == 1) cube.direction -= 5;
+						if (outputs[1] == 1) cube.direction += 5;
+						if (outputs[2] == 1) {
+							cube.x += Math.sin(deg2rad(cube.direction));
+							cube.y += Math.cos(deg2rad(cube.direction));
 						};
+						if (outputs[3] == 1) {
+							cube.x -= Math.sin(deg2rad(cube.direction));
+							cube.y -= Math.cos(deg2rad(cube.direction));
+						};
+						//cube.x = mouseX;
+						//cube.y = mouseY;
 					};
-					let inputs = rayDistances;
-					let outputs = NeuralNetwork.feedForward(inputs, cube.brain); // left right down up
-					let speed = 3;
-					if (outputs[0] == 1) cube.direction -= 5;
-					if (outputs[1] == 1) cube.direction += 5;
-					if (outputs[2] == 1) {
-						cube.x += Math.sin(deg2rad(cube.direction));
-						cube.y += Math.cos(deg2rad(cube.direction));
-					};
-					if (outputs[3] == 1) {
-						cube.x -= Math.sin(deg2rad(cube.direction));
-						cube.y -= Math.cos(deg2rad(cube.direction));
-					};
-					//cube.x = mouseX;
-					//cube.y = mouseY;
-					if (getPixel(Math.floor(cube.x), Math.floor(cube.y))[3] == 1) {
-						cube.dead = true;
-					};
-				};
-				ctx.fillStyle = cube.dead ? "rgba(255, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.1)";
-				ctx.fillRect(cube.x - 8, cube.y - 8, 16, 16);
-			});
+					ctx.fillStyle = cube.dead ? "rgba(255, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.1)";
+					ctx.fillRect(cube.x - 8, cube.y - 8, 16, 16);
+				});
+			} else if (mode == "drawing") {
+				drawBoundaries([...boundaries, [mouseX, mouseY]], true);
+			};
+
+
 			ctx.fillStyle = "blue";
 			ctx.fillText(`${mouseX}, ${mouseY}`, 16, 32);
 			ctx.fillStyle = "rgba(0, 150, 0, 0.2)";

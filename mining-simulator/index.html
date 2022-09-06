@@ -214,15 +214,16 @@
 			};
 
 			var tempGame = {
-				machines: [ /* name, cost, base ops */
-					new Machine("Jackhammer",		50,			5),
-					new Machine("Drill",			300,		30),
-					new Machine("Digger",			5000,		85),
-					new Machine("Mineshaft",		50000,		300),
-					new Machine("Dynamite",			150000,		5000),
-					new Machine("Quarry truck",		800000,		10000),
-					new Machine("Megadrill",		1400000,	16000)
-				],
+				machines: { /* name, cost, base ops */
+					jackhammer:			new Machine("Jackhammer",		50,			5),
+					drill:				new Machine("Drill",			300,		30),
+					digger:				new Machine("Digger",			5000,		85),
+					mineshaft:			new Machine("Mineshaft",		50000,		300),
+					dynamite:			new Machine("Dynamite",			150000,		5000),
+					quarryTruck:		new Machine("Quarry truck",		800000,		10000),
+					megadrill:			new Machine("Megadrill",		1400000,	16000),
+					bladeExcavator:	new Machine("Blade Excavator",		60000000,	85000),
+				},
 				ore: 0,
 				money: 0,
 				ops: 0,
@@ -369,6 +370,10 @@
 				document.getElementById("megadrillStats").innerHTML = `Megadrill level: ${Game.machines.megadrill.level}<br>Megadrill ore per second: ${Game.machines.megadrill.ops}`;
 				document.getElementById("megadrillButton").innerHTML = `Upgrade megadrill ${cost(Math.ceil(Game.machines.megadrill.cost))}`;
 
+
+				document.getElementById("bladeExcavatorStats").innerHTML = `Blade excavator level: ${Game.machines.bladeExcavator.level}<br>Blade excavator ore per second: ${Game.machines.bladeExcavator.ops}`;
+				document.getElementById("bladeExcavatorButton").innerHTML = `Upgrade blade excavator ${cost(Math.ceil(Game.machines.bladeExcavator.cost))}`;
+
 				
 				if (Game.upgradeOpcCost > Game.money) {
 					document.getElementById("opcButton").disabled = true;
@@ -410,6 +415,11 @@
 					document.getElementById("megadrillButton").disabled = true;
 				} else {
 					document.getElementById("megadrillButton").disabled = false;
+				};
+				if (Game.machines.bladeExcavator.cost > Game.money) {
+					document.getElementById("bladeExcavatorButton").disabled = true;
+				} else {
+					document.getElementById("bladeExcavatorButton").disabled = false;
 				};
 
 				if (Game.upgradeOreCost > Game.money) {
@@ -497,6 +507,11 @@
 				<img src="./img/megadrill_icon.png" class="machineImage" alt="Megadrill image">
 				<button class="machineButton" id="megadrillButton" onclick="levelUpMachine(Game.machines.megadrill);">Upgrade megadrill (cost: $1,400,000)</button><br>
 				<div class="machineStats" id="megadrillStats">Megadrill level: 0<br>Megadrill ore per second: 0</div>
+			</div>
+			<div class="machine">
+				<img src="./img/blade_excavator_icon.jpg" class="machineImage" alt="Blade excavator image">
+				<button class="machineButton" id="bladeExcavatorButton" onclick="levelUpMachine(Game.machines.bladeExcavator);">Upgrade blade excavator (cost: $60,000,000)</button><br>
+				<div class="machineStats" id="bladeExcavatorStats">Blade excavator level: 0<br>Blade excavator ore per second: 0</div>
 			</div>
 		</div>
 

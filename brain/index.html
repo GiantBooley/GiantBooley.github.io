@@ -36,12 +36,14 @@
 		</style>
 	</head>
 	<body>
-		<div id="canvas-wrapper" tabindex="0" onmousemove="mouseMove(event);" onkeypress="generation(event);" onclick="addBoundary(event);">
+		<div id="canvas-wrapper" tabindex="0" onmousemove="mouseMove(event);" onclick="mouseClick(event);">
 			<canvas id="canvas"></canvas>
 		</div>
 		<div id="settings">
-			<label>mutation:</label><input type="number" id="mutationRate" value="0.04">
-			<button onclick="mode = 'running';">start</button>
+			<button onclick="mode = 'running';">Start</button><br>
+			<button onclick="if(mode=='running')evolving = !evolving;">Evolve</button><br>
+			<label>Mutation:</label><input type="number" id="mutationRate" value="0.04"><br>
+			<label id="generation">Gen: 1</label>
 		</div>
 	</body>
 	<script>
@@ -56,7 +58,7 @@
 				this.y = canvas.height / 2;
 				this.oldX = this.x;
 				this.oldY = this.y;
-				this.brain = brain ?? new NeuralNetwork([numberOfRays, 10, 10, 10, 10, 4]); // distx, disty, mousexvel, mouseyvel
+				this.brain = brain ?? new NeuralNetwork([numberOfRays, 60, 40, 20, 40, 60, 4]); // distx, disty, mousexvel, mouseyvel
 				this.dead = false;
 				this.direction = 90;
 			};
@@ -168,6 +170,8 @@
 		var mode = "drawing";
 		var boundaries = [];
 		var rayDistance = 5000;
+		var generation = 1;
+		var evolving = false;
 		for (let i = 0; i < numberOfCubes; i++) {
 			cubes.push(new Cube());
 		};
@@ -200,7 +204,7 @@
 			drawLine([1232, 355], [1063, 123]);
 			ctx.fillRect(1189, 377, 15, 50);
 			ctx.fillRect(1189, 457, 15, 70);*/
-			ctx.drawImage(levelImage, 0, 0, canvas.width, canvas.height);
+			//ctx.drawImage(levelImage, 0, 0, canvas.width, canvas.height);
 		};
 		function getPixel(x, y) {
 			return pixels[Math.floor(x + (y * canvas.width))];
@@ -210,6 +214,15 @@
 			mouseVelY = e.clientY - mouseY;
 			mouseX = e.clientX;
 			mouseY = e.clientY;
+		};
+		function mouseClick(e) {
+			if (mode == "drawing") {
+				boundaries.push([e.clientX, e.clientY]);
+			};
+			if (evolving) {
+				evolve();
+				evolving = false;
+			};
 		};
 		function drawCircle(x, y, r) {
 			ctx.beginPath();
@@ -242,9 +255,6 @@
 				seg2: ub >= 0 && ub <= 1
 			};
 		}
-		function addBoundary(e) {
-			if (mode == "drawing") boundaries.push([e.clientX, e.clientY]);
-		};
 		function drawBoundaries(points, drawDots) {
 			ctx.lineCap = "round";
 			ctx.fillStyle = "gray";
@@ -256,27 +266,27 @@
 			});
 			ctx.lineCap = "butt";
 		};
-		function generation(e) {
-			if (e.key == " ") {
-				let howMany = 5;
-				cubes = cubes.sort((a, b) => distance([a.x, a.y], [mouseX, mouseY]) - distance([b.x, b.y], [mouseX, mouseY]));
-				cubes.splice(howMany, cubes.length - howMany);
-				best = [cubes[0].x, cubes[0].y];
-				cubes.forEach(cube => {
-					cube.x = 100;
-					cube.y = canvas.height / 2;
-					cube.oldX = cube.x;
-					cube.oldY = cube.y;
-				});
-				for (let i = howMany; i < numberOfCubes; i++) {
-					cubes.push(new Cube(structuredClone(cubes[Math.floor(Math.random() * 1)].brain)));
-					NeuralNetwork.mutate(cubes[cubes.length - 1].brain, document.getElementById("mutationRate").valueAsNumber);
-				};
-				cubes.forEach(cube => {
-					cube.dead = false;
-					cube.direction = 90;
-				});
+		function evolve() {
+			let howMany = 1;
+			cubes = cubes.sort((a, b) => distance([a.x, a.y], [mouseX, mouseY]) - distance([b.x, b.y], [mouseX, mouseY]));
+			cubes.splice(howMany, cubes.length - howMany);
+			best = [cubes[0].x, cubes[0].y];
+			cubes.forEach(cube => {
+				cube.x = 100;
+				cube.y = canvas.height / 2;
+				cube.oldX = cube.x;
+				cube.oldY = cube.y;
+			});
+			for (let i = howMany; i < numberOfCubes; i++) {
+				cubes.push(new Cube(structuredClone(cubes[Math.floor(Math.random() * 1)].brain)));
+				NeuralNetwork.mutate(cubes[cubes.length - 1].brain, document.getElementById("mutationRate").valueAsNumber);
 			};
+			cubes.forEach(cube => {
+				cube.dead = false;
+				cube.direction = 90;
+			});
+			generation++;
+			document.getElementById("generation").innerText = "Gen: " + generation;
 		};
 		function deg2rad(degrees) {
 			return degrees * Math.PI / 180;
@@ -333,20 +343,26 @@
 						if (outputs[0] == 1) cube.direction -= 5;
 						if (outputs[1] == 1) cube.direction += 5;
 						if (outputs[2] == 1) {
-							cube.x += Math.sin(deg2rad(cube.direction));
-							cube.y += Math.cos(deg2rad(cube.direction));
+							cube.x += Math.sin(deg2rad(cube.direction)) * speed;
+							cube.y += Math.cos(deg2rad(cube.direction)) * speed;
 						};
 						if (outputs[3] == 1) {
-							cube.x -= Math.sin(deg2rad(cube.direction));
-							cube.y -= Math.cos(deg2rad(cube.direction));
+							cube.x -= Math.sin(deg2rad(cube.direction)) * speed;
+							cube.y -= Math.cos(deg2rad(cube.direction)) * speed;
 						};
 						//cube.x = mouseX;
 						//cube.y = mouseY;
 					};
 					ctx.fillStyle = cube.dead ? "rgba(255, 0, 0, 0.8)" : "rgba(0, 0, 0, 0.1)";
 					ctx.fillRect(cube.x - 8, cube.y - 8, 16, 16);
+					if (evolving) {
+						ctx.fillStyle = "yellow";
+						drawCircle(mouseX, mouseY, 4);
+					};
 				});
 			} else if (mode == "drawing") {
+				ctx.fillStyle = "black";
+				ctx.fillRect(100 - 8, canvas.height / 2 - 8, 16, 16);
 				drawBoundaries([...boundaries, [mouseX, mouseY]], true);
 			};
 

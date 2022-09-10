@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>letter</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			#output {
+				background-color: lightgray;
+				font-family: monospace;
+				border: 2px solid black;
+			}
+		</style>
+		<script src="neuralNetwork.js"></script>
+		<script>
+			var texts = [];
+			var letters = "abcdefghijklmnopqrstuvwxyz .,?!:";
+			var data = "abcdefghijklmnopqrstuvwxyz";
+			var howManyTexts = 30;
+			var doitLoop;
+			var generation = 1;
+			class Text {
+				constructor(brain = new NeuralNetwork([5, 60, 40, 60, 5])) {
+					this.brain = brain;
+					this.text = "b";
+				};
+			};
+			for (let i = 0; i < howManyTexts; i++) {
+				texts.push(new Text());
+			};
+
+			function editDistance(s1, s2) {
+				s1 = s1.toLowerCase();
+				s2 = s2.toLowerCase();
+
+				var costs = new Array();
+				for (let i = 0; i <= s1.length; i++) {
+					let lastValue = i;
+					for (let j = 0; j <= s2.length; j++) {
+						if (i == 0)
+							costs[j] = j;
+						else {
+							if (j > 0) {
+								var newValue = costs[j - 1];
+								if (s1.charAt(i - 1) != s2.charAt(j - 1))
+									newValue = Math.min(Math.min(newValue, lastValue),
+										costs[j]) + 1;
+								costs[j - 1] = lastValue;
+								lastValue = newValue;
+							};
+						};
+					};
+					if (i > 0)
+						costs[s2.length] = lastValue;
+				};
+				return costs[s2.length];
+			};
+			function similarity(s1, s2) {
+				let longer = s1;
+				let shorter = s2;
+				if (s1.length < s2.length) {
+					longer = s2;
+					shorter = s1;
+				}
+				let longerLength = longer.length;
+				if (longerLength == 0) {
+					return 1.0;
+				}
+				return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
+			}
+
+			function binaryToLetter(binary) {
+				return letters[parseInt(binary.map(it => it.toString()).join(""), 2)];
+			};
+			function letterToBinary(letter) {
+				return letters.indexOf(letter).toString(2).padStart(5, "0").split("").map(it => parseInt(it));
+			};
+			function evolve() {
+				let howManyToKeep = 1;
+				texts = texts.sort((a, b) => similarity(b.text, data) - similarity(a.text, data));
+				texts.splice(howManyToKeep, howManyTexts - howManyToKeep);
+				for (let i = 0; i < howManyTexts - howManyToKeep; i++) {
+					texts.push(new Text(structuredClone(texts[0].brain)));
+					NeuralNetwork.mutate(texts[texts.length - 1].brain, 0.1);
+				};
+			};
+			function doit() {
+				document.getElementById("output").innerText = "";
+				texts.forEach((text, i) => {
+					text.text = "b";
+					for (let i = 0; i < data.length - 1; i++) {
+						let inputs = letterToBinary(text.text[text.text.length - 1]);
+						let output = binaryToLetter(NeuralNetwork.feedForward(inputs, text.brain));
+						text.text += output;
+					};
+					document.getElementById("output").innerText += `${i + 1}. ${text.text}\n`;
+				});
+				evolve();
+				generation++;
+				document.getElementById("generation").innerText = "gen: " + generation;
+			};
+			function loop(e) {
+				if (e.target.checked) {
+					doitLoop = setInterval(doit, 1);
+				} else {
+					clearInterval(doitLoop);
+				};
+			};
+		</script>
+	</head>
+	<body>
+		<button onclick="doit();">do it</button>
+		<input type="checkbox" id="loop" onchange="loop(event);"><label for="loop">loop</label>
+		<b id="generation">gen: 1</b><br>
+		<div id="output"></div>
+	</body>
+</html>

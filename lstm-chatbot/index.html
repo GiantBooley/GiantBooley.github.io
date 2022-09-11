@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>lstm chatbot</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+			}
+			#output {
+				width: 100%;
+				height: 90%;
+				background-color: lime;
+				border: 4px solid black;
+				overflow: auto;
+			}
+		</style>
+		<script src="https://unpkg.com/brain.js"></script>
+	</head>
+	<body>
+		<div id="output"></div>
+		<input type="text" id="input" onkeypress="if(event.key=='Enter')send()">
+	</body>
+	<script>
+		function sendMessage(name, message) {
+			document.getElementById("output").innerHTML += `<b>${name}</b>: ${message}<br>`;
+		};
+		var responses = [
+			{input: "bob", output: "why did you say my name"},
+			{input: "say marvis", output: "marvis"},
+			{input: "how old are you", output: "eighty seven years old"},
+			{input: "hi", output: "hello"},
+			{input: "hello", output: "hi"},
+			{input: "greetings", output: "hi"},
+			{input: "why", output: "because bob talked to tom"},
+			{input: "who is tom", output: "you are tom"},
+			{input: "whos tom", output: "you are tom"},
+			{input: "are you bob", output: "yes"},
+			{input: "are you my friend", output: "maybe"},
+			{input: "your", output: "*you're"},
+			{input: "your weird", output: "*you're"},
+			{input: "tom said your alien", output: "*you're"},
+			{input: "your bob", output: "*you're"},
+			{input: "are you man or machine", output: "machine"},
+			{input: "whats my name", output: "tom"},
+			{input: "am i man or machine", output: "man"},
+			{input: "are you acquainted with mike", output: "no"},
+			{input: "who are you", output: "im bob"},
+			{input: "say something", output: "something"},
+			{input: "say bob", output: "bob"},
+			{input: "say shawp", output: "shawp"},
+			{input: "im hungry", output: "hi hungry im bob"},
+			{input: "im bored", output: "hi bored im bob"},
+			{input: "whats your name", output: "my name is bob"},
+			{input: "whats your net worth", output: "eighty trillion bux"},
+		];
+		var config = {
+			iterations: 5000,
+			log: it => sendMessage("training", it),
+			logPeriod: 50,
+			layers: [10],
+		};
+		const network = new brain.recurrent.LSTM();
+		try {
+		network.train(responses, config);
+		} catch (e) {alert (e)}
+		function send() {
+			sendMessage("Tom", document.getElementById("input").value);
+			sendMessage("Bob", network.run(document.getElementById("input").value));
+			document.getElementById("input").value = "";
+		};
+	</script>
+</html>

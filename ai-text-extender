@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>textextender</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+			}
+		</style>
+	</head>
+	<body>
+		
+	</body>
+	<script>
+		class NeuralNetwork {
+			constructor(neuronCounts) {
+				this.layers = [];
+				for (let i = 0; i < neuronCounts.length - 1; i++) {
+					this.layers.push(new Layer(neuronCounts[i], neuronCounts[i + 1]));
+				};
+			};
+			run(inputs) {
+				let outputs = this.layers[0].run(inputs);
+				for (let i = 1; i < this.layers.length; i++) {
+					outputs = this.layers[i].run(outputs);
+				};
+				return outputs;
+			};
+			lerp(n1, n2, multiplier) {
+				return min * (1 - multiplier) + n2 * multiplier;
+			};
+		};
+		class Layer {
+			constructor(inputCount, outputCount) {
+				this.inputs = new Array(inputCount);
+				this.outputs = new Array(outputCount);
+				this.biases = new Array(outputCount);
+				this.weights = [];
+				for (let i = 0; i < inputCount; i++) {
+					this.weights[i] = new Array(outputCount);
+				};
+				for (let i = 0; i < this.inputs.length; i++) {
+					for (let j = 0; j < this.outputs.length; j++) {
+						this.weights[i][j] = Math.random() * 2 - 1;
+					};
+				};
+				for (let i = 0; i < this.biases.length; i++) {
+					this.biases[i] = Math.random() * 2 - 1;
+				};
+			};
+			run(inputs) {
+				//for (let i = 0; i < this.inputs.length; i++) {
+				//	this.inputs[i] = inputs[i];
+				//};)
+				this.inputs = [...inputs];
+				for (let i = 0; i < this.outputs.length; i++) {
+					let sum = 0;
+					for (let j = 0; j < this.inputs.length; j++) {
+						sum += this.inputs[j] * this.weights[j][i];
+					};
+					this.outputs[i] = (sum > this.biases[i]) * 1;
+				};
+				return this.outputs;
+			};
+		};
+
+		var data = {
+			"fred": "frxd",
+			"mick": "mxck",
+			"nick": "nxck",
+			"rick": "rxck",
+			"john": "jxhn",
+			"andy": "xndy",
+			"barb": "bxrb",
+			"mike": "mxkx",
+			"adam": "xdxm",
+			"alex": "xlxx",
+			"gary": "gxry",
+			"todd": "txdd",
+			"adam": "xdxm",
+			"alan": "xlxn",
+			"amon": "xmxn",
+			"anna": "xnnx",
+			"eric": "xrxc"
+		};
+		var net = new NeuralNetwork([4, 16, 16, 4]);
+	</script>
+</html>

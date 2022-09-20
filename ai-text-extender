@@ -68,31 +68,34 @@
 					for (let j = 0; j < this.inputs.length; j++) {
 						sum += this.inputs[j] * this.weights[j][i];
 					};
-					this.outputs[i] = (sum > this.biases[i]) * 1;
+					this.outputs[i] = this.activate(sum + this.biases[i]);
 				};
 				return this.outputs;
 			};
+			activate(number) {
+				return 1 / (1 + Math.E ** (-number));
+			};
 		};
 
-		var data = {
-			"fred": "frxd",
-			"mick": "mxck",
-			"nick": "nxck",
-			"rick": "rxck",
-			"john": "jxhn",
-			"andy": "xndy",
-			"barb": "bxrb",
-			"mike": "mxkx",
-			"adam": "xdxm",
-			"alex": "xlxx",
-			"gary": "gxry",
-			"todd": "txdd",
-			"adam": "xdxm",
-			"alan": "xlxn",
-			"amon": "xmxn",
-			"anna": "xnnx",
-			"eric": "xrxc"
-		};
-		var net = new NeuralNetwork([4, 16, 16, 4]);
+		var data = [
+			["fred", "frxd"],
+			["mick", "mxck"],
+			["nick", "nxck"],
+			["rick", "rxck"],
+			["john", "jxhn"],
+			["andy", "xndy"],
+			["barb", "bxrb"],
+			["mike", "mxkx"],
+			["adam", "xdxm"],
+			["alex", "xlxx"],
+			["gary", "gxry"],
+			["todd", "txdd"],
+			["adam", "xdxm"],
+			["alan", "xlxn"],
+			["amon", "xmxn"],
+			["anna", "xnnx"],
+			["eric", "xrxc"]
+		];
+		var net = new NeuralNetwork([26 * 2, 16, 16, 26]);
 	</script>
 </html>

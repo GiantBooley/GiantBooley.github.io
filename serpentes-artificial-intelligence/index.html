@@ -15,7 +15,7 @@
 			#canvas {
 				width: min(100vw, 100vh);
 				height: calc(min(100vw, 100vh) * calc(15 / 17));
-			};
+			}
 		</style>
 	</head>
 	<body onkeydown="keyDown(event);">
@@ -45,8 +45,22 @@
 				};
 				return outputs;
 			};
-			lerp(n1, n2, multiplier) {
-				return min * (1 - multiplier) + n2 * multiplier;
+			static lerp(n1, n2, multiplier) {
+				return n1 * (1 - multiplier) + n2 * multiplier;
+			};
+			mutate(amount) {
+				let brainClone = Object.assign(Object.create(Object.getPrototypeOf(this)), this);
+				for (let i = 0; i < brainClone.layers.length; i++) {
+					for (let j = 0; j < brainClone.layers[i].biases.length; j++) {
+						brainClone.layers[i].biases[j] = NeuralNetwork.lerp(brainClone.layers[i].biases[j], Math.random() * 2 - 1, amount);
+					};
+					for (let j = 0; j < brainClone.layers[i].weights.length; j++) {
+						for (let k = 0; k < brainClone.layers[i].weights[j].length; k++) {
+							brainClone.layers[i].weights[j][k] = NeuralNetwork.lerp(brainClone.layers[i].weights[j][k], Math.random() * 2 - 1, amount);
+						};
+					};
+				};
+				return brainClone;
 			};
 		};
 		class Layer {
@@ -84,12 +98,12 @@
 		};
 
 		class Snake {
-			constructor() {
+			constructor(brain) {
 				this.body = [[3, 7], [2, 7], [1, 7], [0, 7]];
 				this.speed = [1, 0];
 				this.apple = [12, 7];
 				this.dead = false;
-				this.brain = new NeuralNetwork([6, 20, 20, 8, 4]); //dleft, dright, dup, ddown, applex, appley
+				this.brain = brain ?? new NeuralNetwork([6, 20, 20, 8, 4]); //dleft, dright, dup, ddown, applex, appley
 				this.score = 0;
 			};
 			die() {
@@ -100,12 +114,12 @@
 					ctx.fillStyle = this.dead ? `rgb(${255 - i * (127 / this.body.length)}, 0, 0)` : `rgb(0, 0, ${255 - i * (127 / this.body.length)})`;
 					ctx.fillRect(this.body[i][0] * resX, this.body[i][1] * resY, resX, resY);
 				};
-				ctx.fillStyle = "#FF0000";
+				ctx.fillStyle = "rgba(255, 0, 0, 0.1)";
 				ctx.fillRect(this.apple[0] * resX, this.apple[1] * resY, resX, resY);
 			};
 			tick() {
 				if (!this.dead) {
-					let inputs = [this.body[0][0], this.body[0][1], gridX - this.body[0][0] - 1, gridY - this.body[0][1] - 1, this.apple[0] / (gridX - 1), this.apple[1] / (gridY - 1)];
+					let inputs = [this.body[0][0] / (gridX - 1), this.body[0][1] / (gridY - 1), (gridX - this.body[0][0] - 1) / (gridX - 1), (gridY - this.body[0][1] - 1) / (gridY - 1), this.apple[0] / (gridX - 1), this.apple[1] / (gridY - 1)];
 					let outputs = this.brain.run(inputs);
 					let biggestOutput = outputs.map((number, i) => [i, number]).sort((a, b) => b[1] - a[1])[0][0];
 					this.turn([[-1, 0], [1, 0], [0, -1], [0, 1]][biggestOutput]);
@@ -133,8 +147,9 @@
 				};
 			};
 		};
-		var snakes = new Array(70);
-		for (let i = 0; i < 70; i++) {
+		var howManySnakes = 600
+		var snakes = new Array(howManySnakes);
+		for (let i = 0; i < howManySnakes; i++) {
 			snakes[i] = new Snake();
 		};
 		function keyDown(e) {
@@ -143,6 +158,7 @@
 			if (e.key == "ArrowRight") snake.turn([1, 0]);
 			if (e.key == "ArrowUp") snake.turn([0, -1]);
 			if (e.key == "ArrowDown") snake.turn([0, 1]);
+			if (e.key == " ") evolve();
 		};
 
 		function drawGrid() {
@@ -153,6 +169,20 @@
 					ctx.fillRect(x, y, resX, resY);
 				};
 			};
+		};
+		function evolve() {
+			let howManyToKeep = 10;
+			snakes.splice(howManyToKeep, howManySnakes - 1);
+			for (let i = 1; i < howManySnakes; i++) {
+				snakes.push(new Snake(snakes[Math.floor(Math.ranomd() * howManyToKeep)].brain.mutate(0.1)));
+			};
+			snakes.forEach(snake => {
+				this.body = [[3, 7], [2, 7], [1, 7], [0, 7]];
+				this.speed = [1, 0];
+				this.apple = [12, 7];
+				this.score = 0;
+				this.dead = false;
+			});
 		};
 		function tick() {
 			ctx.clearRect(0, 0, canvas.width, canvas.height);

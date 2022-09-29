@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Key Board Maker</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			table {
+				border-collapse: collapse;
+			}
+			table,tr,td {
+				background-color: black;
+				border: 2px outset #999999;
+				color: white;
+				font-family: Arial, sans-serif;
+			}
+			td {
+				width: 40px;
+				height: 40px;
+				text-align: center;
+				user-select: none;
+			}
+			td:hover {
+				background-color: #3b3b3b;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Key Board Maker</h1>
+		<hr>
+		<table id="keyboard"></table><br>
+		<button onclick="evolve();">evolve</button><input type="checkbox" id="loopEvolve">
+		<p id="stats">gen: ?<br>cost: ?</p>
+		<hr>
+		<p id="info">
+			abcdef: 166.76<br>
+			qwerty: 170.20
+		</p>
+	</body>
+	<script>
+		var data = "abcdefghijklmnopqrstuvwxyz";
+		var keyboardKeys = "abcdefghijklmnopqrstuvwxyz ";
+		class Keyboard {
+			constructor(keys) {
+				this.keys = keys ?? shuffleArray(keyboardKeys.split(""));
+			};
+			getCost() {
+				let finger = [4, 1];
+				let cost = 0;
+				for (let i = 0; i < data.length; i++) {
+					let newFinger = [this.keys.indexOf(data[i]) % 9, Math.floor(this.keys.indexOf(data[i]) / 9)];
+					cost += distance(finger, newFinger);
+					finger = newFinger;
+				};
+				return cost;
+			};
+			mutate() {
+				let swap1 = Math.floor(Math.random() * keyboardKeys.length);
+				let swap2 = Math.floor(Math.random() * keyboardKeys.length);
+				let oldSwap1 = this.keys[swap1]
+				this.keys[swap1] = this.keys[swap2];
+				this.keys[swap2] = oldSwap1;
+			};
+		};
+		function distance(p1, p2) {
+			return Math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2);
+		};
+		function shuffleArray(array) {
+			for (let i = array.length - 1; i > 0; i--) {
+				let j = Math.floor(Math.random() * (i + 1));
+				[array[i], array[j]] = [array[j], array[i]];
+			};
+			return array;
+		};
+		var howManyKeyboards = 3000;
+		var keyboards = new Array(howManyKeyboards);
+		for (let i = 0; i < howManyKeyboards; i++) {
+			keyboards[i] = new Keyboard();
+		};
+		var generation = 0;
+		function updateKeyboard() {
+			document.getElementById("keyboard").innerHTML = "<tr>" + keyboards[0].keys.join("").match(/[\s\S]{9}/g).map(word => word.split("").map(letter => "<td>" + letter + "</td>").join("")).join("</tr><tr>") + "</tr>";
+			document.getElementById("stats").innerHTML = `gen: ${generation}<br>cost: ${keyboards[0].getCost()}`;
+		};
+		updateKeyboard();
+		function evolve() {
+			keyboards.sort((a, b) => a.getCost() - b.getCost());
+			keyboards.splice(1, howManyKeyboards - 1);
+			for (let i = 1; i < howManyKeyboards; i++) {
+				keyboards[i] = new Keyboard([...keyboards[0].keys]);
+				for (let j = 0; j < Math.floor(Math.random() * 7) + 1; j++) {
+					keyboards[i].mutate();
+				};
+			};
+			generation++;
+			updateKeyboard();
+		};
+		setInterval(function(){
+			if (document.getElementById("loopEvolve").checked) {
+				evolve();
+			};
+		}, 10)
+	</script>
+</html>

@@ -19,7 +19,7 @@
 		</style>
 	</head>
 	<body>
-		
+		<p id="its"></p>
 	</body>
 	<script>
 		class NeuralNetwork {
@@ -35,6 +35,17 @@
 					outputs = this.layers[i].run(outputs);
 				};
 				return outputs;
+			};
+			getError() {
+				let error = 0;
+				for (let i = 0; i < data.length; i++) {
+					let targets = data[i][1];
+					let outputs = this.run(data[i][0]);
+					for (let j = 0; j < targets.length; j++) {
+						error += (targets[j] - outputs[j]) ** 2;
+					};
+				};
+				return (error / 2) / data.length;
 			};
 			lerp(n1, n2, multiplier) {
 				return min * (1 - multiplier) + n2 * multiplier;
@@ -73,29 +84,19 @@
 				return this.outputs;
 			};
 			activate(number) {
-				return 1 / (1 + Math.E ** (-number));
+				//return 1 / (1 + Math.E ** (-number));
+				return (number > 0) ? 1 : 0;
 			};
 		};
 
 		var data = [
-			["fred", "frxd"],
-			["mick", "mxck"],
-			["nick", "nxck"],
-			["rick", "rxck"],
-			["john", "jxhn"],
-			["andy", "xndy"],
-			["barb", "bxrb"],
-			["mike", "mxkx"],
-			["adam", "xdxm"],
-			["alex", "xlxx"],
-			["gary", "gxry"],
-			["todd", "txdd"],
-			["adam", "xdxm"],
-			["alan", "xlxn"],
-			["amon", "xmxn"],
-			["anna", "xnnx"],
-			["eric", "xrxc"]
+			[[0,0], [0]],
+			[[0,1], [1]],
+			[[1,0], [1]],
+			[[1,1], [0]]
 		];
-		var net = new NeuralNetwork([26 * 2, 16, 16, 26]);
+		var net = new NeuralNetwork([2, 16, 16, 1]);
+
+		document.getElementById("its").innerHTML += `[${[net.run([0,0]),net.run([0,1]),net.run([1,0]),net.run([1,1])].join(",")}], ${net.getError()}<br>`;
 	</script>
 </html>

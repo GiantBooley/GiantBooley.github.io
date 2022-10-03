@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>dinosaurous rex</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body onkeydown="if(event.key=='ArrowUp')dinos[0].jumping = true;" onkeyup="if(event.key=='ArrowUp')dinos[0].jumping = false;">
+		<canvas id="canvas"></canvas>
+	</body>
+	<script>
+		const canvas = document.getElementById("canvas");
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+		const ctx = canvas.getContext("2d");
+
+		class Dino {
+			constructor() {
+				this.x = 0;
+				this.y = 0;
+				this.xv = 1;
+				this.yv = 0;
+				this.score = 0;
+				this.jumping = false;
+				this.cameraX = -10;
+				this.cactuses = [];
+			};
+			draw() {
+				ctx.fillStyle = "red";
+				for (let i = 0; i < this.cactuses.length; i++) {
+					ctx.fillRect(this.cactuses[i] - this.cameraX, 300 - 30, 20, 30);
+				};
+				ctx.fillStyle = "black";
+				ctx.fillRect(this.x - this.cameraX, (300 + this.y) - 40, 20, 40);
+				ctx.fillRect(0, 300, canvas.width, 3);
+			};
+			jump() {
+				if (this.y == 0) this.yv = -11;
+			};
+			addCactus() {
+				this.cactuses.push(this.x + canvas.width);
+			};
+		};
+
+		var dinos = [];
+		for (let i = 0; i < 1; i++) {
+			dinos[i] = new Dino();
+		};
+		function tick() {
+			for (let i = 0; i < dinos.length; i++) {
+				dinos[i].cactuses = dinos[i].cactuses.filter(cactus => cactus > dinos[i].cameraX);
+				if (Math.random() < 0.001 * dinos[i].xv && ((dinos[i].x + canvas.width) - dinos[i].cactuses[dinos[i].cactuses.length - 1] > 100 || dinos[i].cactuses.length == 0)) {
+					dinos[i].addCactus();
+				};
+				if (dinos[0].jumping) dinos[0].jump();
+				dinos[i].x += dinos[i].xv;
+				dinos[i].y += dinos[i].yv;
+				dinos[i].xv += 0.001;
+				dinos[i].yv += 0.6;
+				if (dinos[i].y > 0) {
+					dinos[i].y = 0;
+				};
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				dinos[i].cameraX = dinos[i].x - 100;
+				if (dinos[i].cactuses.some(cactus => dinos[i].x + 20 > cactus && dinos[i].x < cactus - 20 && dinos[i].y > -30)) {
+					dinos[i].x = 0;
+					dinos[i].y = 0;
+					dinos[i].xv = 1;
+					dinos[i].yv = 0;
+					dinos[i].score = 0;
+					dinos[i].jumping = false;
+					dinos[i].cameraX = -10;
+					dinos[i].cactuses = [];
+				};
+				dinos[i].draw();
+			};
+			requestAnimationFrame(tick);
+		};
+		tick();
+	</script>
+</html>

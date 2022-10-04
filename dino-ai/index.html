@@ -30,9 +30,90 @@
 		canvas.width = innerWidth;
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
+		class NeuralNetwork {
+			constructor(neuronCounts) {
+				this.layers = [];
+				for (let i = 0; i < neuronCounts.length - 1; i++) {
+					this.layers.push(new Layer(neuronCounts[i], neuronCounts[i + 1]));
+				};
+			};
+			run(inputs) {
+				let outputs = Layer.feedForward(this.layers[0], inputs);
+				for (let i = 1; i < this.layers.length; i++) {
+					outputs = Layer.feedForward(this.layers[i], outputs);
+				};
+				return outputs;
+			};
+			getError() {
+				let error = 0;
+				for (let i = 0; i < data.length; i++) {
+					let targets = data[i][1];
+					let outputs = this.run(data[i][0]);
+					for (let j = 0; j < targets.length; j++) {
+						error += (targets[j] - outputs[j]) ** 2;
+					};
+				};
+				return (error / 2) / data.length;
+			};
+			static lerp(n1, n2, multiplier) {
+				return n1 * (1 - multiplier) + n2 * multiplier;
+			};
+			mutate(amount) {
+				let brainClone = Object.assign(Object.create(Object.getPrototypeOf(this)), structuredClone(this));
+				for (let i = 0; i < brainClone.layers.length; i++) {
+					for (let j = 0; j < brainClone.layers[i].biases.length; j++) {
+						brainClone.layers[i].biases[j] = NeuralNetwork.lerp(brainClone.layers[i].biases[j], Math.random() * 2 - 1, amount);
+					};
+					for (let j = 0; j < brainClone.layers[i].weights.length; j++) {
+						for (let k = 0; k < brainClone.layers[i].weights[j].length; k++) {
+							brainClone.layers[i].weights[j][k] = NeuralNetwork.lerp(brainClone.layers[i].weights[j][k], Math.random() * 2 - 1, amount);
+						};
+					};
+				};
+				return brainClone;
+			};
+		};
+		class Layer {
+			constructor(inputCount, outputCount) {
+				this.inputs = new Array(inputCount);
+				this.outputs = new Array(outputCount);
+				this.biases = new Array(outputCount);
+				this.weights = [];
+				for (let i = 0; i < inputCount; i++) {
+					this.weights[i] = new Array(outputCount);
+				};
+				for (let i = 0; i < this.inputs.length; i++) {
+					for (let j = 0; j < this.outputs.length; j++) {
+						this.weights[i][j] = Math.random() * 2 - 1;
+					};
+				};
+				for (let i = 0; i < this.biases.length; i++) {
+					this.biases[i] = Math.random() * 2 - 1;
+				};
+			};
+			static feedForward(layer, inputs) {
+				//for (let i = 0; i < this.inputs.length; i++) {
+				//	this.inputs[i] = inputs[i];
+				//};)
+				layer.inputs = [...inputs];
+				for (let i = 0; i < layer.outputs.length; i++) {
+					let sum = 0;
+					for (let j = 0; j < layer.inputs.length; j++) {
+						sum += layer.inputs[j] * layer.weights[j][i];
+					};
+					layer.outputs[i] = Layer.activate(sum + layer.biases[i]);
+				};
+				return layer.outputs;
+			};
+			static activate(number) {
+				//return 1 / (1 + Math.E ** (-number));
+				return (number > 0) ? 1 : 0;
+			};
+		};
 
 		class Dino {
-			constructor() {
+			constructor() { // y, xv, yv, cac1dist, cac2dist
+				this.brain = new NeuralNetwork([5, 16, 16, 1]);
 				this.x = 0;
 				this.y = 0;
 				this.xv = 1;
@@ -41,14 +122,27 @@
 				this.jumping = false;
 				this.cameraX = -10;
 				this.cactuses = [];
+				this.dead = false;
+			};
+			reset() {
+				this.x = 0;
+				this.y = 0;
+				this.xv = 1;
+				this.yv = 0;
+				this.score = 0;
+				this.jumping = false;
+				this.cameraX = -10;
+				this.cactuses = [];
+				this.dead = false;
 			};
 			draw() {
 				ctx.fillStyle = "red";
 				for (let i = 0; i < this.cactuses.length; i++) {
 					ctx.fillRect(this.cactuses[i] - this.cameraX, 300 - 30, 20, 30);
 				};
-				ctx.fillStyle = "black";
+				ctx.fillStyle = this.jumping ? "darkgreen" : "black";
 				ctx.fillRect(this.x - this.cameraX, (300 + this.y) - 40, 20, 40);
+				ctx.fillStyle = "black";
 				ctx.fillRect(0, 300, canvas.width, 3);
 			};
 			jump() {
@@ -60,16 +154,35 @@
 		};
 
 		var dinos = [];
-		for (let i = 0; i < 1; i++) {
+		for (let i = 0; i < 1000; i++) {
 			dinos[i] = new Dino();
 		};
-		function tick() {
+		var score = 0;
+		var targetDino = 0;
+		function evolve() {
+			dinos.sort((a, b) => b.score - a.score);
 			for (let i = 0; i < dinos.length; i++) {
+				dinos[i].dead = false;
+				dinos[i].reset();
+			};
+			score = 0;
+		};
+		function tick() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			if (dinos[targetDino].dead) {
+				let newthing = dinos.indexOf(dinos.filter(dino => !dino.dead)[0])
+				targetDino = (Math.sign(newthing) == -1) ? 0 : newthing;
+			};
+			for (let i = 0; i < dinos.length; i++) {
+				if (dinos[i].dead) continue;
 				dinos[i].cactuses = dinos[i].cactuses.filter(cactus => cactus > dinos[i].cameraX);
 				if (Math.random() < 0.001 * dinos[i].xv && ((dinos[i].x + canvas.width) - dinos[i].cactuses[dinos[i].cactuses.length - 1] > 100 || dinos[i].cactuses.length == 0)) {
 					dinos[i].addCactus();
 				};
-				if (dinos[0].jumping) dinos[0].jump();
+				let cactusesInFront = dinos[i].cactuses.filter(cactus => cactus > dinos[i].x);
+				if (dinos[i].brain.run([dinos[i].y / -110, 1 / dinos[i].xv, dinos[i].yv / 15, ((cactusesInFront[0] ?? dinos[i].x + canvas.width) - dinos[i].x) / canvas.width, ((cactusesInFront[1] ?? dinos[i].x + canvas.width) - (cactusesInFront[0] ?? dinos[i].x + canvas.width)) / canvas.width])[0]) { // dinos[0].jumping) {
+					dinos[i].jump();
+				};
 				dinos[i].x += dinos[i].xv;
 				dinos[i].y += dinos[i].yv;
 				dinos[i].xv += 0.001;
@@ -77,20 +190,16 @@
 				if (dinos[i].y > 0) {
 					dinos[i].y = 0;
 				};
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
 				dinos[i].cameraX = dinos[i].x - 100;
-				if (dinos[i].cactuses.some(cactus => dinos[i].x + 20 > cactus && dinos[i].x < cactus - 20 && dinos[i].y > -30)) {
-					dinos[i].x = 0;
-					dinos[i].y = 0;
-					dinos[i].xv = 1;
-					dinos[i].yv = 0;
-					dinos[i].score = 0;
-					dinos[i].jumping = false;
-					dinos[i].cameraX = -10;
-					dinos[i].cactuses = [];
+				dinos[i].score++;
+				if (dinos[i].cactuses.some(cactus => dinos[i].x + 20 > cactus && dinos[i].x < cactus + 20 && dinos[i].y > -30)) {
+					dinos[i].dead = true;
 				};
-				dinos[i].draw();
+				if (i == targetDino) dinos[i].draw();
 			};
+			ctx.font = "30px arial";
+			score++;
+			ctx.fillText(dinos.filter(dino => !dino.dead).length + ", " + score, 20, 30);
 			requestAnimationFrame(tick);
 		};
 		tick();

@@ -22,7 +22,7 @@
 			}
 		</style>
 	</head>
-	<body onkeydown="if(event.key=='ArrowUp')dinos[0].jumping = true;" onkeyup="if(event.key=='ArrowUp')dinos[0].jumping = false;">
+	<body onkeydown="keyDown(event);" onkeyup="if(event.key=='ArrowUp')dinos[0].jumping = false;">
 		<canvas id="canvas"></canvas>
 	</body>
 	<script>
@@ -112,22 +112,23 @@
 		};
 
 		class Dino {
-			constructor() { // y, xv, yv, cac1dist, cac2dist
-				this.brain = new NeuralNetwork([5, 16, 16, 1]);
+			constructor(brain) { // y, xv, yv, cac1dist, cac2dist
+				this.brain = brain ?? new NeuralNetwork([5, 32, 16, 16, 1]);
 				this.x = 0;
 				this.y = 0;
-				this.xv = 1;
+				this.xv = 4;
 				this.yv = 0;
 				this.score = 0;
 				this.jumping = false;
 				this.cameraX = -10;
 				this.cactuses = [];
+				this.cactus = 0;
 				this.dead = false;
 			};
 			reset() {
 				this.x = 0;
 				this.y = 0;
-				this.xv = 1;
+				this.xv = 4;
 				this.yv = 0;
 				this.score = 0;
 				this.jumping = false;
@@ -137,10 +138,10 @@
 			};
 			draw() {
 				ctx.fillStyle = "red";
-				for (let i = 0; i < this.cactuses.length; i++) {
-					ctx.fillRect(this.cactuses[i] - this.cameraX, 300 - 30, 20, 30);
+				for (let i = 0; i < cactuses.length; i++) {
+					ctx.fillRect(cactuses[i] - this.cameraX, 300 - 30, 20, 30);
 				};
-				ctx.fillStyle = this.jumping ? "darkgreen" : "black";
+				ctx.fillStyle = this.jumping ? "green" : "black";
 				ctx.fillRect(this.x - this.cameraX, (300 + this.y) - 40, 20, 40);
 				ctx.fillStyle = "black";
 				ctx.fillRect(0, 300, canvas.width, 3);
@@ -154,33 +155,61 @@
 		};
 
 		var dinos = [];
-		for (let i = 0; i < 1000; i++) {
+		var howManyDinos = 1000;
+		for (let i = 0; i < howManyDinos; i++) {
 			dinos[i] = new Dino();
 		};
 		var score = 0;
 		var targetDino = 0;
+		var cactuses = [];
+		var mutationRate = 0.2;
+		var generation = 1;
+		for (let i = 0; i < 1000; i++) {
+			cactuses[i] = (cactuses[i - 1] ?? 800) + Math.floor(Math.random() * 400) + 100;
+		};
+		function keyDown(e) {
+			switch (e.key) {
+				case "ArrowUp":
+					dinos[0].jumping = true;
+					break;
+				case " ":
+					evolve();
+					break;
+				case "m":
+					mutationRate = prompt("what mutation rate current: " + mutationRate);
+			};
+		};
 		function evolve() {
 			dinos.sort((a, b) => b.score - a.score);
+			dinos.splice(1, howManyDinos - 1);
+			for (let i = 1; i < howManyDinos; i++) {
+				dinos[i] = new Dino(dinos[0].brain.mutate(mutationRate));
+			};
 			for (let i = 0; i < dinos.length; i++) {
 				dinos[i].dead = false;
 				dinos[i].reset();
 			};
 			score = 0;
+			generation++;
 		};
 		function tick() {
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			if (dinos[targetDino].dead) {
-				let newthing = dinos.indexOf(dinos.filter(dino => !dino.dead)[0])
+				let newthing = dinos.indexOf(dinos.filter(dino => !dino.dead)[0]);
 				targetDino = (Math.sign(newthing) == -1) ? 0 : newthing;
+				if (newthing == -1) {
+					evolve();
+				};
 			};
 			for (let i = 0; i < dinos.length; i++) {
 				if (dinos[i].dead) continue;
-				dinos[i].cactuses = dinos[i].cactuses.filter(cactus => cactus > dinos[i].cameraX);
+				/*dinos[i].cactuses = dinos[i].cactuses.filter(cactus => cactus > dinos[i].cameraX);
 				if (Math.random() < 0.001 * dinos[i].xv && ((dinos[i].x + canvas.width) - dinos[i].cactuses[dinos[i].cactuses.length - 1] > 100 || dinos[i].cactuses.length == 0)) {
 					dinos[i].addCactus();
-				};
-				let cactusesInFront = dinos[i].cactuses.filter(cactus => cactus > dinos[i].x);
-				if (dinos[i].brain.run([dinos[i].y / -110, 1 / dinos[i].xv, dinos[i].yv / 15, ((cactusesInFront[0] ?? dinos[i].x + canvas.width) - dinos[i].x) / canvas.width, ((cactusesInFront[1] ?? dinos[i].x + canvas.width) - (cactusesInFront[0] ?? dinos[i].x + canvas.width)) / canvas.width])[0]) { // dinos[0].jumping) {
+				};*/
+				let cactusesInFront = cactuses.filter(cactus => cactus > dinos[i].x);
+				dinos[i].jumping = dinos[i].brain.run([dinos[i].y / -110, 1 / dinos[i].xv, dinos[i].yv / 15, ((cactusesInFront[0] ?? dinos[i].x + canvas.width) - dinos[i].x) / canvas.width, ((cactusesInFront[1] ?? dinos[i].x + canvas.width) - (cactusesInFront[0] ?? dinos[i].x + canvas.width)) / canvas.width])[0]
+				if (dinos[i].jumping) {
 					dinos[i].jump();
 				};
 				dinos[i].x += dinos[i].xv;
@@ -192,14 +221,14 @@
 				};
 				dinos[i].cameraX = dinos[i].x - 100;
 				dinos[i].score++;
-				if (dinos[i].cactuses.some(cactus => dinos[i].x + 20 > cactus && dinos[i].x < cactus + 20 && dinos[i].y > -30)) {
+				if (cactuses.some(cactus => dinos[i].x + 20 > cactus && dinos[i].x < cactus + 20 && dinos[i].y > -30)) {
 					dinos[i].dead = true;
 				};
 				if (i == targetDino) dinos[i].draw();
 			};
 			ctx.font = "30px arial";
 			score++;
-			ctx.fillText(dinos.filter(dino => !dino.dead).length + ", " + score, 20, 30);
+			ctx.fillText(`dinos: ${dinos.filter(dino => !dino.dead).length}, score: ${score}, gen: ${generation}, speed: ${4 + (score * 0.001)}`, 20, 30);
 			requestAnimationFrame(tick);
 		};
 		tick();

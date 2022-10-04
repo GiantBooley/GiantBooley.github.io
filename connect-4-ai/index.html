@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>dinosaurous rex</title>
+		<title>connect 4</title>
 		<style>
 			* {
 				box-sizing: border-box;
@@ -16,13 +16,13 @@
 			body {
 				margin: 0;
 			}
-			#canvas {
+			canvas {
 				width: 100%;
 				height: 100%;
 			}
 		</style>
 	</head>
-	<body onkeydown="keyDown(event);" onkeyup="if(event.key=='ArrowUp')dinos[0].jumping = false;">
+	<body onclick="mouseClick(event);">
 		<canvas id="canvas"></canvas>
 	</body>
 	<script>
@@ -30,207 +30,50 @@
 		canvas.width = innerWidth;
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
-		class NeuralNetwork {
-			constructor(neuronCounts) {
-				this.layers = [];
-				for (let i = 0; i < neuronCounts.length - 1; i++) {
-					this.layers.push(new Layer(neuronCounts[i], neuronCounts[i + 1]));
-				};
-			};
-			run(inputs) {
-				let outputs = Layer.feedForward(this.layers[0], inputs);
-				for (let i = 1; i < this.layers.length; i++) {
-					outputs = Layer.feedForward(this.layers[i], outputs);
-				};
-				return outputs;
-			};
-			getError() {
-				let error = 0;
-				for (let i = 0; i < data.length; i++) {
-					let targets = data[i][1];
-					let outputs = this.run(data[i][0]);
-					for (let j = 0; j < targets.length; j++) {
-						error += (targets[j] - outputs[j]) ** 2;
-					};
-				};
-				return (error / 2) / data.length;
-			};
-			static lerp(n1, n2, multiplier) {
-				return n1 * (1 - multiplier) + n2 * multiplier;
-			};
-			mutate(amount) {
-				let brainClone = Object.assign(Object.create(Object.getPrototypeOf(this)), structuredClone(this));
-				for (let i = 0; i < brainClone.layers.length; i++) {
-					for (let j = 0; j < brainClone.layers[i].biases.length; j++) {
-						brainClone.layers[i].biases[j] = NeuralNetwork.lerp(brainClone.layers[i].biases[j], Math.random() * 2 - 1, amount);
-					};
-					for (let j = 0; j < brainClone.layers[i].weights.length; j++) {
-						for (let k = 0; k < brainClone.layers[i].weights[j].length; k++) {
-							brainClone.layers[i].weights[j][k] = NeuralNetwork.lerp(brainClone.layers[i].weights[j][k], Math.random() * 2 - 1, amount);
-						};
-					};
-				};
-				return brainClone;
-			};
-		};
-		class Layer {
-			constructor(inputCount, outputCount) {
-				this.inputs = new Array(inputCount);
-				this.outputs = new Array(outputCount);
-				this.biases = new Array(outputCount);
-				this.weights = [];
-				for (let i = 0; i < inputCount; i++) {
-					this.weights[i] = new Array(outputCount);
-				};
-				for (let i = 0; i < this.inputs.length; i++) {
-					for (let j = 0; j < this.outputs.length; j++) {
-						this.weights[i][j] = Math.random() * 2 - 1;
-					};
-				};
-				for (let i = 0; i < this.biases.length; i++) {
-					this.biases[i] = Math.random() * 2 - 1;
-				};
-			};
-			static feedForward(layer, inputs) {
-				//for (let i = 0; i < this.inputs.length; i++) {
-				//	this.inputs[i] = inputs[i];
-				//};)
-				layer.inputs = [...inputs];
-				for (let i = 0; i < layer.outputs.length; i++) {
-					let sum = 0;
-					for (let j = 0; j < layer.inputs.length; j++) {
-						sum += layer.inputs[j] * layer.weights[j][i];
-					};
-					layer.outputs[i] = Layer.activate(sum + layer.biases[i]);
-				};
-				return layer.outputs;
-			};
-			static activate(number) {
-				//return 1 / (1 + Math.E ** (-number));
-				return (number > 0) ? 1 : 0;
-			};
-		};
 
-		class Dino {
-			constructor(brain) { // y, xv, yv, cac1dist, cac2dist
-				this.brain = brain ?? new NeuralNetwork([5, 32, 16, 16, 1]);
-				this.x = 0;
-				this.y = 0;
-				this.xv = 4;
-				this.yv = 0;
-				this.score = 0;
-				this.jumping = false;
-				this.cameraX = -10;
-				this.cactuses = [];
-				this.cactus = 0;
-				this.dead = false;
+		class connect4Game {
+			constructor(brain, game) {
+				this.brain = brain ?? {};
 			};
-			reset() {
-				this.x = 0;
-				this.y = 0;
-				this.xv = 4;
-				this.yv = 0;
-				this.score = 0;
-				this.jumping = false;
-				this.cameraX = -10;
-				this.cactuses = [];
-				this.dead = false;
+		};
+		class Game {
+			constructor(p1, p2) {
+				this.player1 = p1;
+				this.player2 = p2;
+				this.board = new Array(6 * 7);
+				for (let i = 0; i < 6 * 7; i++) {
+					this.board[i] = 0;
+				};
 			};
 			draw() {
-				ctx.fillStyle = "red";
-				for (let i = 0; i < cactuses.length; i++) {
-					ctx.fillRect(cactuses[i] - this.cameraX, 300 - 30, 20, 30);
-				};
-				ctx.fillStyle = this.jumping ? "green" : "black";
-				ctx.fillRect(this.x - this.cameraX, (300 + this.y) - 40, 20, 40);
-				ctx.fillStyle = "black";
-				ctx.fillRect(0, 300, canvas.width, 3);
-			};
-			jump() {
-				if (this.y == 0) this.yv = -11;
-			};
-			addCactus() {
-				this.cactuses.push(this.x + canvas.width);
-			};
-		};
-
-		var dinos = [];
-		var howManyDinos = 1000;
-		for (let i = 0; i < howManyDinos; i++) {
-			dinos[i] = new Dino();
-		};
-		var score = 0;
-		var targetDino = 0;
-		var cactuses = [];
-		var mutationRate = 0.2;
-		var generation = 1;
-		for (let i = 0; i < 1000; i++) {
-			cactuses[i] = (cactuses[i - 1] ?? 800) + Math.floor(Math.random() * 400) + 100;
-		};
-		function keyDown(e) {
-			switch (e.key) {
-				case "ArrowUp":
-					dinos[0].jumping = true;
-					break;
-				case " ":
-					evolve();
-					break;
-				case "m":
-					mutationRate = prompt("what mutation rate current: " + mutationRate);
-			};
-		};
-		function evolve() {
-			dinos.sort((a, b) => b.score - a.score);
-			dinos.splice(1, howManyDinos - 1);
-			for (let i = 1; i < howManyDinos; i++) {
-				dinos[i] = new Dino(dinos[0].brain.mutate(mutationRate));
-			};
-			for (let i = 0; i < dinos.length; i++) {
-				dinos[i].dead = false;
-				dinos[i].reset();
-			};
-			score = 0;
-			generation++;
-		};
-		function tick() {
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			if (dinos[targetDino].dead) {
-				let newthing = dinos.indexOf(dinos.filter(dino => !dino.dead)[0]);
-				targetDino = (Math.sign(newthing) == -1) ? 0 : newthing;
-				if (newthing == -1) {
-					evolve();
+				ctx.fillStyle = "blue";
+				ctx.fillRect(boardX, boardY, boardWidth, boardHeight);
+				for (let i = 0; i < this.board.length; i++) {
+					ctx.fillStyle = ["white", "yellow", "red"][this.board[i]];
+					ctx.beginPath();
+					ctx.arc(boardX + holeSize * ((i % 7) + 0.5), boardY + holeSize * (Math.floor(i / 7) + 0.5), holeSize / 2, 0, Math.PI * 2);
+					ctx.fill();
 				};
 			};
-			for (let i = 0; i < dinos.length; i++) {
-				if (dinos[i].dead) continue;
-				/*dinos[i].cactuses = dinos[i].cactuses.filter(cactus => cactus > dinos[i].cameraX);
-				if (Math.random() < 0.001 * dinos[i].xv && ((dinos[i].x + canvas.width) - dinos[i].cactuses[dinos[i].cactuses.length - 1] > 100 || dinos[i].cactuses.length == 0)) {
-					dinos[i].addCactus();
-				};*/
-				let cactusesInFront = cactuses.filter(cactus => cactus > dinos[i].x);
-				dinos[i].jumping = dinos[i].brain.run([dinos[i].y / -110, 1 / dinos[i].xv, dinos[i].yv / 15, ((cactusesInFront[0] ?? dinos[i].x + canvas.width) - dinos[i].x) / canvas.width, ((cactusesInFront[1] ?? dinos[i].x + canvas.width) - (cactusesInFront[0] ?? dinos[i].x + canvas.width)) / canvas.width])[0]
-				if (dinos[i].jumping) {
-					dinos[i].jump();
+			turn(player, number) {
+				while (this.board[number] == 0) {
+					number += 7;
 				};
-				dinos[i].x += dinos[i].xv;
-				dinos[i].y += dinos[i].yv;
-				dinos[i].xv += 0.001;
-				dinos[i].yv += 0.6;
-				if (dinos[i].y > 0) {
-					dinos[i].y = 0;
-				};
-				dinos[i].cameraX = dinos[i].x - 100;
-				dinos[i].score++;
-				if (cactuses.some(cactus => dinos[i].x + 20 > cactus && dinos[i].x < cactus + 20 && dinos[i].y > -30)) {
-					dinos[i].dead = true;
-				};
-				if (i == targetDino) dinos[i].draw();
+				this.board[number - 7] = player;
 			};
-			ctx.font = "30px arial";
-			score++;
-			ctx.fillText(`dinos: ${dinos.filter(dino => !dino.dead).length}, score: ${score}, gen: ${generation}, speed: ${4 + (score * 0.001)}`, 20, 30);
-			requestAnimationFrame(tick);
+			getWinner() {
+			};
 		};
-		tick();
+		var game = new Game();
+		var boardWidth = canvas.height * (7 / 6);
+		var boardHeight = canvas.height;
+		var boardX = canvas.width / 2 - boardWidth / 2;
+		var boardY = 0;
+		var holeSize = canvas.height / 6;
+		game.draw();
+		function mouseClick(e) {
+			game.turn((e.clientY > boardHeight / 2) + 1, Math.floor(Math.max(Math.min(e.clientX - boardX, boardWidth - 1), 0) / holeSize));
+			game.draw();
+		};
 	</script>
 </html>

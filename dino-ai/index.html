@@ -164,6 +164,8 @@
 		var cactuses = [];
 		var mutationRate = 0.2;
 		var generation = 1;
+		var tickSpeed = 1;
+		var pb = 0;
 		for (let i = 0; i < 1000; i++) {
 			cactuses[i] = (cactuses[i - 1] ?? 800) + Math.floor(Math.random() * 400) + 100;
 		};
@@ -177,6 +179,9 @@
 					break;
 				case "m":
 					mutationRate = prompt("what mutation rate current: " + mutationRate);
+					break;
+				case "t":
+					tickSpeed = prompt("what tick speed current: " + tickSpeed);
 			};
 		};
 		function evolve() {
@@ -208,7 +213,9 @@
 					dinos[i].addCactus();
 				};*/
 				let cactusesInFront = cactuses.filter(cactus => cactus > dinos[i].x);
-				dinos[i].jumping = dinos[i].brain.run([dinos[i].y / -110, 1 / dinos[i].xv, dinos[i].yv / 15, ((cactusesInFront[0] ?? dinos[i].x + canvas.width) - dinos[i].x) / canvas.width, ((cactusesInFront[1] ?? dinos[i].x + canvas.width) - (cactusesInFront[0] ?? dinos[i].x + canvas.width)) / canvas.width])[0]
+				let inputs = [dinos[i].y / -110, 1 / dinos[i].xv, dinos[i].yv / 15, ((cactusesInFront[0] ?? dinos[i].x + canvas.width) - dinos[i].x) / canvas.width, ((cactusesInFront[1] ?? dinos[i].x + canvas.width) - (cactusesInFront[0] ?? dinos[i].x + canvas.width)) / canvas.width];
+				let outputs = dinos[i].brain.run(inputs);
+				dinos[i].jumping = outputs[0];
 				if (dinos[i].jumping) {
 					dinos[i].jump();
 				};
@@ -223,14 +230,24 @@
 				dinos[i].score++;
 				if (cactuses.some(cactus => dinos[i].x + 20 > cactus && dinos[i].x < cactus + 20 && dinos[i].y > -30)) {
 					dinos[i].dead = true;
+					pb = Math.max(pb, dinos[i].x);
 				};
-				if (i == targetDino) dinos[i].draw();
+				if (i == targetDino) {
+					ctx.fillStyle = "yellow";
+					ctx.fillRect((pb - dinos[i].cameraX) - 1, 0, 2, canvas.height);
+					dinos[i].draw();
+				};
 			};
 			ctx.font = "30px arial";
 			score++;
 			ctx.fillText(`dinos: ${dinos.filter(dino => !dino.dead).length}, score: ${score}, gen: ${generation}, speed: ${4 + (score * 0.001)}`, 20, 30);
-			requestAnimationFrame(tick);
 		};
-		tick();
+		function loop() {
+			for (let i = 0; i < tickSpeed; i++) {
+				tick();
+			};
+			requestAnimationFrame(loop);
+		};
+		loop();
 	</script>
 </html>

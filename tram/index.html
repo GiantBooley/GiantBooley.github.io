@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>TRAM PUPPLE hupple poppy TRAM PIPPLE TRAM HOBBY POL HOPPLE GUPPLE HIBBY POPPLE TRAM</title>
+	</head>
+	<body>
+		<button onclick="learnButton();">learn</button>
+		<p id="cost"></p>
+	</body>
+	<script>
+		class NeuralNetwork {
+			constructor(neuronCounts) {
+				this.layers = [];
+				for (let i = 0; i < neuronCounts.length - 1; i++) {
+					this.layers.push(new Layer(neuronCounts[i], neuronCounts[i + 1]));
+				};
+			};
+			run(inputs) {
+				let outputs = Layer.feedForward(this.layers[0], inputs);
+				for (let i = 1; i < this.layers.length; i++) {
+					outputs = Layer.feedForward(this.layers[i], outputs);
+				};
+				return outputs;
+			};
+			static lerp(n1, n2, multiplier) {
+				return n1 * (1 - multiplier) + n2 * multiplier;
+			};
+			learn(trainingData, learnRate) {
+				let h = 0.0001;
+				let originalCost = this.cost(trainingData);
+				for (let i = 0; i < this.layers.length; i++) {
+					for (let j = 0; j < this.layers[i].inputCount; j++) {
+						for (let k = 0; k < this.layers[i].outputCount; k++) {
+							this.layers[i].weights[j][k] += h;
+							let deltaCost = this.cost(trainingData) - originalCost;
+							this.layers[i].weights[j][k] -= h;
+							this.layers[i].costGradientW[j][k] = deltaCost / h;
+						};
+					};
+					for (let j = 0; j < this.layers[i].biases.length; j++) {
+						this.layers[i].biases[j] += h;
+						let deltaCost = this.cost(trainingData) - originalCost;
+						this.layers[i].biases[j] -= h;
+						this.layers[i].costGradientB[j] = deltaCost / h;
+					};
+				};
+				for (let i = 0; i < this.layers.length; i++) {
+					Layer.applyGradients(this.layers[i], learnRate);
+				};
+			};
+			singleCost(expected, prediction) {
+				let totalCost = 0;
+				
+				for (let i = 0; i < expected.length; i++) {
+					totalCost += (expected[i] - prediction[i]) ** 2;
+				};
+				
+				return totalCost / expected.length;
+			};
+			cost(trainingData) {
+				let totalCost = 0;
+				for (let i = 0; i < trainingData.length; i++) {
+					totalCost += this.singleCost(trainingData[i][1], this.run(trainingData[i][0]));
+				};
+				return totalCost / trainingData.length;
+			};
+		};
+		class Layer {
+			constructor(inputCount, outputCount) {
+				this.inputs = new Array(inputCount);
+				this.outputs = new Array(outputCount);
+				this.biases = new Array(outputCount);
+				this.weights = [];
+				this.costGradientB = new Array(outputCount);
+				this.costGradientW = new Array(inputCount);
+				this.inputCount = inputCount;
+				this.outputCount = outputCount;
+
+				for (let i = 0; i < inputCount; i++) {
+					this.costGradientW[i] = new Array(outputCount);
+				};
+
+				for (let i = 0; i < inputCount; i++) {
+					this.weights[i] = new Array(outputCount);
+				};
+				for (let i = 0; i < this.inputs.length; i++) {
+					for (let j = 0; j < this.outputs.length; j++) {
+						this.weights[i][j] = Math.random() * 2 - 1;
+					};
+				};
+				for (let i = 0; i < this.biases.length; i++) {
+					this.biases[i] = Math.random() * 2 - 1;
+				};
+			};
+			static applyGradients(layer, learnRate) {
+				for (let i = 0; i < layer.outputCount; i++) {
+					layer.biases[i] -= layer.costGradientB[i] * learnRate;
+					for (let j = 0; j < layer.inputNodes; j++) {
+						layer.weights[j][i] -= layer.costGradientW[j][i] * learnRate;
+					};
+				};
+			};
+			static feedForward(layer, inputs) {
+				//for (let i = 0; i < this.inputs.length; i++) {
+				//	this.inputs[i] = inputs[i];
+				//};)
+				layer.inputs = [...inputs];
+				for (let i = 0; i < layer.outputs.length; i++) {
+					let sum = 0;
+					for (let j = 0; j < layer.inputs.length; j++) {
+						sum += layer.inputs[j] * layer.weights[j][i];
+					};
+					layer.outputs[i] = Layer.activate(sum + layer.biases[i]);
+				};
+				return layer.outputs;
+			};
+			static activate(number) {
+				return 1 / (1 + Math.E ** (-number));
+				//return (number > 0) ? 1 : 0;
+				//return (Math.E ** number - Math.E ** -number) / (Math.E ** number + Math.E ** -number);
+			};
+		};
+
+		var data = [
+			[[0, 0], [0, 0]],
+			[[0, 1], [1, 0]],
+			[[1, 0], [0, 1]],
+			[[1, 1], [1, 1]]
+		];
+		var net = new NeuralNetwork([2, 15, 15, 2]);
+		function learnButton() {
+			for (let i = 0; i < 100; i++) {
+				net.learn(data, 0.1);
+			};
+			document.getElementById("cost").innerHTML = data.map(fake => JSON.stringify(net.run(fake[0]).map(it => Math.round(it * 1000) / 1000))).join("<br>") + "<br>" + net.cost(data);
+		};
+	</script>
+</html>

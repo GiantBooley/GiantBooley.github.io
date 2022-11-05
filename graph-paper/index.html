@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -15,11 +16,12 @@
 			}
 			body {
 				margin: 0;
+				overflow: hidden;
 			}
 		</style>
 	</head>
 	<body>
-		<div id="canvas-wrapper" tabindex="0" onkeydown="keyDown(event)" onkeyup="keyUp(event)" onmousedown="startLine(event.clientX, event.clientY)" onmouseup="endLine(event.clientX, event.clientY)" onmousemove="moveMouse(event)">
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keyDown(event)" onkeyup="keyUp(event)" onmousedown="startLine(mouseX, mouseY)" onmouseup="endLine(mouseX, mouseY)" onmousemove="moveMouse(event)">
 			<canvas id="canvas"></canvas>
 		</div>
 	</body>
@@ -33,18 +35,22 @@
 		var mouseY = 0;
 		var drawingLine = false;
 		var keysDown = {};
+		var gridSizeX = 20;
+		var gridSizeY = 20;
+		var xPan = 0;
+		var yPan = 0;
 
 		function isDown(key) {
 			return keysDown[key] ?? false;
 		};
 		function moveMouse(e) {
-			mouseX = e.clientX;
-			mouseY = e.clientY;
+			mouseY = Math.round(e.clientY / (gridSizeY * zoom) + yPan);
+			mouseX = Math.round(e.clientX / (gridSizeX * zoom) + xPan);
 		};
 		function drawLine(p1, p2) {
 			ctx.beginPath();
-			ctx.moveTo(p1[0], p1[1]);
-			ctx.lineTo(p2[0], p2[1]);
+			ctx.moveTo((p1[0] - xPan) * gridSizeX * zoom, (p1[1] - yPan) * gridSizeY * zoom);
+			ctx.lineTo((p2[0] - xPan) * gridSizeX * zoom, (p2[1] - yPan) * gridSizeY * zoom);
 			ctx.stroke();
 		};
 		function axisLine(axis, offset) {
@@ -66,30 +72,110 @@
 		};
 		function keyDown(e) {
 			keysDown[e.key] = true;
+			if (e.key == "s" && e.ctrlKey) {
+				e.preventDefault();
+				localStorage.setItem("graphPaperSave", exportSave());
+			};
+			if (e.key == "l" && e.ctrlKey) {
+				e.preventDefault();
+				importSave(JSON.parse(localStorage.getItem("graphPaperSave")));
+			};
 		};
 		function keyUp(e) {
 			keysDown[e.key] = false;
 		};
 
+		const add = (a, b) => ({x: a.x + b.x, y: a.y + b.y});
+		const sub = (a, b) => ({x: a.x - b.x, y: a.y - b.y});
+		const dot = (a, b) => a.x * b.x + a.y * b.y;
+		const hypot2 = (a, b) => dot(sub(a, b), sub(a, b));
+
+		// Function for projecting some vector a onto b
+		function proj(a, b) {
+			let k = dot(a, b) / dot(b, b);
+			return {x: k * b.x, y: k * b.y};
+		}
+		function distanceSegmentToPoint(A, B, C) {
+			// Compute vectors AC and AB
+			let AC = sub(C, A);
+			let AB = sub(B, A);
+
+			// Get point D by taking the projection of AC onto AB then adding the offset of A
+			let D = add(proj(AC, AB), A);
+
+			let AD = sub(D, A);
+			// D might not be on AB so calculate k of D down AB (aka solve AD = k * AB)
+			// We can use either component, but choose larger value to reduce the chance of dividing by zero
+			let k = Math.abs(AB.x) > Math.abs(AB.y) ? AD.x / AB.x : AD.y / AB.y;
+
+			// Check if D is off either end of the line segment
+			if (k <= 0.0) {
+				return Math.sqrt(hypot2(C, A));
+			} else if (k >= 1.0) {
+				return Math.sqrt(hypot2(C, B));
+			};
+		
+			return Math.sqrt(hypot2(C, D));
+		};
+
+		function exportSave() {
+			return JSON.stringify({lines: lines, gridSizeX: gridSizeX, gridSizeY: gridSizeY});
+		};
+		function importSave(save) {
+			lines = save.lines;
+			gridSizeX = save.gridSizeX;
+			gridSizeY = save.gridSizeY;
+		};
+
+		function distance(p1, p2) {
+			return Math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2);
+		};
+		function projectLines(funx, funy) {
+			lines = lines.map(line => [[funx(line[0][0]), funy(line[0][1])], [funx(line[1][0]), funy(line[1][1])]]);
+		};
+
 		var lines = [];
 		var zoom = 1;
-		var zooming = 0;
 		function loop() {
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.strokeStyle = "#AAAAFF";
-			ctx.lineWidth = 1;
-			for (let x = 0; x < canvas.width; x += 20) {
+			ctx.lineWidth = 2;
+			if (isDown("-")) {
+				zoom *= 0.99;
+			};
+			if (isDown("_")) {
+				projectLines(x => x * 0.9999, y => y * 0.9999);
+			};
+			if (isDown("=")) {
+				zoom /= 0.99;
+			};
+			if (isDown("Shift")) {
+				projectLines(x => x + ((isDown("ArrowRight") - isDown("ArrowLeft")) * 0.001), y => y + ((isDown("ArrowDown") - isDown("ArrowUp")) * 0.001));
+			} else if (isDown("Control")) {
+				projectLines(x => x * ((isDown("ArrowRight") - isDown("ArrowLeft")) * 0.001 + 1), y => y * ((isDown("ArrowDown") - isDown("ArrowUp")) * 0.001 + 1));
+			} else {
+				xPan += (isDown("ArrowRight") - isDown("ArrowLeft")) * 0.3;
+				yPan += (isDown("ArrowDown") - isDown("ArrowUp")) * 0.3;
+			};
+			for (let x = 0; x < canvas.width; x++) {
 				axisLine("y", x);
 			};
-			for (let y = 0; y < canvas.height; y += 20) {
+			for (let y = 0; y < canvas.height; y++) {
 				axisLine("x", y);
 			};
-			ctx.strokeStyle = "black";
-			lines.forEach(line => {
+			lines.forEach((line, i) => {
+				let selected = distanceSegmentToPoint({x: line[0][0], y: line[0][1]}, {x: line[1][0], y: line[1][1]}, {x: mouseX, y: mouseY}) < 0.1;
+				ctx.strokeStyle = selected ? "red" : "black";
 				drawLine(line[0], line[1]);
+				if (isDown("Backspace") && selected) {
+					lines.splice(i, 1);
+				};
 			});
 			if (drawingLine) {
+				ctx.strokeStyle = "black";
 				drawLine(currentStart, [mouseX, mouseY]);
+				ctx.font = "20px arial";
+				ctx.fillText(`shift:${isDown("Shift")}, -:${isDown("-")}, length:${distance(currentStart, [mouseX, mouseY])}`, 20, 20);
 			};
 
 			requestAnimationFrame(loop);

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>thing doerefglksdflkdfslkjlksdfklj</title>
+		<style>
+			input {
+				width: 80vw;
+			}
+			label {
+				font-family: monospace;
+			}
+		</style>
+		<script>
+			var definitions = [
+				["chromebook", "device"],
+				["outside the school", "outside the building"],
+				["outside of the school", "outside of the building"],
+				["out of the school", "out of the building"],
+				["out the school", "out the building"],
+				["school", "district"],
+				["tab", "site"],
+				["website", "site"],
+				["turn off", "power down"],
+				["classwize", "the new technology"],
+				["in my class", "on my roster"],
+				["the classroom", "class"],
+				["student", "scholar"],
+				["cup", "tool"],
+				["blocked", "inappropriate"],
+				["reading", "doing clarifying bookmarks"],
+				["close", "x out of"],
+				["chair", "seat"],
+				["stop running", "go back"],
+				["link", "hyperlink"],
+				["slide", "hyperdoc"],
+				["spying on", "monitoring"],
+				["spy on", "monitor"],
+				["3 day weekend", "extra long weekend"],
+				["three day weekend", "extra long weekend"],
+				["teacher", "educator"],
+				["youtube", "you tube"],
+				["game", "video game"],
+				["activity", "program"],
+				["wifi", "internet"],
+				["stop", "suspend"],
+				["test", "assesment"],
+				["lunch", "warm meal"],
+				["library", "learning commons"],
+				["paper", "document"],
+				["reload", "refresh"],
+				["get hungry", "starve"],
+				["turn in", "submit"],
+				["turning in", "submitting"],
+				["turning it in", "submitting it"],
+				["turn it in", "submit it"],
+				["jacket", "coat"],
+				["video", "clip"],
+				["hangout", "chat"],
+				["answers", "resources"],
+				["mom or dad", "parent or guardian"],
+				["dad or mom", "parent or guardian"],
+				["your mom", "mom"],
+				["your dad", "dad"],
+				["active", "applied"],
+				["google", "the internet"]
+			];
+			function translateEnglish() {
+				let translation = document.getElementById("english").value;
+				for ([english, teacherish] of definitions) {
+					translation = translation.replaceAll(english, teacherish);
+				};
+				document.getElementById("teacherish").value = translation;
+			};
+			function translateTeacherish() {
+				let translation = document.getElementById("teacherish").value;
+				//definitions.reverse();
+				for ([english, teacherish] of definitions) {
+					translation = translation.replaceAll(teacherish, english);
+				};
+				//definitions.reverse();
+				document.getElementById("english").value = translation;
+			};
+		</script>
+	</head>
+	<body>
+		<h1>Teacher Translator</h1>
+		<hr>
+		<label for="english">English:</label><input type="text" onkeyup="translateEnglish();" id="english"><br>
+		<label for="teacherish">Teacher:</label><input type="text" onkeyup="translateTeacherish();" id="teacherish">
+	</body>
+</html>

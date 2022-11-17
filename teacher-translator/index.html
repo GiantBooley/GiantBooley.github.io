@@ -25,6 +25,7 @@
 				["website", "site"],
 				["turn off", "power down"],
 				["classwize", "the new technology"],
+				["smartboard", "technology"],
 				["in my class", "on my roster"],
 				["the classroom", "class"],
 				["student", "scholar"],
@@ -35,6 +36,9 @@
 				["chair", "seat"],
 				["stop running", "go back"],
 				["link", "hyperlink"],
+				["the work", "the assignment"],
+				["your work", "your assignment"],
+				["slideshow", "workbook"],
 				["slide", "hyperdoc"],
 				["spying on", "monitoring"],
 				["spy on", "monitor"],
@@ -45,11 +49,13 @@
 				["game", "video game"],
 				["activity", "program"],
 				["wifi", "internet"],
+				["stopping", "suspending"],
+				["stopped", "suspended"],
 				["stop", "suspend"],
-				["test", "assesment"],
+				["quiz", "assessment"],
+				["test", "summative assessment"],
 				["lunch", "warm meal"],
 				["library", "learning commons"],
-				["paper", "document"],
 				["reload", "refresh"],
 				["get hungry", "starve"],
 				["turn in", "submit"],
@@ -65,17 +71,52 @@
 				["your mom", "mom"],
 				["your dad", "dad"],
 				["active", "applied"],
-				["google", "the internet"]
+				["google", "the internet"],
+				["backpack", "bookbag"],
+				["paper", "worksheet"],
+				["username", "login"],
+				["electronic", "digital"],
+				["not allowed", "unacceptable"],
+				["nt allowed", " unacceptable"],
+				["n't allowed", " unacceptable"],
+				["not needed", "unnecesary"],
+				["nt needed", " unnecesary"],
+				["n't needed", " unnecesary"],
+				["shutting", "powering down"],
+				["shut", "power down"],
+				["petropolous", "petrop."],
+				["drawing", "model"],
+				["am model", "am drawing"],
+				["are model", "are drawing"],
+				["be model", "be drawing"],
+				["is model", "is drawing"],
+				["call", "contact"],
+				["charging it", "plugging it in"],
+				["charged it", "plugged it in"],
+				["charge it", "plug it in"],
+				["charging", "plugging in"],
+				["charged", "plugged in"],
+				["charge", "plug in"],
+				["open", "open up"],
+				[" or ", " and or "],
+				["there", "down"],
+				["give me", "ill take"],
+				["earbud", "earphone"],
+				["talking", "speaking"],
+				["talked", "spoke"],
+				["talk", "speak"],
+				["attend", "participate"],
+				["announcement", "reminder"]
 			];
 			function translateEnglish() {
-				let translation = document.getElementById("english").value;
+				let translation = document.getElementById("english").value.toLowerCase();
 				for ([english, teacherish] of definitions) {
 					translation = translation.replaceAll(english, teacherish);
 				};
 				document.getElementById("teacherish").value = translation;
 			};
 			function translateTeacherish() {
-				let translation = document.getElementById("teacherish").value;
+				let translation = document.getElementById("teacherish").value.toLowerCase();
 				//definitions.reverse();
 				for ([english, teacherish] of definitions) {
 					translation = translation.replaceAll(teacherish, english);

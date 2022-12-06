@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>forest simulator 3d</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#canvas-wrapper {
+				width: 100%;
+				height: 100%;
+				outline: none;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
+			<canvas id="canvas"></canvas>
+		</div>
+	</body>
+	<script>
+		const canvas = document.getElementById("canvas");
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+		const ctx = canvas.getContext("2d");
+
+		class Tree {
+			constructor() {
+				this
+			};
+		};
+
+		var keysDown = [];
+		function isDown(key) {
+			return keysDown[key] ?? false;
+		};
+		class CanvasImage {
+			constructor(src) {
+				this.image = new Image();
+				this.image.src = src;
+				this.loaded = false;
+				let canvasimagething = this;
+				this.image.onload = function() {
+					canvasimagething.loaded = true;
+					imagesLoaded++;
+					if (imagesLoaded == Object.keys(images).length) {
+						loop();
+					}; 
+				};
+			};
+		};
+		Math.mod = function(a, b) {
+			return ((a % b) + b) % b;
+		};
+
+		var playerX = 100;
+		var playerY = -500;
+		var playerXV = 0;
+		var playerYV = 0;
+		var cameraX = 0;
+		var cameraY = 0;
+		var onGround = false;
+		var seeds = [];
+		var imagesLoaded = 0;
+		var images = {
+			guy: new CanvasImage("https://t4.ftcdn.net/jpg/01/73/40/15/360_F_173401516_HH7aV0os9LEum5ayYNrtoovV1jYrt561.jpg"),
+			sky: new CanvasImage("https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL3doeS1pcy1za3ktYmx1ZS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjgyOH19fQ=="),
+			grass: new CanvasImage("https://images.pexels.com/photos/413195/pexels-photo-413195.jpeg?cs=srgb&dl=pexels-pixmike-413195.jpg&fm=jpg"),
+			hills: new CanvasImage("https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Chocolate_Hills_overview.JPG/1200px-Chocolate_Hills_overview.JPG"),
+			ice: new CanvasImage("https://media.istockphoto.com/id/466513257/photo/image-of-light-blue-ice-design.jpg?s=612x612&w=0&k=20&c=tkgdD6LDAjjDL-J_OCc2tkN924FLtjvgSeQWgVBY5-Y=")
+		};
+		var rows = {};
+		for (let i = 0; i < 10000; i++) {
+			rows[i] = (rows[i - 1] ?? 0) + Math.round(Math.random() * 6 - 3);
+		};
+		function getHittableRows() {
+			hittableRows = [rows[Math.floor(playerX / 50)]];
+			if (Math.mod(playerX, 50) > 25) {
+				hittableRows.push(rows[Math.floor(playerX / 50) + 1]);
+			};
+			if (Math.mod(playerX, 50) < 25) {
+				hittableRows.push(rows[Math.floor(playerX / 50) - 1]);
+			};
+			return hittableRows;
+		};
+
+		function loop() {
+			playerXV += (isDown("ArrowRight") - isDown("ArrowLeft")) * (2 + (isDown("ArrowUp") && onGround) * 5);
+			playerYV += isDown("ArrowUp") * onGround * (-12 - (Math.abs(playerXV)) * 0.15);
+			//playerYV += isDown("d") * -15 * onGround;
+			//playerYV += isDown("f") * -20 * onGround;
+			playerX += playerXV;
+			let hittableRows = getHittableRows();
+			if (hittableRows[0] * -50 < playerY + 50 || hittableRows[1] * -50 < playerY + 50 || hittableRows[2] * -50 < playerY + 50) {
+				playerX -= playerXV;
+				playerXV = 0;
+			};
+			playerY += playerYV;
+			hittableRows = getHittableRows();
+			onGround = playerY > Math.max(...hittableRows) * -50 - 50;
+			if (onGround) {
+				playerY -= playerYV;
+				playerYV = 0;
+			};
+			playerXV *= onGround ? 0.7 : 0.8;
+			playerYV += 0.6;
+			cameraX = (cameraX * 3 + (playerX - canvas.width / 2)) / 4;
+			cameraY = (cameraY * 3 + (playerY - canvas.height / 2)) / 4;
+
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			//ctx.fillStyle = "rgb(160, 180, 250)";
+			ctx.drawImage(images.sky.image, 0, 0, canvas.width, canvas.height);
+
+			//ctx.fillStyle = "rgb(0, 230, 0)";
+			//ctx.fillRect(0, -cameraY, canvas.width, canvas.height - cameraY);
+			ctx.drawImage(images.hills.image, 0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4, (200 - cameraY) / 4, canvas.width, 500);
+			ctx.drawImage(images.hills.image, 0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, 500);
+
+			// grass
+			let rowBuffer = Object.keys(rows).map(it=>parseInt(it)).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width)
+			for (let i = 0; i < rowBuffer.length; i++) {
+				ctx.drawImage(images.grass.image, rowBuffer[i] * 50 - cameraX, rows[rowBuffer[i]] * -50 - cameraY, 50, canvas.height * 2)
+			};
+			//ctx.drawImage(images.grass.image, Math.mod(-cameraX, canvas.width), -cameraY, canvas.width, canvas.height);
+			//ctx.drawImage(images.grass.image, Math.mod(-cameraX, canvas.width) - canvas.width, -cameraY, canvas.width, canvas.height);
+
+			//ctx.fillStyle = "rgb(0, 0, 0)";
+			ctx.drawImage(images.guy.image, playerX - 25 - cameraX, playerY - 50 - cameraY, 50, 100);
+			ctx.font = "20px arial";
+			ctx.fillText(JSON.stringify(getHittableRows().map(it => it * -50)) + ", player y: " + (playerY + 50), 10, 30);
+
+			requestAnimationFrame(loop);
+		};
+		ctx.font = "100px arial";
+		ctx.fillText("loading textures", 100, 100);
+	</script>
+</html>

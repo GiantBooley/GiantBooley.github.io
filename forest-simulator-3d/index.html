@@ -195,7 +195,7 @@
 			//playerYV += isDown("f") * -20 * onGround;
 			playerX += playerXV;
 			let hittableRows = getHittableRows();
-			while (rows[hittableRows[0]] * -50 < playerY + 50 || rows[hittableRows[1]] * -50 < playerY + 50 || rows[hittableRows[2]] * -50 < playerY + 50) {
+			if (rows[hittableRows[0]] * -50 < playerY + 50 || rows[hittableRows[1]] * -50 < playerY + 50 || rows[hittableRows[2]] * -50 < playerY + 50) {
 				playerX -= playerXV;
 				//playerY -= 50;
 				playerXV = 0;

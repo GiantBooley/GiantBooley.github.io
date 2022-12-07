@@ -29,7 +29,7 @@
 		</style>
 	</head>
 	<body>
-		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true; if (event.key=='t') facasd=true;setTimeout(()=>{facasd = false}, 3000)" onkeyup="keysDown[event.key] = false;">
 			<canvas id="canvas"></canvas>
 		</div>
 	</body>
@@ -69,7 +69,7 @@
 		};
 
 		var playerX = 100;
-		var playerY = -500;
+		var playerY = -900;
 		var playerXV = 0;
 		var playerYV = 0;
 		var cameraX = 0;
@@ -82,21 +82,110 @@
 			sky: new CanvasImage("https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL3doeS1pcy1za3ktYmx1ZS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjgyOH19fQ=="),
 			grass: new CanvasImage("https://images.pexels.com/photos/413195/pexels-photo-413195.jpeg?cs=srgb&dl=pexels-pixmike-413195.jpg&fm=jpg"),
 			hills: new CanvasImage("https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Chocolate_Hills_overview.JPG/1200px-Chocolate_Hills_overview.JPG"),
-			ice: new CanvasImage("https://media.istockphoto.com/id/466513257/photo/image-of-light-blue-ice-design.jpg?s=612x612&w=0&k=20&c=tkgdD6LDAjjDL-J_OCc2tkN924FLtjvgSeQWgVBY5-Y=")
+			ice: new CanvasImage("https://media.istockphoto.com/id/466513257/photo/image-of-light-blue-ice-design.jpg?s=612x612&w=0&k=20&c=tkgdD6LDAjjDL-J_OCc2tkN924FLtjvgSeQWgVBY5-Y="),
+			snow: new CanvasImage("https://t4.ftcdn.net/jpg/00/73/39/95/360_F_73399559_6z3WIVyR5fPvXAW96ZFG1RBHsz6qVn4R.jpg"),
+			dirt: new CanvasImage("https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Dirt.JPG/640px-Dirt.JPG"),
+			stones: new CanvasImage("https://d3mvlb3hz2g78.cloudfront.net/wp-content/uploads/2016/01/thumb_720_450_f_28.jpg"),
+			stone: new CanvasImage("https://media.istockphoto.com/photos/light-grey-black-slate-stone-background-or-texture-picture-id1164746310?b=1&k=20&m=1164746310&s=612x612&w=0&h=nj0fWpCXBGNXhcUuWhXIF3HmcZiXMagkQ-DyPHAXLiw="),
+			darkStone: new  CanvasImage("https://media.istockphoto.com/id/1136387527/photo/black-gray-grunge-background-dirty-concrete-wall-stucco-vintage-rock-texture-ombre-dark-stone.jpg?b=1&s=170667a&w=0&k=20&c=iUFh6s42MVX40KVd7bmkfcPHtMjYvqNsVndFQ2dMFWY="),
+			stoneBackground: new CanvasImage("https://img.freepik.com/premium-photo/cave-wall-background_181627-531.jpg?w=2000")
 		};
+		var layers = {
+			"-4": images.darkStone.image,
+			"-3": images.stone.image,
+			"-2": images.stones.image,
+			"-1": images.dirt.image,
+			"0": images.grass.image,
+			"1": images.snow.image,
+			"2": images.ice.image
+		};
+		//=================//
+		// -==ROW STUFF=-- //
+		//=================//
 		var rows = {};
-		for (let i = 0; i < 10000; i++) {
-			rows[i] = (rows[i - 1] ?? 0) + Math.round(Math.random() * 6 - 3);
+		var octaves = [];
+		for (let i = 0; i < 5; i++) {
+			octaves.push(new Simple1DNoise());
 		};
+		for (let i = 0; i < 10000; i++) {
+			let perlinHeight = 0;
+			for (let j = 0; j < octaves.length; j++) {
+				perlinHeight += ((octaves[j].getVal(i / 10) - 0.5) * 3) / (2 ** j);
+			};
+			rows[i] = (rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
+		};
+		for (row in Object.keys(rows)) {
+			rows[row] = Math.floor(rows[row]);
+		};
+
+		var fac = 
+			"Marina silva is a brazilian politician and an activist for deforestation and other things. She was a rubber tapper and found that land was being invaded by rubber tappers and she started protecting thousands of hectares of land."
+		;
+		var facasd = false;
+
+
 		function getHittableRows() {
-			hittableRows = [rows[Math.floor(playerX / 50)]];
+			hittableRows = [Math.floor(playerX / 50)];
 			if (Math.mod(playerX, 50) > 25) {
-				hittableRows.push(rows[Math.floor(playerX / 50) + 1]);
+				hittableRows.push(Math.floor(playerX / 50) + 1);
 			};
 			if (Math.mod(playerX, 50) < 25) {
-				hittableRows.push(rows[Math.floor(playerX / 50) - 1]);
+				hittableRows.push(Math.floor(playerX / 50) - 1);
 			};
 			return hittableRows;
+		};
+		function getLayer(y) {
+			return Math.floor(y / 100);
+		};
+		function clamp(number, min, max) {
+			return Math.min(Math.max(number, min), max);
+		};
+		function lerp(a, b, c) {
+			return a * (1 - c) + b * c;
+		};
+		function Simple1DNoise() {
+			let MAX_VERTICES = 256;
+			let MAX_VERTICES_MASK = MAX_VERTICES -1;
+			let amplitude = 1;
+			let scale = 1;
+
+			let r = [];
+
+			for (let i = 0; i < MAX_VERTICES; ++i) {
+				r.push(Math.random()); // mulberry32(i + 100));
+			};
+		
+			var getVal = function(x){
+				let scaledX = x * scale;
+				let xFloor = Math.floor(scaledX);
+				let t = scaledX - xFloor;
+				let tRemapSmoothstep = t * t * (3 - 2 * t);
+			
+				/// Modulo using &#038;
+				let xMin = xFloor & MAX_VERTICES_MASK;
+				let xMax = ( xMin + 1 ) & MAX_VERTICES_MASK;
+			
+				let y = lerp(r[xMin], r[xMax], tRemapSmoothstep);
+			
+				return y * amplitude;
+			};
+		
+			// return the API
+			return {
+				getVal: getVal,
+				setAmplitude: function(newAmplitude) {
+					amplitude = newAmplitude;
+				},
+				setScale: function(newScale) {
+					scale = newScale;
+				}
+			};
+		};
+		function mulberry32(a) {
+			let t = a += 0x6D2B79F5;
+			t = Math.imul(t ^ t >>> 15, t | 1);
+			t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+			return ((t ^ t >>> 14) >>> 0) / 4294967296;
 		};
 
 		function loop() {
@@ -106,43 +195,57 @@
 			//playerYV += isDown("f") * -20 * onGround;
 			playerX += playerXV;
 			let hittableRows = getHittableRows();
-			if (hittableRows[0] * -50 < playerY + 50 || hittableRows[1] * -50 < playerY + 50 || hittableRows[2] * -50 < playerY + 50) {
+			while (rows[hittableRows[0]] * -50 < playerY + 50 || rows[hittableRows[1]] * -50 < playerY + 50 || rows[hittableRows[2]] * -50 < playerY + 50) {
 				playerX -= playerXV;
+				//playerY -= 50;
 				playerXV = 0;
 			};
 			playerY += playerYV;
 			hittableRows = getHittableRows();
-			onGround = playerY > Math.max(...hittableRows) * -50 - 50;
+			let max = hittableRows.reduce((a, b) => rows[a] > rows[b] ? a : b);
+			onGround = playerY > rows[max] * -50 - 50;
 			if (onGround) {
+				if (getLayer(rows[max]) == 1) {
+					rows[max] -= 0.05;
+				};
 				playerY -= playerYV;
 				playerYV = 0;
 			};
-			playerXV *= onGround ? 0.7 : 0.8;
+			playerXV *= onGround ? (playerY / 50 < -40 ? 0.95 : 0.7) : 0.8;
 			playerYV += 0.6;
 			cameraX = (cameraX * 3 + (playerX - canvas.width / 2)) / 4;
 			cameraY = (cameraY * 3 + (playerY - canvas.height / 2)) / 4;
 
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			//ctx.fillStyle = "rgb(160, 180, 250)";
-			ctx.drawImage(images.sky.image, 0, 0, canvas.width, canvas.height);
 
-			//ctx.fillStyle = "rgb(0, 230, 0)";
-			//ctx.fillRect(0, -cameraY, canvas.width, canvas.height - cameraY);
+			ctx.drawImage(images.sky.image, 0, 0, canvas.width, canvas.height);
+			//if (cameraY > -250) {
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height),					canvas.width, canvas.height);
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height),					canvas.width, canvas.height);
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height) - canvas.height,	canvas.width, canvas.height);
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height) - canvas.height,	canvas.width, canvas.height);
+			//};
+			
 			ctx.drawImage(images.hills.image, 0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4, (200 - cameraY) / 4, canvas.width, 500);
 			ctx.drawImage(images.hills.image, 0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, 500);
 
 			// grass
 			let rowBuffer = Object.keys(rows).map(it=>parseInt(it)).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width)
 			for (let i = 0; i < rowBuffer.length; i++) {
-				ctx.drawImage(images.grass.image, rowBuffer[i] * 50 - cameraX, rows[rowBuffer[i]] * -50 - cameraY, 50, canvas.height * 2)
+				let groundImage = layers[clamp(getLayer(rows[rowBuffer[i]]), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))];
+				let imageWidth = groundImage.height * (50 / (canvas.height * 2))
+				ctx.drawImage(groundImage, Math.floor(((imageWidth * rowBuffer[i]) % groundImage.width) / imageWidth) * imageWidth, 0, imageWidth, groundImage.height, rowBuffer[i] * 50 - cameraX, rows[rowBuffer[i]] * -50 - cameraY, 50, canvas.height * 2)
 			};
-			//ctx.drawImage(images.grass.image, Math.mod(-cameraX, canvas.width), -cameraY, canvas.width, canvas.height);
-			//ctx.drawImage(images.grass.image, Math.mod(-cameraX, canvas.width) - canvas.width, -cameraY, canvas.width, canvas.height);
-
-			//ctx.fillStyle = "rgb(0, 0, 0)";
+		
 			ctx.drawImage(images.guy.image, playerX - 25 - cameraX, playerY - 50 - cameraY, 50, 100);
-			ctx.font = "20px arial";
-			ctx.fillText(JSON.stringify(getHittableRows().map(it => it * -50)) + ", player y: " + (playerY + 50), 10, 30);
+			ctx.font = "30px arial";
+			ctx.fillStyle = "yellow";
+			ctx.fillText("score: " + Math.floor(playerX / 50), 10, 30);
+			if (facasd) {
+				ctx.fillText("Marina silva is a brazilian politician and an activist for deforestation and other things.", 0, 300);
+				ctx.fillText("She was a rubber tapper and found that land was being invaded by rubber tappers and she", 0, 325);
+				ctx.fillText("started protecting thousands of hectares of land.", 0, 350);
+			};
 
 			requestAnimationFrame(loop);
 		};

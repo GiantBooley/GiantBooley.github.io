@@ -144,6 +144,7 @@
 		// -==ROW STUFF=-- //
 		//=================//
 		var rows = {};
+		var originalRows,coinPositions,coins
 		function generateLevel(downy) {
 			rows = {};
 			let octaves = [];
@@ -160,10 +161,10 @@
 			for (row in Object.keys(rows)) {
 				rows[row] = Math.floor(rows[row]);
 			};
-			var originalRows = structuredClone(rows);
+			originalRows = structuredClone(rows);
 
-			var coinPositions = new Uint8ClampedArray(Object.keys(rows).length);
-			var coins = 0;
+			coinPositions = new Uint8ClampedArray(Object.keys(rows).length);
+			coins = 0;
 			for (let i = 0; i < Object.keys(rows).length; i++) {
 				coinPositions[i] = Math.random() < 0.05 ? 1 : 0;
 			};

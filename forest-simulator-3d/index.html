@@ -144,27 +144,31 @@
 		// -==ROW STUFF=-- //
 		//=================//
 		var rows = {};
-		var octaves = [];
-		for (let i = 0; i < 5; i++) {
-			octaves.push(new Simple1DNoise());
-		};
-		for (let i = 0; i < 10000; i++) {
-			let perlinHeight = 0;
-			for (let j = 0; j < octaves.length; j++) {
-				perlinHeight += ((octaves[j].getVal(i / 10) - 0.5) * 3) / (2 ** j);
+		function generateLevel(downy) {
+			rows = {};
+			let octaves = [];
+			for (let i = 0; i < 5; i++) {
+				octaves.push(new Simple1DNoise());
 			};
-			rows[i] = (rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
-		};
-		for (row in Object.keys(rows)) {
-			rows[row] = Math.floor(rows[row]);
-		};
-		var originalRows = structuredClone(rows);
+			for (let i = 0; i < 10000; i++) {
+				let perlinHeight = 0;
+				for (let j = 0; j < octaves.length; j++) {
+					perlinHeight += ((octaves[j].getVal(i / 10) - downy) * 3) / (2 ** j);
+				};
+				rows[i] = (rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
+			};
+			for (row in Object.keys(rows)) {
+				rows[row] = Math.floor(rows[row]);
+			};
+			var originalRows = structuredClone(rows);
 
-		var coinPositions = new Uint8ClampedArray(Object.keys(rows).length);
-		var coins = 0;
-		for (let i = 0; i < Object.keys(rows).length; i++) {
-			coinPositions[i] = Math.random() < 0.05 ? 1 : 0;
+			var coinPositions = new Uint8ClampedArray(Object.keys(rows).length);
+			var coins = 0;
+			for (let i = 0; i < Object.keys(rows).length; i++) {
+				coinPositions[i] = Math.random() < 0.05 ? 1 : 0;
+			};
 		};
+		generateLevel(0.5);
 		var fac = 
 			"Marina silva is a brazilian politician and an activist for deforestation and other things. She was a rubber tapper and found that land was being invaded by rubber tappers and she started protecting thousands of hectares of land."
 		;

@@ -59,20 +59,36 @@
 				font-size: 30px;
 			}
 			h1,h2,h3,h4 {
-				margin: 0
+				margin: 0;
+			}
+			#health {
+				position: absolute;
+				bottom: 0px;
+				left: 0px;
+				width: 600px;
+				height: 50px;
+				background-color: black;
+			}
+			#health-inner {
+				width: 600px;
+				height: 50px;
+				background-color: rgb(0, 255, 0);
 			}
 		</style>
 	</head>
 	<body>
-		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true; if (event.key=='t') facasd=true;setTimeout(()=>{facasd = false}, 3000)" onkeyup="keysDown[event.key] = false;">
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);" onkeyup="keysDown[event.key] = false;">
 			<canvas id="canvas"></canvas>
 		</div>
 		<div id="stats">score: -<br>coins: -</div>
 		<button id="shop-button" onclick="shopButton();">SHOP</button>
+		<div id="health">
+			<div id="health-inner"></div>
+		</div>
 		<div id="shop">
 			<h1>shop</h1>
 			<hr>
-			<div id="shoes">
+			<div id="boots">
 				<h3>boots</h3>
 				<button onclick="clickShoeButton(this, 'sketchers');">Sketchers (0 coins)</button><br>
 				<button onclick="clickShoeButton(this, 'running shoes');">Running shoes (50 coins)</button><br>
@@ -81,16 +97,20 @@
 			</div><br>
 			<div id="food">
 				<h3>food</h3><br>
-				<label>apple</label><label id="apple-howmany">(0)</label><button onclick="devourFood('apple');">devour</button><button onclick="purchaseFood('apple');">purchase (3 coins)</button><br>
+				<label>apple</label><label id="apple-howmany">(0)</label><button onclick="devourFood('apple');">devour</button><button onclick="purchaseFood('apple');">purchase (5 coins)</button><br>
 				<label>bread</label><label id="bread-howmany">(0)</label><button onclick="devourFood('bread');">devour</button><button onclick="purchaseFood('bread');">purchase (10 coins)</button><br>
-				<label>burger</label><label id="burger-howmany">(0)</label><button onclick="devourFood('burger');">devour</button><button onclick="purchaseFood('burger');">purchase (20 coins)</button><br>
-				<label>cold meal</label><label id="cold-meal-howmany">(0)</label><button onclick="devourFood('cold meal');">devour</button><button onclick="purchaseFood('cold meal');">purchase (33 coins)</button><br>
-				<label>meal</label><label id="meal-howmany">(0)</label><button onclick="devourFood('meal');">devour</button><button onclick="purchaseFood('meal');">purchase (48 coins)</button><br>
-				<label>warm meal</label><label id="warm-meal-howmany">(0)</label><button onclick="devourFood('warm meal');">devour</button><button onclick="purchaseFood('warm meal');">purchase (60 coins)</button><br>
-				<label>hot meal</label><label id="hot-meal-howmany">(0)</label><button onclick="devourFood('hot meal');">devour</button><button onclick="purchaseFood('hot meal');">purchase (70 coins)</button><br>
-				<label>crispy gooey homemade mac and cheese</label><label id="crispy-gooey-homemade-mac-and-cheese-howmany">(0)</label><button onclick="devourFood('crispy gooey homemade mac and cheese');">devour</button><button onclick="purchaseFood('crispy gooey homemade mac and cheese');">purchase (80 coins)</button><br>
-				<label>cow brain</label><label id="cow-brain-howmany">(0)</label><button onclick="devourFood('cow brain');">devour</button><button onclick="purchaseFood('cow brain');">purchase (90 coins)</button><br>
-				<label>filling warm meal</label><label id="filling-warm-meal-howmany">(0)</label><button onclick="devourFood('filling warm meal');">devour</button><button onclick="purchaseFood('filling warm meal');">purchase (100 coins)</button>
+				<label>burger</label><label id="burger-howmany">(0)</label><button onclick="devourFood('burger');">devour</button><button onclick="purchaseFood('burger');">purchase (14 coins)</button><br>
+				<label>cold meal</label><label id="cold-meal-howmany">(0)</label><button onclick="devourFood('cold meal');">devour</button><button onclick="purchaseFood('cold meal');">purchase (19 coins)</button><br>
+				<label>meal</label><label id="meal-howmany">(0)</label><button onclick="devourFood('meal');">devour</button><button onclick="purchaseFood('meal');">purchase (23 coins)</button><br>
+				<label>warm meal</label><label id="warm-meal-howmany">(0)</label><button onclick="devourFood('warm meal');">devour</button><button onclick="purchaseFood('warm meal');">purchase (27 coins)</button><br>
+				<label>hot meal</label><label id="hot-meal-howmany">(0)</label><button onclick="devourFood('hot meal');">devour</button><button onclick="purchaseFood('hot meal');">purchase (31 coins)</button><br>
+				<label>crispy gooey homemade mac and cheese</label><label id="crispy-gooey-homemade-mac-and-cheese-howmany">(0)</label><button onclick="devourFood('crispy gooey homemade mac and cheese');">devour</button><button onclick="purchaseFood('crispy gooey homemade mac and cheese');">purchase (34 coins)</button><br>
+				<label>cow brain</label><label id="cow-brain-howmany">(0)</label><button onclick="devourFood('cow brain');">devour</button><button onclick="purchaseFood('cow brain');">purchase (38 coins)</button><br>
+				<label>filling warm meal</label><label id="filling-warm-meal-howmany">(0)</label><button onclick="devourFood('filling warm meal');">devour</button><button onclick="purchaseFood('filling warm meal');">purchase (41 coins)</button>
+			</div><br>
+			<div id="stuff">
+				<h3>stuff</h3><br>
+				<label>ladder</label><label id="ladder-howmany">(0)</label><button onclick="placeLadder();">place</button><button onclick="purchaseLadder();">purchase (10 coins)</button>
 			</div>
 		</div>
 	</body>
@@ -99,6 +119,7 @@
 		canvas.width = innerWidth;
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
+		document.getElementById("canvas-wrapper").focus();
 
 		class Tree {
 			constructor() {
@@ -129,7 +150,7 @@
 			return ((a % b) + b) % b;
 		};
 
-		var playerX = 100;
+		var playerX = 75;
 		var playerY = -900;
 		var playerXV = 0;
 		var playerYV = 0;
@@ -153,7 +174,10 @@
 			packedSnow: new CanvasImage("https://thumbs.dreamstime.com/b/snow-surface-full-frame-background-texture-pattern-14970280.jpg"),
 			magma: new CanvasImage("https://media.wired.co.uk/photos/606da0c989f3babb1f0133fb/master/w_1600%2Cc_limit/Lava.jpg"),
 			lava: new CanvasImage("https://3docean.img.customer.envatousercontent.com/files/371574722/Image+Preview.jpg?auto=compress%2Cformat&fit=crop&crop=top&w=590&h=590&s=dc0fcc220b7f9d9b06eedf277f6f0844"),
-			coin: new CanvasImage("https://m.media-amazon.com/images/I/51VLhMGtaTL._AC_SY1000_.jpg")
+			coin: new CanvasImage("https://m.media-amazon.com/images/I/51VLhMGtaTL._AC_SY1000_.jpg"),
+			gem: new CanvasImage("https://cdn.britannica.com/78/170778-131-D35E060F/Reflections-diamond.jpg"),
+			mysteryCrate: new CanvasImage("https://thumbs.dreamstime.com/b/crate-question-10722232.jpg"),
+			ladder: new CanvasImage("https://m.media-amazon.com/images/I/71l4pWDxfTL.jpg")
 		};
 		var layers = {
 			"-6": [images.lava.image, 0.9],
@@ -171,7 +195,7 @@
 		// -==ROW STUFF=-- //
 		//=================//
 		var rows = {};
-		var originalRows,coinPositions,coins;
+		var originalRows,features,coins,gems;
 		function generateLevel(downy) {
 			rows = {};
 			let octaves = [];
@@ -181,7 +205,7 @@
 			for (let i = 0; i < 10000; i++) {
 				let perlinHeight = 0;
 				for (let j = 0; j < octaves.length; j++) {
-					perlinHeight += ((octaves[j].getVal(i / 10) - downy) * 3) / (2 ** j);
+					perlinHeight += ((octaves[j].getVal(i / 10) - downy) * 4) / (2 ** j);
 				};
 				rows[i] = (rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
 			};
@@ -190,13 +214,22 @@
 			};
 			originalRows = structuredClone(rows);
 
-			coinPositions = new Uint8ClampedArray(Object.keys(rows).length);
+			features = new Uint8ClampedArray(Object.keys(rows).length);
 			coins = 0;
-			for (let i = 0; i < Object.keys(rows).length; i++) {
-				coinPositions[i] = Math.random() < 0.05 ? 1 : 0;
+			gems = 0;
+			for (let i = 0; i < Object.keys(rows).length; i++) {// 0-air 1-coin 2-gem
+				let pool = [];
+				if (Math.random() < 0.05) {
+					pool.push(1);
+				};
+				if (Math.random() < 0.005) {
+					pool.push(2);
+				};
+				features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 			};
 		};
 		generateLevel(0.5);
+		playerY = rows[1] * -50 - 50;
 		var fac = 
 			"Marina silva is a brazilian politician and an activist for deforestation and other things. She was a rubber tapper and found that land was being invaded by rubber tappers and she started protecting thousands of hectares of land."
 		;
@@ -209,29 +242,32 @@
 			"spring boots": {bought: false, cost: 120},
 		};
 		var foods = {
-			"apple": {cost: 3, hunger: 0.1, howmany: 0},
+			"apple": {cost: 5, hunger: 0.1, howmany: 0},
 			"bread": {cost: 10, hunger: 0.2, howmany: 0},
-			"burger": {cost: 20, hunger: 0.3, howmany: 0},
-			"cold meal": {cost: 33, hunger: 0.4, howmany: 0},
-			"meal": {cost: 48, hunger: 0.5, howmany: 0},
-			"warm meal": {cost: 60, hunger: 0.6, howmany: 0},
-			"hot meal": {cost: 70, hunger: 0.7, howmany: 0},
-			"crispy gooey homemade mac and cheese": {cost: 80, hunger: 0.8, howmany: 0},
-			"cow brain": {cost: 90, hunger: 0.9, howmany: 0},
-			"filling warm meal": {cost: 100, hunger: 1, howmany: 0},
+			"burger": {cost: 14, hunger: 0.3, howmany: 0},
+			"cold meal": {cost: 19, hunger: 0.4, howmany: 0},
+			"meal": {cost: 23, hunger: 0.5, howmany: 0},
+			"warm meal": {cost: 27, hunger: 0.6, howmany: 0},
+			"hot meal": {cost: 31, hunger: 0.7, howmany: 0},
+			"crispy gooey homemade mac and cheese": {cost: 34, hunger: 0.8, howmany: 0},
+			"cow brain": {cost: 38, hunger: 0.9, howmany: 0},
+			"filling warm meal": {cost: 41, hunger: 1, howmany: 0}
 		};
 		var boots = "sketchers";
 		var health = 1;
 		var dead = false;
+		var ladders = 0;
+		var inLadder = false;
 
 
 		function getHittableRows() {
-			hittableRows = [Math.floor(playerX / 50)];
-			if (Math.mod(playerX, 50) > 25) {
-				hittableRows.push(Math.floor(playerX / 50) + 1);
-			};
+			hittableRows = [];
 			if (Math.mod(playerX, 50) < 25) {
 				hittableRows.push(Math.floor(playerX / 50) - 1);
+			};
+			hittableRows.push(Math.floor(playerX / 50));
+			if (Math.mod(playerX, 50) > 25) {
+				hittableRows.push(Math.floor(playerX / 50) + 1);
 			};
 			return hittableRows;
 		};
@@ -293,6 +329,7 @@
 				document.getElementById("shop").style.display = "block";
 			} else {
 				document.getElementById("shop").style.display = "none";
+				document.getElementById("canvas-wrapper").focus();
 			};
 		};
 		function clickShoeButton(button, bootsreal) {
@@ -319,41 +356,105 @@
 			if (foods[food].howmany >= 1) {
 				foods[food].howmany--;
 				health += foods[food].hunger;
+				health = clamp(health, 0, 1);
+			};
+		};
+		function keyDownFunction(e) {
+			keysDown[e.key] = true;
+			if (e.key == 't') {
+				facasd = true;
+				setTimeout(() => {
+					facasd = false;
+				}, 3000);
+			} else if (e.key == " ") {
+				features[Math.floor(playerX / 50)] = 3;
+			} else if (e.key == "Escape") {
+				shopButton();
+			};
+		};
+		function purchaseLadder() {
+			if (coins >= 10) {
+				coins -= 10;
+				ladders++;
+			} else {
+				alert("bankrupt");
+			};
+		};
+		function placeLadder() {
+			if (ladders >= 1 && features[Math.floor(playerX / 50)] == 0) {
+				features[Math.floor(playerX / 50)] = 3;
+				ladders--;
 			};
 		};
 
 		function loop() {
 			if (!shop && !dead) {
-				playerXV += (isDown("ArrowRight") - isDown("ArrowLeft")) * (2 + (isDown("ArrowUp") && onGround) * (boots == "running shoes" ? 8 : 5));
-				playerYV += isDown("ArrowUp") * onGround * ((boots == "spring boots" ? -15 : -12) - (Math.abs(playerXV)) * 0.15);
-				//playerYV += isDown("d") * -15 * onGround;
-				//playerYV += isDown("f") * -20 * onGround;
+				if (isDown("ArrowRight") != isDown("ArrowLeft")) {
+					let sign = (isDown("ArrowRight") - isDown("ArrowLeft"));
+					playerXV = inLadder ? sign * 5 : (sign * (boots == "running shoes" ? 16 : 10) + (sign * 2 * (isDown("ArrowUp") && onGround)));
+				};
 				playerX += playerXV;
-				let hittableRows = getHittableRows();
-				if (rows[hittableRows[0]] * -50 < playerY + 50 || rows[hittableRows[1]] * -50 < playerY + 50 || rows[hittableRows[2]] * -50 < playerY + 50) {
-					playerX -= playerXV;
-					//playerY -= 50;
-					playerXV = 0;
+				let hittableRows;
+				let playerColliding = () => {
+					hittableRows = getHittableRows();
+					return rows[hittableRows[0]] * -50 < playerY + 50 || rows[hittableRows[1]] * -50 < playerY + 50 || rows[hittableRows[2]] * -50 < playerY + 50;
+				};
+				if (playerColliding()) {
+					let max = getHittableRows().reduce((a, b) => rows[a] > rows[b] ? a : b);
+					if (onGround && playerY / -50 - 1 > rows[max] - 0.5) {
+						playerY -= (rows[max] - (playerY / -50 - 1)) * 50;
+					} else {
+						playerX = Math.ceil(playerX / 50) * 50 - 25;
+						playerXV = 0;
+					};
+				};
+				if (inLadder) {
+					playerYV = (isDown("ArrowDown") - isDown("ArrowUp")) * 5;
+				} else {
+					playerYV += isDown("ArrowUp") * onGround * ((boots == "spring boots" ? -15 : -12) - Math.abs(playerXV) * 0.15);
 				};
 				playerY += playerYV;
 				hittableRows = getHittableRows();
 				let max = hittableRows.reduce((a, b) => rows[a] > rows[b] ? a : b);
+				let oldOnGround = onGround;
 				onGround = playerY > rows[max] * -50 - 50;
+				if (!oldOnGround && onGround && playerYV > 25) {
+					health -= playerYV * 0.001;
+				};
 				if (onGround) {
-					if (getLayer(rows[max]) == 2 && rows[max] - 200 > (originalRows[max] - 200) * 0.9 && boots !== "tennis rackets") {
-						rows[max] -= 0.05;
+					if (getLayer(rows[max]) == 2 && rows[max] - 200 > (originalRows[max] - 200) * 0.9 && boots != "tennis rackets") {
+						rows[max] -= 0.005;
 					};
-					playerY -= playerYV;
+					playerY = rows[max] * -50 - 50;
 					playerYV = 0;
 				};
-				for (let i = 0; i < coinPositions.length; i++) {
-					if (coinPositions[i] == 1 && playerX / 50 + 0.5 > i && playerX / 50 - 0.5 < i + 1 && playerY / -50 - 1 < rows[i] + 1) {
-						coinPositions[i] = 0;
-						coins++;
+				let oldInLadder = inLadder;
+				inLadder = false;
+				for (let i = 0; i < features.length; i++) {
+					if (playerX / 50 + 0.5 > i && playerX / 50 - 0.5 < i + 1) {
+						if (playerY / -50 - 1 < rows[i] + 1) {
+							switch (features[i]) {
+								case 1:
+									coins++;
+									features[i] = 0;
+									break;
+								case 2:
+									gems++;
+									features[i] = 0;
+									break;
+							};
+						};
+						if (playerY / -50 - 1 < rows[i] + 4 && features[i] == 3) {
+							inLadder = true;
+						};
+						if (inLadder != oldInLadder) {
+							playerXV = 0;
+							playerYV = 0;
+						};
 					};
 				};
-				playerXV *= onGround ? layers[clamp(getLayer(playerY / -50), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1] : 0.8;
-				playerYV += 0.6;
+				playerXV *= inLadder ? 0 : (onGround ? layers[clamp(getLayer(playerY / -50), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1] : 0.99);
+				playerYV += inLadder ? 0 : 0.6;
 				cameraX = (cameraX * 3 + (playerX - canvas.width / 2)) / 4;
 				cameraY = (cameraY * 3 + (playerY - canvas.height / 2)) / 4;
 
@@ -364,12 +465,11 @@
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 				ctx.drawImage(images.sky.image, 0, 0, canvas.width, canvas.height);
-				//if (cameraY > -250) {
-					//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height),					canvas.width, canvas.height);
-					//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height),					canvas.width, canvas.height);
-					//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height) - canvas.height,	canvas.width, canvas.height);
-					//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height) - canvas.height,	canvas.width, canvas.height);
-				//};
+				
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
 				
 				ctx.drawImage(images.hills.image, 0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4, (200 - cameraY) / 4, canvas.width, 500);
 				ctx.drawImage(images.hills.image, 0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, 500);
@@ -382,8 +482,15 @@
 					let imageWidth = groundImage.height * (50 / (canvas.height * 2));
 					let imageHeight = rows[rowBuffer[i]] * -50 - cameraY;
 					ctx.drawImage(groundImage, Math.floor(((imageWidth * rowBuffer[i]) % (Math.floor(groundImage.width / imageWidth) * imageWidth)) / imageWidth) * imageWidth, 0, imageWidth, groundImage.height, rowBuffer[i] * 50 - cameraX, imageHeight, 50, canvas.height * 2);
-					if (coinPositions[rowBuffer[i]] == 1) {
-						ctx.drawImage(images.coin.image, rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
+					switch (features[rowBuffer[i]]) {
+						case 1:
+							ctx.drawImage(images.coin.image, rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
+							break;
+						case 2:
+							ctx.drawImage(images.gem.image, rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
+							break;
+						case 3:
+							ctx.drawImage(images.ladder.image, rowBuffer[i] * 50 - cameraX, imageHeight - 200, 50, 200);
 					};
 				};
 			
@@ -395,23 +502,22 @@
 					ctx.fillText("She was a rubber tapper and found that land was being invaded by rubber tappers and she", 0, 325);
 					ctx.fillText("started protecting thousands of hectares of land.", 0, 350);
 				};
-				ctx.fillStyle = "rgb(0, 0, 0)";
-				ctx.fillRect(0, canvas.height - 50, 600, 50); 
-				let r = clamp(2 - health * 2, 0, 1) * 255;
-				let g = clamp(health * 2, 0, 1) * 255;
-				ctx.fillStyle = "rgb(" + r + ", " + g + ", 0)";
-				ctx.fillRect(0, canvas.height - 50, 600 * health, 50); 
 			};
+			let r = clamp(2 - health * 2, 0, 1) * 255;
+			let g = clamp(health * 2, 0, 1) * 255;
+			document.getElementById("health-inner").style.width = 600 * health + "px";
+			document.getElementById("health-inner").style.backgroundColor = "rgb(" + r + ", " + g + ", 0)";
 			if (dead) {
 				ctx.font = "100px arial";
 				ctx.fillText("you died", 200, 200);
 			};
-			document.getElementById("stats").innerHTML = "score: " + Math.floor(playerX / 50) + "<br>coins: " + coins + "<br>boots: " + boots;
+			document.getElementById("stats").innerHTML = "score: " + Math.floor(playerX / 50) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>boots: " + boots;
 			for (food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
 			};
+			document.getElementById("ladder-howmany").innerHTML = "(" + ladders + ")";
 
-			requestAnimationFrame(loop);
+			requestAnimationFrame(()=>{try{loop()} catch (e) {alert(e.stack)}});
 		};
 		ctx.font = "100px arial";
 		ctx.fillText("loading textures", 100, 100);

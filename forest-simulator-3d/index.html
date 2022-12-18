@@ -205,7 +205,7 @@
 			for (let i = 0; i < 10000; i++) {
 				let perlinHeight = 0;
 				for (let j = 0; j < octaves.length; j++) {
-					perlinHeight += ((octaves[j].getVal(i / 10) - downy) * 3) / (2 ** j);
+					perlinHeight += ((octaves[j].getVal(i / 10) - downy) * 4) / (2 ** j);
 				};
 				rows[i] = (rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
 			};
@@ -228,7 +228,7 @@
 				features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 			};
 		};
-		generateLevel(0.7);
+		generateLevel(0.5);
 		playerY = rows[1] * -50 - 50;
 		var fac = 
 			"Marina silva is a brazilian politician and an activist for deforestation and other things. She was a rubber tapper and found that land was being invaded by rubber tappers and she started protecting thousands of hectares of land."
@@ -466,10 +466,10 @@
 
 				ctx.drawImage(images.sky.image, 0, 0, canvas.width, canvas.height);
 				
-				ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
-				ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
-				ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
-				ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
+				//ctx.drawImage(images.stoneBackground.image, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
 				
 				ctx.drawImage(images.hills.image, 0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4, (200 - cameraY) / 4, canvas.width, 500);
 				ctx.drawImage(images.hills.image, 0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, 500);

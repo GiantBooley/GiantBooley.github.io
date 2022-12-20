@@ -51,6 +51,7 @@
 				border-radius: 10px;
 				border: 5px solid black;
 				padding: 5px;
+				width: 80%;
 			}
 			#stats {
 				margin: 0;
@@ -139,7 +140,8 @@
 			</div><br>
 			<div id="stuff">
 				<h3>stuff</h3><br>
-				<label>ladder</label><label id="ladder-howmany">(0)</label><button onclick="placeLadder();">place</button><button onclick="purchaseLadder();">purchase (10 coins)</button>
+				<label>ladder</label><label id="ladder-howmany">(0)</label><button onclick="placeLadder();">place</button><button onclick="purchaseLadder();">purchase (10 coins)</button><br>
+				<label>tall ladder</label><label id="tall-ladder-howmany">(0)</label><button onclick="placeTallLadder();">place</button><button onclick="purchaseTallLadder();">purchase (25 coins)</button>
 			</div>
 		</div>
 	</body>
@@ -233,8 +235,8 @@
 		var playerY = -900;
 		var playerXV = 0;
 		var playerYV = 0;
-		var cameraX = 0;
-		var cameraY = 0;
+		var cameraX = playerX - canvas.width / 2;
+		var cameraY = playerY - canvas.height / 2;
 		var onGround = false;
 		var seeds = [];
 		var imagesLoaded = 0;
@@ -289,7 +291,7 @@
 				rows[i] = (rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
 			};
 			for (row in Object.keys(rows)) {
-				rows[row] = Math.floor(rows[row]);
+				rows[row] = Math.round(rows[row]);
 			};
 			originalRows = structuredClone(rows);
 
@@ -344,6 +346,7 @@
 			left: false,
 			right: false
 		};
+		var tallLadders = 0;
 
 
 		function getHittableRows() {
@@ -446,14 +449,13 @@
 			};
 		};
 		function keyDownFunction(e) {
+			if (e.repeat) return;
 			keysDown[e.key] = true;
 			if (e.key == 't') {
 				facasd = true;
 				setTimeout(() => {
 					facasd = false;
 				}, 3000);
-			} else if (e.key == " ") {
-				features[Math.floor(playerX / 50)] = 3;
 			} else if (e.key == "Escape") {
 				shopButton();
 			};
@@ -472,8 +474,22 @@
 				ladders--;
 			};
 		};
+		function purchaseTallLadder() {
+			if (coins >= 25) {
+				coins -= 25;
+				tallLadders++;
+			} else {
+				alert("bankrupt");
+			};
+		};
+		function placeTallLadder() {
+			if (tallLadders >= 1 && features[Math.floor(playerX / 50)] == 0) {
+				features[Math.floor(playerX / 50)] = 4;
+				tallLadders--;
+			};
+		};
 
-		function loop() {
+		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
 			controls.up = isDown("ArrowUp") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5));
 			controls.down = isDown("ArrowDown") || (joystick.strength > 0.5 && (joystick.angle > -67.5 || joystick.angle < 67.5));
@@ -535,7 +551,7 @@
 									break;
 							};
 						};
-						if (playerY / -50 - 1 < rows[i] + 4 && features[i] == 3) {
+						if ((playerY / -50 - 1 < rows[i] + 4 && features[i] == 3) || (playerY / -50 - 1 < rows[i] + 6 && features[i] == 4)) {
 							inLadder = true;
 						};
 						if (inLadder != oldInLadder) {
@@ -582,6 +598,9 @@
 							break;
 						case 3:
 							ctx.drawImage(images.ladder.image, rowBuffer[i] * 50 - cameraX, imageHeight - 200, 50, 200);
+							break;
+						case 4:
+							ctx.drawImage(images.ladder.image, rowBuffer[i] * 50 - cameraX, imageHeight - 300, 50, 300);
 					};
 				};
 			
@@ -600,15 +619,23 @@
 			document.getElementById("health-inner").style.backgroundColor = "rgb(" + r + ", " + g + ", 0)";
 			if (dead) {
 				ctx.font = "100px arial";
+				ctx.fillStyle = "red";
 				ctx.fillText("you died", 200, 200);
 			};
-			document.getElementById("stats").innerHTML = "score: " + Math.floor(playerX / 50) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>boots: " + boots + "<br>angle: " + joystick.angle + "<br>strength: " + joystick.strength;
+			document.getElementById("stats").innerHTML = "score: " + Math.floor(playerX / 50) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>boots: " + boots;
 			for (food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
 			};
 			document.getElementById("ladder-howmany").innerHTML = "(" + ladders + ")";
-
-			requestAnimationFrame(()=>{try{loop()} catch (e) {alert(e.stack)}});
+			document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
+		};
+		function loop() {
+			try {
+				tick();
+			} catch (e) {
+				alert(e.stack);
+			};
+			requestAnimationFrame(loop);
 		};
 		ctx.font = "100px arial";
 		ctx.fillText("loading textures", 100, 100);

@@ -161,13 +161,13 @@
 				</div>
 				<div id="shop-gems">
 					<div id="potions">
-						<h3>potions (COMING SOON)</h3>
-						<!--<label>speed potion (10 seconds)</label><label id="speed-potion-howmany">(0)</label><button onclick="devourPotion('speed potion');">chug</button><button onclick="purchasePotion('speed potion');">brew (2 gems)</button><br>
-						<label>jumping potion (10 seconds)</label><label id="jumping-potion-howmany">(0)</label><button onclick="devourPotion('jumping potion');">chug</button><button onclick="purchasePotion('jumping potion');">brew (3 gems)</button><br>
-						<label>regeneration potion (10 seconds)</label><label id="regeneration-potion-howmany">(0)</label><button onclick="devourPotion('regeneration potion');">chug</button><button onclick="purchasePotion('regeneration potion');">brew (5 gems)</button><br>
-						<label>spider potion (10 seconds)</label><label id="spider-potion-howmany">(0)</label><button onclick="devourPotion('spider potion');">chug</button><button onclick="purchasePotion('spider potion');">brew (7 gems)</button><br>
-						<label>levitation potion (10 seconds)</label><label id="levitation-potion-howmany">(0)</label><button onclick="devourPotion('levitation potion');">chug</button><button onclick="purchasePotion('levitation potion');">brew (8 gems)</button><br>
-						<label>bird potion (10 seconds)</label><label id="bird-potion-howmany">(0)</label><button onclick="devourPotion('bird potion');">chug</button><button onclick="purchasePotion('bird potion');">brew (10 gems)</button><br>-->
+						<h3>potions</h3>
+						<label>speed potion (10 seconds)</label><label id="speed-potion-howmany">(0)</label><button onclick="chugPotion('speed potion');">chug</button><button onclick="brewPotion('speed potion');">brew (2 gems)</button><br>
+						<label>jumping potion (10 seconds)</label><label id="jumping-potion-howmany">(0)</label><button onclick="chugPotion('jumping potion');">chug</button><button onclick="brewPotion('jumping potion');">brew (3 gems)</button><br>
+						<label>regeneration potion (10 seconds)</label><label id="regeneration-potion-howmany">(0)</label><button onclick="chugPotion('regeneration potion');">chug</button><button onclick="brewPotion('regeneration potion');">brew (5 gems)</button><br>
+						<label>spider potion (10 seconds)</label><label id="spider-potion-howmany">(0)</label><button onclick="chugPotion('spider potion');">chug</button><button onclick="brewPotion('spider potion');">brew (7 gems)</button><br>
+						<label>levitation potion (10 seconds)</label><label id="levitation-potion-howmany">(0)</label><button onclick="chugPotion('levitation potion');">chug</button><button onclick="brewPotion('levitation potion');">brew (8 gems)</button><br>
+						<label>bird potion (10 seconds)</label><label id="bird-potion-howmany">(0)</label><button onclick="chugPotion('bird potion');">chug</button><button onclick="brewPotion('bird potion');">brew (12 gems)</button>
 					</div>
 				</div>
 			</div>
@@ -200,9 +200,6 @@
 				this.image.onload = function() {
 					canvasimagething.loaded = true;
 					imagesLoaded++;
-					if (imagesLoaded == Object.keys(images).length) {
-						//loop();
-					}; 
 				};
 			};
 			draw(sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
@@ -313,7 +310,11 @@
 			mysteryCrate: new CanvasImage("rgb(200, 200, 0)", "https://thumbs.dreamstime.com/b/crate-question-10722232.jpg"),
 			ladder: new CanvasImage("rgb(200, 200, 160)", "https://m.media-amazon.com/images/I/71l4pWDxfTL.jpg"),
 			guyJumping: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/young-businessman-jumping-excitement-full-length-shot-isolated-white-background-156089211.jpg"),
-			guyRunning: new CanvasImage("rgb(255, 255, 255)", "https://d2gg9evh47fn9z.cloudfront.net/800px_COLOURBOX3059374.jpg")
+			guyRunning: new CanvasImage("rgb(255, 255, 255)", "https://d2gg9evh47fn9z.cloudfront.net/800px_COLOURBOX3059374.jpg"),
+			guyClimbingLadder: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/businessman-climbing-ladder-8490148.jpg"),
+			guyFalling: new CanvasImage("rgb(255, 255, 255)", "https://media.istockphoto.com/id/1297454782/photo/businessman-falling-down-isolated.jpg?s=612x612&w=0&k=20&c=UwgYtYVhktnHcYOHovzWOD3oZT1JNrguZcl5cQCKEGw="),
+			guyDead: new CanvasImage("rgb(255, 200, 200)", "https://as1.ftcdn.net/v2/jpg/00/47/51/36/1000_F_47513651_NvfOZ1VY0YQwXriVuQKDCE6XLueitq57.jpg"),
+			guyFlying: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/flying-businessman-happy-high-isolated-white-37045715.jpg")
 		};
 		var layers = {
 			"-6": [images.lava, 0.9],
@@ -330,8 +331,8 @@
 		//=================//
 		// -==ROW STUFF=-- //
 		//=================//
-		var rows = {};
-		var originalRows = {};
+		var rows = [];
+		var originalRows = [];
 		var features = [];
 		var coins = 0;
 		var gems = 0;
@@ -340,8 +341,8 @@
 			octaves.push(new Simple1DNoise());
 		};
 		function generateLevel(downy) {
-			let oldLength = Object.keys(rows).length;
-			for (let i = oldLength + 1; i < oldLength + 1 + 1000; i++) {
+			let oldLength = rows.length//rows.length == 0 ? -1 : rows.length;
+			for (let i = oldLength; i < oldLength + 1000; i++) {
 				let perlinHeight = 0;
 				for (let j = 0; j < octaves.length; j++) {
 					perlinHeight += ((octaves[j].getVal(i / 10) - downy) * 4) / (2 ** j);
@@ -350,11 +351,13 @@
 			};
 
 			// round stuff and coins n gems
-			for (let i = oldLength + 1; i < oldLength + 1 + 1000; i++) {// 0-air 1-coin 2-gem
+			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate
 				rows[i] = originalRows[i] = Math.round(rows[i]);
 				let pool = [];
 				if (Math.random() < 0.05) pool.push(1);
 				if (Math.random() < 0.005) pool.push(2);
+				if (Math.random() < 0.001) pool.push(6);
+				if (Math.random() < 0.0002) pool.push(5);
 				features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 			};
 		};
@@ -385,6 +388,14 @@
 			"cow brain": {cost: 38, hunger: 0.9, howmany: 0},
 			"filling warm meal": {cost: 41, hunger: 1, howmany: 0}
 		};
+		var potions = {
+			"speed potion": {cost: 2, time: 0, duration: 10, howmany: 0},
+			"jumping potion": {cost: 3, time: 0, duration: 10, howmany: 0},
+			"regeneration potion": {cost: 5, time: 0, duration: 10, howmany: 0},
+			"spider potion": {cost: 7, time: 0, duration: 10, howmany: 0},
+			"levitation potion": {cost: 8, time: 0, duration: 10, howmany: 0},
+			"bird potion": {cost: 12, time: 0, duration: 10, howmany: 0}
+		};
 		var boots = "sketchers";
 		var health = 1;
 		var dead = false;
@@ -399,7 +410,10 @@
 		};
 		var tallLadders = 0;
 		var score = 0;
-
+		var fps = 0;
+		var startFrameTime = 0;
+		var endFrameTime = 0;
+		var flying = true;
 
 		function getHittableRows() {
 			hittableRows = [];
@@ -503,11 +517,18 @@
 		function keyDownFunction(e) {
 			if (e.repeat) return;
 			keysDown[e.key] = true;
-			if (e.key == 't') {
+			if (e.key == "t") {
 				facasd = true;
 				setTimeout(() => {
 					facasd = false;
 				}, 3000);
+			} else if (e.key == "l") {
+				rows = JSON.parse(prompt("what level"));
+			} else if (e.key == "r") {
+				playerXV = 0;
+				playerYV = 0;
+				playerX = 75;
+				playerY = rows[1] * -50 ?? 0;
 			};
 		};
 		function purchaseLadder() {
@@ -538,46 +559,81 @@
 				tallLadders--;
 			};
 		};
+		function brewPotion(potion) {
+			if (gems >= potions[potion].cost) {
+				potions[potion].howmany++;
+				gems -= potions[potion].cost;
+			} else {
+				alert("bankrupt");
+			};
+		};
+		function chugPotion(potion) {
+			if (potions[potion].howmany >= 1) {
+				potions[potion].howmany--;
+				potions[potion].time += potions[potion].duration;
+			};
+		};
+		Array.prototype.random = function() {
+			return this[Math.floor(Math.random() * this.length)];
+		};
 
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
-			controls.up = isDown("ArrowUp") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5));
-			controls.down = isDown("ArrowDown") || (joystick.strength > 0.5 && (joystick.angle > -67.5 || joystick.angle < 67.5));
-			controls.left = isDown("ArrowLeft") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5));
-			controls.right = isDown("ArrowRight") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5));
+			controls.up = isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5));
+			controls.down = isDown("ArrowDown") || isDown("s") || (joystick.strength > 0.5 && (joystick.angle > -67.5 && joystick.angle < 67.5));
+			controls.left = isDown("ArrowLeft") || isDown("a") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5));
+			controls.right = isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5));
 			if (!shop && !dead) {
-				if (playerX / 50 >= Object.keys(rows).length) {
+				if (playerX / 50 >= rows.length) {
 					generateLevel(0.5);
 				};
+				let bakedRows = [...rows].map((it, i) => it + (features[i] == 5) * 5);
+
+				for (let potion in potions) {
+					potions[potion].time = Math.max(potions[potion].time - (1 / 60), 0);
+				};
+				flying = potions["bird potion"].time > 0;
+				let playerSpeed = 10 + (boots == "running shoes") * 2 + (potions["speed potion"].time > 0) * 5;
 				if (controls.right != controls.left) {
 					let sign = (controls.right - controls.left);
-					playerXV = inLadder ? sign * 5 : (sign * (boots == "running shoes" ? 12 : 10) + (sign * 2 * (controls.up && onGround)));
+					playerXV = inLadder ? sign * 5 : (flying ? sign * 15 : (sign * playerSpeed + (sign * 2 * (controls.up && onGround))));
 				};
 				playerX += playerXV;
 				let hittableRows;
 				let playerColliding = () => {
 					hittableRows = getHittableRows();
-					return rows[hittableRows[0]] * -50 < playerY + 50 || rows[hittableRows[1]] * -50 < playerY + 50 || rows[hittableRows[2]] * -50 < playerY + 50;
+					return (hittableRows[0] != undefined && bakedRows[hittableRows[0]] * -50 < playerY + 50) || (hittableRows[1] != undefined && bakedRows[hittableRows[1]] * -50 < playerY + 50);
 				};
+
 				if (playerColliding()) {
-					let max = getHittableRows().reduce((a, b) => rows[a] > rows[b] ? a : b);
-					if (onGround && playerY / -50 - 1 >= rows[max] - (boots == "stepping boots" ? 1 : 0.5)) {
-						playerY -= (rows[max] - (playerY / -50 - 1)) * 50;
+					let max = getHittableRows().reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
+					if (onGround && playerY / -50 - 1 >= bakedRows[max] - (boots == "stepping boots" ? 1 : 0.5) && potions["spider potion"].time <= 0) {
+						playerY -= (bakedRows[max] - (playerY / -50 - 1)) * 50;
 					} else {
 						playerX = Math.ceil(playerX / 50) * 50 - 25;
 						playerXV = 0;
+						if (potions["spider potion"].time > 0) {
+							playerYV = 0;
+							playerY -= 10;
+						};
 					};
 				};
 				if (inLadder) {
 					playerYV = (controls.down - controls.up) * 5;
+				} else if (flying) {
+					if (controls.up != controls.down) {
+						playerYV = (controls.down - controls.up) * 15;
+					};
+					playerYV *= 0.99;
 				} else {
-					playerYV += controls.up * onGround * ((boots == "spring boots" ? -15 : -12) - Math.abs(playerXV) * 0.15);
+					let jumpHeight = -12 + (boots == "spring boots") * -3 + (potions["jumping potion"].time > 0) * -4;
+					playerYV += controls.up * onGround * (jumpHeight - Math.abs(playerXV) * 0.15);
 				};
 				playerY += playerYV;
 				hittableRows = getHittableRows();
-				let max = hittableRows.reduce((a, b) => rows[a] > rows[b] ? a : b);
+				let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
 				let oldOnGround = onGround;
-				onGround = playerY > rows[max] * -50 - 50;
+				onGround = playerY > bakedRows[max] * -50 - 50;
 				if (!oldOnGround && onGround && playerYV > 30) {
 					health -= playerYV * 0.001;
 				};
@@ -585,14 +641,14 @@
 					if (getLayer(rows[max]) == 2 && rows[max] - 200 > (originalRows[max] - 200) * 0.9 && boots != "tennis rackets") {
 						rows[max] -= 0.005;
 					};
-					playerY = rows[max] * -50 - 50;
+					playerY = bakedRows[max] * -50 - 50;
 					playerYV = 0;
 				};
 				let oldInLadder = inLadder;
 				inLadder = false;
 				for (let i = 0; i < features.length; i++) {
 					if (playerX / 50 + 0.5 > i && playerX / 50 - 0.5 < i + 1) {
-						if (playerY / -50 - 1 < rows[i] + 1) {
+						if (playerY / -50 - 1 < bakedRows[i] + 1) {
 							switch (features[i]) {
 								case 1:
 									coins++;
@@ -602,9 +658,44 @@
 									gems++;
 									features[i] = 0;
 									break;
+								case 6:
+									let crateOption = ["food", "potion", "ladder", "coins", "gems", "nothing"].random();
+									let specific = null;
+									switch (crateOption) {
+										case "food":
+											specific = Object.keys(foods).random();
+											foods[specific].howmany++;
+											break;
+										case "potion":
+											specific = Object.keys(potions).random();
+											potions[specific].howmany++;
+											break;
+										case "ladder":
+											specific = ["ladder", "tall ladder"].random();
+											switch (specific) {
+												case "ladder":
+													ladders++;
+													break;
+												case "tall ladder":
+													tallLadders++;
+											};
+											break;
+										case "coins":
+											specific = Math.floor(Math.random() * 19 + 1);
+											coins += specific;
+											break;
+										case "gems":
+											specific = Math.floor(Math.random() * 3 + 1);
+											gems += specific;
+											break;
+										case "nothing":
+											specific = "get better";
+									};
+									alert("mystery crate opened! item: " + crateOption + " (" + specific + ")");
+									features[i] = 0;
 							};
 						};
-						if ((playerY / -50 - 1 < rows[i] + 4 && features[i] == 3) || (playerY / -50 - 1 < rows[i] + 6 && features[i] == 4)) {
+						if ((playerY / -50 - 1 < bakedRows[i] + 4 && features[i] == 3) || (playerY / -50 - 1 < bakedRows[i] + 6 && features[i] == 4)) {
 							inLadder = true;
 						};
 						if (inLadder != oldInLadder) {
@@ -614,7 +705,7 @@
 					};
 				};
 				playerXV *= inLadder ? 0 : (onGround ? layers[clamp(getLayer(playerY / -50), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1] : 0.99);
-				playerYV += inLadder ? 0 : 0.6;
+				playerYV = potions["levitation potion"].time > 0 ? -5 : (playerYV + ((inLadder || flying) ? 0 : 0.6));
 				if (boots == "feather boots") {
 					playerYV = Math.min(playerYV, 15);
 				};
@@ -622,7 +713,7 @@
 				cameraY = (cameraY * 3 + (playerY - canvas.height / 2)) / 4;
 				score = Math.max(score, Math.floor(playerX / 50));
 
-				health -= 0.00008;
+				health += potions["regeneration potion"].time > 0 ? 0.0008 : -0.00008;
 				health = clamp(health, 0, 1);
 				dead = health <= 0;
 
@@ -642,7 +733,7 @@
 				images.hills.draw(0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, canvas.height);
 
 				// grass
-				let rowBuffer = Object.keys(rows).map(it=>parseInt(it)).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width)
+				let rowBuffer = Object.keys(rows).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width)
 				for (let i = 0; i < rowBuffer.length; i++) {
 					let ice = getLayer(rows[rowBuffer[i]]) == 2 && rows[rowBuffer[i]] - 100 < (originalRows[rowBuffer[i]] - 100) * 0.9;
 					let groundImage = ice ? images.packedSnow : layers[clamp(getLayer(rows[rowBuffer[i]]), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][0];
@@ -661,10 +752,16 @@
 							break;
 						case 4:
 							images.ladder.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 300, 50, 300);
+							break;
+						case 5:
+							images.stones.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 250, 50, 250);
+							break;
+						case 6:
+							images.mysteryCrate.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
 					};
 				};
 			
-				let animatedGuyImage = onGround ? (Math.abs(playerXV) > 5 ? "guyRunning" : "guy") : "guyJumping"
+				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 5 ? "guyRunning" : "guy") : (playerYV >= 0 ? "guyFalling" : "guyJumping"))));
 				images[document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"].draw(playerX - 25 - cameraX, playerY - 50 - cameraY, 50, 100);
 				ctx.font = "30px arial";
 				ctx.fillStyle = "yellow";
@@ -676,27 +773,34 @@
 			};
 			let r = clamp(2 - health * 2, 0, 1) * 255;
 			let g = clamp(health * 2, 0, 1) * 255;
+			let b = (potions["regeneration potion"].time > 0) * 127;
 			document.getElementById("health-inner").style.width = 600 * health + "px";
-			document.getElementById("health-inner").style.backgroundColor = "rgb(" + r + ", " + g + ", 0)";
+			document.getElementById("health-inner").style.backgroundColor = "rgb(" + r + ", " + g + ", " + b + ")";
 			if (dead) {
 				ctx.font = "100px arial";
 				ctx.fillStyle = "red";
 				ctx.fillText("you died", 200, 200);
 			};
-			document.getElementById("stats").innerHTML = "score: " + score + "<br>coins: " + coins + "<br>gems: " + gems + "<br>boots: " + boots;
-			for (food in foods) {
+			document.getElementById("stats").innerHTML = "score: " + score + "<br>coins: " + coins + "<br>gems: " + gems + "<br>boots: " + boots + "<br>fps: " + fps + "<br>speed time: " + potions["speed potion"].time + "<br>time: " + performance.now() / 1000;
+			for (let food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
+			};
+			for (let potion in potions) {
+				document.getElementById(potion.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + potions[potion].howmany + ")";
 			};
 			document.getElementById("ladder-howmany").innerHTML = "(" + ladders + ")";
 			document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
 		};
 		function loop() {
+			startFrameTime = performance.now();
 			try {
 				tick();
 			} catch (e) {
 				alert(e.stack);
 				return;
 			};
+			endFrameTime = performance.now();
+			fps = ((endFrameTime - startFrameTime) / 1000);
 			requestAnimationFrame(loop);
 		};
 		loop();

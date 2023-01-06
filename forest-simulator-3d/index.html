@@ -110,6 +110,17 @@
 				width: 50%;
 				float: right;
 			}
+			#notification {
+				font-family: Arial, sans-serif;
+				position: absolute;
+				font-size: 30px;
+				color: yellow;
+				bottom: 10%;
+				left: 0px;
+				width: 100%;
+				text-align: center;
+				text-shadow: 0px 0px 3px black;
+			}
 		</style>
 	</head>
 	<body>
@@ -127,6 +138,15 @@
 			</div>
 			<div id="shop">
 				<h1>shop</h1>
+				<div id="saves">
+					<select id="save-slot-selector">
+						<option value="0" selected>slot 0</option>
+						<option value="1">slot 1</option>
+						<option value="2">slot 2</option>
+					</select>
+					<button onclick="saveSlot(document.getElementById('save-slot-selector').value);">save</button>
+					<button onclick="loadSlot(document.getElementById('save-slot-selector').value);">load</button>
+				</div>
 				<hr>
 				<input type="checkbox" id="joystick-checkbox"><label for="joystick-checkbox">joystick</label><br>
 				<input type="checkbox" id="animations-checkbox"><label for="animations-checkbox">animations</label>
@@ -138,7 +158,8 @@
 						<button onclick="clickShoeButton(this, 'running shoes');">Running shoes (60 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'spring boots');">Spring boots (90 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'feather boots');">Feather boots (120 coins)</button><br>
-						<button onclick="clickShoeButton(this, 'stepping boots');">Stepping boots (150 coins)</button>
+						<button onclick="clickShoeButton(this, 'stepping boots');">Stepping boots (150 coins)</button><br>
+						<button onclick="clickShoeButton(this, 'magnet boots');">Magnet boots (170 coins)</button>
 					</div><br>
 					<div id="food">
 						<h3>food</h3><br>
@@ -170,6 +191,9 @@
 						<label>bird potion (10 seconds)</label><label id="bird-potion-howmany">(0)</label><button onclick="chugPotion('bird potion');">chug</button><button onclick="brewPotion('bird potion');">brew (12 gems)</button>
 					</div>
 				</div>
+			</div>
+			<div id="notification">
+
 			</div>
 		</div>
 	</body>
@@ -292,7 +316,7 @@
 		var imagesLoaded = 0;
 		var images = {
 			guy: new CanvasImage("rgb(255, 255, 255)", "https://t4.ftcdn.net/jpg/01/73/40/15/360_F_173401516_HH7aV0os9LEum5ayYNrtoovV1jYrt561.jpg"),
-			sky: new CanvasImage("rgb(200, 200, 255)", "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL3doeS1pcy1za3ktYmx1ZS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjgyOH19fQ=="),
+			skyDay: new CanvasImage("rgb(200, 200, 255)", "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL3doeS1pcy1za3ktYmx1ZS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjgyOH19fQ=="),
 			grass: new CanvasImage("rgb(0, 200, 0)", "https://images.pexels.com/photos/413195/pexels-photo-413195.jpeg?cs=srgb&dl=pexels-pixmike-413195.jpg&fm=jpg"),
 			hills: new CanvasImage("rgb(0, 150, 0)", "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Chocolate_Hills_overview.JPG/1200px-Chocolate_Hills_overview.JPG"),
 			ice: new CanvasImage("rgb(220, 220, 255)", "https://media.istockphoto.com/id/466513257/photo/image-of-light-blue-ice-design.jpg?s=612x612&w=0&k=20&c=tkgdD6LDAjjDL-J_OCc2tkN924FLtjvgSeQWgVBY5-Y="),
@@ -314,9 +338,16 @@
 			guyClimbingLadder: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/businessman-climbing-ladder-8490148.jpg"),
 			guyFalling: new CanvasImage("rgb(255, 255, 255)", "https://media.istockphoto.com/id/1297454782/photo/businessman-falling-down-isolated.jpg?s=612x612&w=0&k=20&c=UwgYtYVhktnHcYOHovzWOD3oZT1JNrguZcl5cQCKEGw="),
 			guyDead: new CanvasImage("rgb(255, 200, 200)", "https://as1.ftcdn.net/v2/jpg/00/47/51/36/1000_F_47513651_NvfOZ1VY0YQwXriVuQKDCE6XLueitq57.jpg"),
-			guyFlying: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/flying-businessman-happy-high-isolated-white-37045715.jpg")
+			guyFlying: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/flying-businessman-happy-high-isolated-white-37045715.jpg"),
+			sentry: new CanvasImage("rgb(15, 15, 15)", "https://forums.rpgmakerweb.com/data/attachments/182/182633-4abbd801946b4603beb05c7c7c9e81a2.jpg"),
+			sentryBarracks: new CanvasImage("rgb(170, 200, 170)", "https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/abandoned-shack-in-woods-douglas-barnett.jpg"),
+			pitfall: new CanvasImage("128, 128, 50", "https://content.instructables.com/FJL/5NV5/FV4LSDNT/FJL5NV5FV4LSDNT.jpg?auto=webp&fit=bounds&frame=1"),
+			skyNight: new CanvasImage("rgb(0, 0, 0)", "https://images.unsplash.com/photo-1528818955841-a7f1425131b5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8c3RhcnJ5JTIwc2t5fGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
+			moon: new CanvasImage("rgb(70, 170, 170)", "https://bigthink.com/wp-content/uploads/2020/10/origin-26.jpg"),
+			ironNickelAlloy: new CanvasImage("rgb(210, 210, 210)", "https://cdn.openpr.com/R/b/Rb1218790_g.jpg")
 		};
 		var layers = {
+			"-7": [images.ironNickelAlloy, 0.85],
 			"-6": [images.lava, 0.9],
 			"-5": [images.magma, 0.77],
 			"-4": [images.darkStone, 0.65],
@@ -326,43 +357,17 @@
 			"0": [images.grass, 0.75],
 			"1": [images.stone, 0.65],
 			"2": [images.snow, 0.9],
-			"3": [images.ice, 0.96]
+			"3": [images.ice, 0.96],
+			"4": [images.moon, 0.7]
 		};
-		//=================//
-		// -==ROW STUFF=-- //
-		//=================//
-		var rows = [];
-		var originalRows = [];
-		var features = [];
+		var level = {
+			rows: [],
+			originalRows: [],
+			features: [],
+			octaves: [],
+		};
 		var coins = 0;
 		var gems = 0;
-		let octaves = [];
-		for (let i = 0; i < 5; i++) {
-			octaves.push(new Simple1DNoise());
-		};
-		function generateLevel(downy) {
-			let oldLength = rows.length//rows.length == 0 ? -1 : rows.length;
-			for (let i = oldLength; i < oldLength + 1000; i++) {
-				let perlinHeight = 0;
-				for (let j = 0; j < octaves.length; j++) {
-					perlinHeight += ((octaves[j].getVal(i / 10) - downy) * 4) / (2 ** j);
-				};
-				rows[i] = originalRows[i] = (rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
-			};
-
-			// round stuff and coins n gems
-			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate
-				rows[i] = originalRows[i] = Math.round(rows[i]);
-				let pool = [];
-				if (Math.random() < 0.05) pool.push(1);
-				if (Math.random() < 0.005) pool.push(2);
-				if (Math.random() < 0.001) pool.push(6);
-				if (Math.random() < 0.0002) pool.push(5);
-				features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
-			};
-		};
-		generateLevel(0.5);
-		playerY = rows[1] * -50 - 50;
 		var fac = 
 			"Marina silva is a brazilian politician and an activist for deforestation and other things. She was a rubber tapper and found that land was being invaded by rubber tappers and she started protecting thousands of hectares of land."
 		;
@@ -374,7 +379,8 @@
 			"running shoes": {bought: false, cost: 60},
 			"spring boots": {bought: false, cost: 90},
 			"feather boots": {bought: false, cost: 120},
-			"stepping boots": {bought: false, cost: 150}
+			"stepping boots": {bought: false, cost: 150},
+			"magnet boots": {bought: false, cost: 170}
 		};
 		var foods = {
 			"apple": {cost: 5, hunger: 0.1, howmany: 0},
@@ -413,16 +419,49 @@
 		var fps = 0;
 		var startFrameTime = 0;
 		var endFrameTime = 0;
-		var flying = true;
+		var flying = false;
+		var pb = 0;
+		var mobs = [];
+		var notification = "";
+		var notificationTime = 0;
+		var gameTime = 0;
 
-		function getHittableRows() {
-			hittableRows = [];
-			if (Math.mod(playerX, 50) < 25) {
-				hittableRows.push(Math.floor(playerX / 50) - 1);
+		for (let i = 0; i < 5; i++) {
+			level.octaves.push(perlinNoise1D());
+		};
+		function generateLevel() {
+			let oldLength = level.rows.length;//rows.length == 0 ? -1 : rows.length;
+			for (let i = oldLength; i < oldLength + 1000; i++) {
+				let perlinHeight = 0;
+				for (let j = 0; j < level.octaves.length; j++) {
+					perlinHeight += ((perlinGetVal(level.octaves[j], i / 10) - 0.5) * 4) / (2 ** j);
+				};
+				level.rows[i] = level.originalRows[i] = (level.rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
 			};
-			hittableRows.push(Math.floor(playerX / 50));
-			if (Math.mod(playerX, 50) > 25) {
-				hittableRows.push(Math.floor(playerX / 50) + 1);
+
+			// round stuff and coins n gems
+			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall
+				level.rows[i] = level.originalRows[i] = Math.round(level.rows[i]);
+				let pool = [];
+				if (Math.random() < 0.05) pool.push(1);
+				if (Math.random() < 0.005) pool.push(2);
+				if (Math.random() < 0.001) pool.push(6);
+				if (Math.random() < 0.0002) pool.push(5);
+				if (Math.random() < 0.0001) pool.push(7);
+				if (Math.random() < 0.025 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size == 1) pool.push(9);
+				level.features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
+			};
+		};
+		generateLevel();
+		playerY = level.rows[1] * -50 - 50;
+		function getHittableRows(x) {
+			hittableRows = [];
+			if (Math.mod(x, 50) < 25) {
+				hittableRows.push(Math.floor(x / 50) - 1);
+			};
+			hittableRows.push(Math.floor(x / 50));
+			if (Math.mod(x, 50) > 25) {
+				hittableRows.push(Math.floor(x / 50) + 1);
 			};
 			return hittableRows;
 		};
@@ -435,43 +474,21 @@
 		function lerp(a, b, c) {
 			return a * (1 - c) + b * c;
 		};
-		function Simple1DNoise() {
-			let MAX_VERTICES = 256;
-			let MAX_VERTICES_MASK = MAX_VERTICES -1;
-			let amplitude = 1;
-			let scale = 1;
 
+		function perlinNoise1D() {
+			let MAX_VERTICES = 512;
 			let r = [];
-
 			for (let i = 0; i < MAX_VERTICES; ++i) {
 				r.push(Math.random()); // mulberry32(i + 100));
 			};
-		
-			var getVal = function(x){
-				let scaledX = x * scale;
-				let xFloor = Math.floor(scaledX);
-				let t = scaledX - xFloor;
-				let tRemapSmoothstep = t * t * (3 - 2 * t);
-			
-				/// Modulo using &#038;
-				let xMin = xFloor & MAX_VERTICES_MASK;
-				let xMax = ( xMin + 1 ) & MAX_VERTICES_MASK;
-			
-				let y = lerp(r[xMin], r[xMax], tRemapSmoothstep);
-			
-				return y * amplitude;
-			};
-		
-			// return the API
-			return {
-				getVal: getVal,
-				setAmplitude: function(newAmplitude) {
-					amplitude = newAmplitude;
-				},
-				setScale: function(newScale) {
-					scale = newScale;
-				}
-			};
+			return {MAX_VERTICES, r};
+		};
+		function perlinGetVal(generator, x) {
+			let t = x - Math.floor(x);
+			let tRemapSmoothstep = t ** 2 * (3 - 2 * t);
+			let xMin = Math.floor(x) & (generator.MAX_VERTICES - 1);
+			let xMax = (xMin + 1) & (generator.MAX_VERTICES - 1);
+			return lerp(generator.r[xMin], generator.r[xMax], tRemapSmoothstep);
 		};
 		function mulberry32(a) {
 			let t = a += 0x6D2B79F5;
@@ -523,7 +540,7 @@
 					facasd = false;
 				}, 3000);
 			} else if (e.key == "l") {
-				rows = JSON.parse(prompt("what level"));
+				level.rows = JSON.parse(prompt("what level rows"));
 			} else if (e.key == "r") {
 				playerXV = 0;
 				playerYV = 0;
@@ -540,8 +557,8 @@
 			};
 		};
 		function placeLadder() {
-			if (ladders >= 1 && features[Math.floor(playerX / 50)] == 0) {
-				features[Math.floor(playerX / 50)] = 3;
+			if (ladders >= 1 && level.features[Math.floor(playerX / 50)] == 0) {
+				level.features[Math.floor(playerX / 50)] = 3;
 				ladders--;
 			};
 		};
@@ -554,8 +571,8 @@
 			};
 		};
 		function placeTallLadder() {
-			if (tallLadders >= 1 && features[Math.floor(playerX / 50)] == 0) {
-				features[Math.floor(playerX / 50)] = 4;
+			if (tallLadders >= 1 && level.features[Math.floor(playerX / 50)] == 0) {
+				level.features[Math.floor(playerX / 50)] = 4;
 				tallLadders--;
 			};
 		};
@@ -576,6 +593,74 @@
 		Array.prototype.random = function() {
 			return this[Math.floor(Math.random() * this.length)];
 		};
+		function saveSlot(slot) {
+			try{
+			let saveCode = JSON.stringify({
+				level,
+				playerX,
+				playerY,
+				playerXV,
+				playerYV,
+				coins,
+				gems,
+				ladders,
+				tallLadders,
+				health,
+				dead,
+				bootses,
+				boots,
+				foods,
+				potions,
+				pb,
+				mobs,
+				gameTime
+			});
+			localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
+		} catch(e) {alert(e.stack)}
+		};
+		function loadSlot(slot) {
+			let saveCode = localStorage.getItem("forestSimulator3DSaveSlot" + slot);
+			if (saveCode === null) {
+				alert("save slot " + slot + " empty, to create a new save slot reload and press save in the new one you want to create")
+			} else {
+				saveCode = JSON.parse(saveCode);
+				level = saveCode.level ?? level;
+				playerX = saveCode.playerX ?? playerX;
+				playerY = saveCode.playerY ?? playerY;
+				playerXV = saveCode.playerYV ?? playerXV;
+				coins = saveCode.coins ?? coins;
+				gems = saveCode.gems ?? gems;
+				ladders = saveCode.ladders ?? ladders;
+				tallLadders = saveCode.tallLadders ?? tallLadders;
+				health = saveCode.health ?? health;
+				dead = saveCode.dead ?? dead;
+				bootses = saveCode.bootses ?? bootses;
+				boots = saveCode.boots ?? boots;
+				foods = saveCode.foods ?? foods;
+				potions = saveCode.potions ?? potions;
+				pb = saveCode.pb ?? pb;
+				mobs = saveCode.mobs ?? mobs;
+				gameTime = saveCode.gameTime ?? gameTime;
+			};
+		};
+		function clearSlot(slot) {
+			localStorage.removeItem("forestSimulator3DSaveSlot" + slot);
+		};
+		function clearAllSlots() {
+			localStorage.clear();
+		};
+		function spawnMob(mob, x, y) {
+			mobs.push({
+				type: mob,
+				x: x,
+				y: y,
+				age: 0
+			});
+		};
+		function notificate(message) {
+			notification = message;
+			notificationTime = 180;
+		};
 
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
@@ -584,10 +669,11 @@
 			controls.left = isDown("ArrowLeft") || isDown("a") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5));
 			controls.right = isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5));
 			if (!shop && !dead) {
-				if (playerX / 50 >= rows.length) {
-					generateLevel(0.5);
+				if (playerX / 50 >= level.rows.length) {
+					generateLevel();
 				};
-				let bakedRows = [...rows].map((it, i) => it + (features[i] == 5) * 5);
+				let bakedRows = [...level.rows].map((it, i) => it + (level.features[i] == 5) * 5);
+				gameTime += 1/60;
 
 				for (let potion in potions) {
 					potions[potion].time = Math.max(potions[potion].time - (1 / 60), 0);
@@ -596,17 +682,17 @@
 				let playerSpeed = 10 + (boots == "running shoes") * 2 + (potions["speed potion"].time > 0) * 5;
 				if (controls.right != controls.left) {
 					let sign = (controls.right - controls.left);
-					playerXV = inLadder ? sign * 5 : (flying ? sign * 15 : (sign * playerSpeed + (sign * 2 * (controls.up && onGround))));
+					playerXV = inLadder ? sign * (boots == "magnet boots" ? 0 : 5) : (flying ? sign * 15 : (sign * playerSpeed + (sign * 2 * (controls.up && onGround))));
 				};
 				playerX += playerXV;
 				let hittableRows;
 				let playerColliding = () => {
-					hittableRows = getHittableRows();
+					hittableRows = getHittableRows(playerX);
 					return (hittableRows[0] != undefined && bakedRows[hittableRows[0]] * -50 < playerY + 50) || (hittableRows[1] != undefined && bakedRows[hittableRows[1]] * -50 < playerY + 50);
 				};
 
 				if (playerColliding()) {
-					let max = getHittableRows().reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
+					let max = getHittableRows(playerX).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
 					if (onGround && playerY / -50 - 1 >= bakedRows[max] - (boots == "stepping boots" ? 1 : 0.5) && potions["spider potion"].time <= 0) {
 						playerY -= (bakedRows[max] - (playerY / -50 - 1)) * 50;
 					} else {
@@ -619,7 +705,7 @@
 					};
 				};
 				if (inLadder) {
-					playerYV = (controls.down - controls.up) * 5;
+					playerYV = (controls.down - controls.up) * (boots == "magnet boots" ? 0 : 5);
 				} else if (flying) {
 					if (controls.up != controls.down) {
 						playerYV = (controls.down - controls.up) * 15;
@@ -630,7 +716,7 @@
 					playerYV += controls.up * onGround * (jumpHeight - Math.abs(playerXV) * 0.15);
 				};
 				playerY += playerYV;
-				hittableRows = getHittableRows();
+				hittableRows = getHittableRows(playerX);
 				let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
 				let oldOnGround = onGround;
 				onGround = playerY > bakedRows[max] * -50 - 50;
@@ -638,25 +724,21 @@
 					health -= playerYV * 0.001;
 				};
 				if (onGround) {
-					if (getLayer(rows[max]) == 2 && rows[max] - 200 > (originalRows[max] - 200) * 0.9 && boots != "tennis rackets") {
-						rows[max] -= 0.005;
+					if (getLayer(level.rows[max]) == 2 && level.rows[max] - 200 > (level.originalRows[max] - 200) * 0.9 && boots != "tennis rackets") {
+						level.rows[max] -= 0.005;
 					};
 					playerY = bakedRows[max] * -50 - 50;
 					playerYV = 0;
 				};
 				let oldInLadder = inLadder;
 				inLadder = false;
-				for (let i = 0; i < features.length; i++) {
+				for (let i = 0; i < level.features.length; i++) {
 					if (playerX / 50 + 0.5 > i && playerX / 50 - 0.5 < i + 1) {
 						if (playerY / -50 - 1 < bakedRows[i] + 1) {
-							switch (features[i]) {
-								case 1:
-									coins++;
-									features[i] = 0;
-									break;
+							switch (level.features[i]) {
 								case 2:
 									gems++;
-									features[i] = 0;
+									level.features[i] = 0;
 									break;
 								case 6:
 									let crateOption = ["food", "potion", "ladder", "coins", "gems", "nothing"].random();
@@ -689,38 +771,81 @@
 											gems += specific;
 											break;
 										case "nothing":
-											specific = "get better";
+											if (Math.random() < 1/100) {
+												specific = "spawned 1000 sentries";
+												for (let i = 0; i < 1000; i++) {
+													spawnMob("sentry", Math.random() * level.rows.length * 50, 0);
+												};
+											} else {
+												specific = "get better";
+											};
 									};
-									alert("mystery crate opened! item: " + crateOption + " (" + specific + ")");
-									features[i] = 0;
+									notificate("mystery crate opened! item: " + crateOption + " (" + specific + ")");
+									level.features[i] = 0;
 							};
 						};
-						if ((playerY / -50 - 1 < bakedRows[i] + 4 && features[i] == 3) || (playerY / -50 - 1 < bakedRows[i] + 6 && features[i] == 4)) {
+						if (level.features[i] == 1 && (boots == "magnet boots" || playerY / -50 - 1 < bakedRows[i] + 1)) {
+							coins++;
+							level.features[i] = 0;
+						};
+						if ((playerY / -50 - 1 < bakedRows[i] + 4 && level.features[i] == 3) || (playerY / -50 - 1 < bakedRows[i] + 6 && level.features[i] == 4)) {
 							inLadder = true;
 						};
 						if (inLadder != oldInLadder) {
 							playerXV = 0;
 							playerYV = 0;
 						};
+						if (playerY / -50 - 1 < bakedRows[i] + 3 && level.features[i] == 7) {
+							spawnMob("sentry", playerX, playerY);
+							level.features[i] = 8;
+						};
+						if (onGround && playerY / -50 - 1 == bakedRows[i] && boots !== "tennis rackets" && level.features[i] == 9) {
+							level.rows[i - 1] = level.rows[i] = level.rows[i + 1] = level.rows[i] - 4;
+							level.features[i - 1] = 0;
+							level.features[i] = 0;
+							level.features[i + 1] = 0;
+						};
 					};
 				};
 				playerXV *= inLadder ? 0 : (onGround ? layers[clamp(getLayer(playerY / -50), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1] : 0.99);
-				playerYV = potions["levitation potion"].time > 0 ? -5 : (playerYV + ((inLadder || flying) ? 0 : 0.6));
+				playerYV = potions["levitation potion"].time > 0 ? -5 : (playerYV + ((inLadder || flying) ? 0 : ((boots == "magnet boots" && getLayer(playerY / -50) == -7) ? 1.2 : 0.6)));
 				if (boots == "feather boots") {
 					playerYV = Math.min(playerYV, 15);
 				};
+
+				for (mob of mobs) {
+					mob.age++;
+					if (mob.type !== "sentry" || mob.age >= 120) {
+						let xSign = Math.sign(playerX - mob.x)
+						mob.x += xSign * 3;
+						if (xSign !== Math.sign(playerX - mob.x)) {
+							mob.x = playerX;
+						};
+						let sentryStepHeight = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+						if (sentryStepHeight - (mob.y / -50 - 2) <= 3) {
+							mob.y = sentryStepHeight * -50 - 100;
+						} else {
+							mob.x = Math.ceil(mob.x / 50) * 50 - 25;
+						};
+						if (mob.x + 25 > playerX - 25 && mob.x - 25 < playerX + 25 && playerY + 50 > mob.y - 100) {
+							health -= 0.01;
+						};
+					};
+				};
+
 				cameraX = (cameraX * 3 + (playerX - canvas.width / 2)) / 4;
 				cameraY = (cameraY * 3 + (playerY - canvas.height / 2)) / 4;
 				score = Math.max(score, Math.floor(playerX / 50));
+				pb = Math.max(pb, score);
 
 				health += potions["regeneration potion"].time > 0 ? 0.0008 : -0.00008;
 				health = clamp(health, 0, 1);
 				dead = health <= 0;
+				notificationTime = Math.max(0, notificationTime - 1);
 
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-				images.sky.draw(0, 0, canvas.width, canvas.height);
-				//images.sky.draw(0, 0, canvas.width, canvas.height);
+				images[((gameTime % 600 < 300 && getLayer(playerY / -50) < 4) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
 				
 				if (cameraY > 200) {
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
@@ -733,14 +858,14 @@
 				images.hills.draw(0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, canvas.height);
 
 				// grass
-				let rowBuffer = Object.keys(rows).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width)
+				let rowBuffer = Object.keys(level.rows).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width)
 				for (let i = 0; i < rowBuffer.length; i++) {
-					let ice = getLayer(rows[rowBuffer[i]]) == 2 && rows[rowBuffer[i]] - 100 < (originalRows[rowBuffer[i]] - 100) * 0.9;
-					let groundImage = ice ? images.packedSnow : layers[clamp(getLayer(rows[rowBuffer[i]]), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][0];
+					let ice = getLayer(level.rows[rowBuffer[i]]) == 2 && level.rows[rowBuffer[i]] - 100 < (level.originalRows[rowBuffer[i]] - 100) * 0.9;
+					let groundImage = ice ? images.packedSnow : layers[clamp(getLayer(level.rows[rowBuffer[i]]), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][0];
 					let imageWidth = groundImage.image.height * (50 / (canvas.height * 2));
-					let imageHeight = rows[rowBuffer[i]] * -50 - cameraY;
+					let imageHeight = level.rows[rowBuffer[i]] * -50 - cameraY;
 					groundImage.draw(Math.floor(((imageWidth * rowBuffer[i]) % (Math.floor(groundImage.image.width / imageWidth) * imageWidth)) / imageWidth) * imageWidth, 0, imageWidth, groundImage.image.height, rowBuffer[i] * 50 - cameraX, imageHeight, 50, canvas.height * 2);
-					switch (features[rowBuffer[i]]) {
+					switch (level.features[rowBuffer[i]]) {
 						case 1:
 							images.coin.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
 							break;
@@ -758,11 +883,25 @@
 							break;
 						case 6:
 							images.mysteryCrate.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
+							break;
+						case 7:
+							images.sentryBarracks.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 150, 50, 150);
+							break;
+						case 8:
+							images.sentryBarracks.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 150, 50, 150);
+							break;
+						case 9:
+							images.pitfall.draw(rowBuffer[i] * 50 - cameraX, imageHeight, 50, 25);
 					};
 				};
 			
 				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 5 ? "guyRunning" : "guy") : (playerYV >= 0 ? "guyFalling" : "guyJumping"))));
 				images[document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"].draw(playerX - 25 - cameraX, playerY - 50 - cameraY, 50, 100);
+				for (mob of mobs) {
+					if (mob.type != "sentry" || mob.age >= 120) {
+						images[mob.type].draw(mob.x - 25 - cameraX, mob.y - 100 - cameraY, 50, 200);
+					};
+				};
 				ctx.font = "30px arial";
 				ctx.fillStyle = "yellow";
 				if (facasd) {
@@ -781,7 +920,8 @@
 				ctx.fillStyle = "red";
 				ctx.fillText("you died", 200, 200);
 			};
-			document.getElementById("stats").innerHTML = "score: " + score + "<br>coins: " + coins + "<br>gems: " + gems + "<br>boots: " + boots + "<br>fps: " + fps + "<br>speed time: " + potions["speed potion"].time + "<br>time: " + performance.now() / 1000;
+			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY / -50 - 1) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>boots: " + boots + "<br>frametime: " + Math.round(fps * 10000) / 10000;
+			document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 			for (let food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
 			};

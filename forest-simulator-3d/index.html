@@ -349,7 +349,9 @@
 			moon: new CanvasImage("rgb(70, 170, 170)", "https://bigthink.com/wp-content/uploads/2020/10/origin-26.jpg"),
 			ironNickelAlloy: new CanvasImage("rgb(210, 210, 210)", "https://cdn.openpr.com/R/b/Rb1218790_g.jpg"),
 			mimic: new CanvasImage("rgb(240, 240, 240)", "https://www.halloweenforum.com/attachments/large-jpg.524714/"),
-			error: new CanvasImage("rgb(255, 0, 255)", "https://proofthatblog.com/wp-content/uploads/2013/06/question-mark.jpg")
+			error: new CanvasImage("rgb(255, 0, 255)", "https://proofthatblog.com/wp-content/uploads/2013/06/question-mark.jpg"),
+			dybbuk: new CanvasImage("rgb(246, 223, 198)", "https://m.media-amazon.com/images/I/71lrPEdwT3L.jpg"),
+			dybbukBox: new CanvasImage("rgb(212, 80, 56)", "https://travel.home.sndimg.com/content/dam/images/travel/fullrights/2016/03/29/0/TPOS101H_215929_761477.1304868.jpg.rend.hgtvcom.616.462.suffix/1491593805712.jpeg")
 		};
 		var layers = {
 			"-7": [images.ironNickelAlloy, 0.85],
@@ -431,10 +433,11 @@
 		var notificationTime = 0;
 		var gameTime = 0;
 		var blockSize = 50;
-		var developerMode = false;
+		var developerMode = true;
 		var macro = [];
 		var macroTime = 0;
 		var macroPlaying = false;
+		var dybbukTime = 0;
 
 		for (let i = 0; i < 5; i++) {
 			level.octaves.push(perlinNoise1D());
@@ -450,7 +453,7 @@
 			};
 
 			// round stuff and coins n gems
-			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall
+			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox
 				level.rows[i] = level.originalRows[i] = Math.round(level.rows[i]);
 				let pool = [];
 				if (Math.random() < 0.05) pool.push(1);
@@ -458,10 +461,11 @@
 				if (Math.random() < 0.001) pool.push(6);
 				if (Math.random() < 0.0002) pool.push(5);
 				if (Math.random() < 0.0001) pool.push(7);
+				if (Math.random() < 0.1001) pool.push(10);
 				if (Math.random() < 0.025 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size == 1) pool.push(9);
 				level.features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 
-				if (Math.random() < 0.01) {
+				if (Math.random() < 0.0001) {
 					spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
 				};
 			};
@@ -553,7 +557,7 @@
 				setTimeout(() => {
 					facasd = false;
 				}, 3000);
-			} else if (e.key == "l") {
+			} else if (e.key == "l" && developerMode) {
 				level.rows = JSON.parse(prompt("what level rows"));
 			} else if (e.key == "r") {
 				playerXV = 0;
@@ -564,6 +568,8 @@
 				macro = prompt("what macro").split(",");
 				macroTime = 0;
 				macroPlaying = true;
+			} else if (e.key == "p" && developerMode) {
+				spawnMob(prompt("what mob"), playerX - 5, level.rows[Math.floor(playerX - 5)] ?? 0);
 			};
 		};
 		function purchaseLadder() {
@@ -774,60 +780,72 @@
 
 				let oldInLadder = inLadder;
 				inLadder = false;
+				dybbukTime = Math.max(0, dybbukTime - 1);
 				for (let i = 0; i < level.features.length; i++) {
 					if (playerX + 0.5 > i && playerX - 0.5 < i + 1) {
 						if (playerY < bakedRows[i] + 1) {
 							switch (level.features[i]) {
 								case 2:
-									gems++;
+									if (dybbukTime <= 0) {
+										gems++;
+									};
 									level.features[i] = 0;
 									break;
 								case 6:
-									let crateOption = ["food", "potion", "ladder", "coins", "gems", "nothing"].random();
-									let specific = null;
-									switch (crateOption) {
-										case "food":
-											specific = Object.keys(foods).random();
-											foods[specific].howmany++;
-											break;
-										case "potion":
-											specific = Object.keys(potions).random();
-											potions[specific].howmany++;
-											break;
-										case "ladder":
-											specific = ["ladder", "tall ladder"].random();
-											switch (specific) {
-												case "ladder":
-													ladders++;
-													break;
-												case "tall ladder":
-													tallLadders++;
-											};
-											break;
-										case "coins":
-											specific = Math.floor(Math.random() * 19 + 1);
-											coins += specific;
-											break;
-										case "gems":
-											specific = Math.floor(Math.random() * 3 + 1);
-											gems += specific;
-											break;
-										case "nothing":
-											if (Math.random() < 1/100) {
-												specific = "spawned 1000 sentries";
-												for (let i = 0; i < 1000; i++) {
-													spawnMob("sentry", Math.random() * level.rows.length, 0);
+									if (dybbukTime <= 0) {
+										let crateOption = ["food", "potion", "ladder", "coins", "gems", "nothing"].random();
+										let specific = null;
+										switch (crateOption) {
+											case "food":
+												specific = Object.keys(foods).random();
+												foods[specific].howmany++;
+												break;
+											case "potion":
+												specific = Object.keys(potions).random();
+												potions[specific].howmany++;
+												break;
+											case "ladder":
+												specific = ["ladder", "tall ladder"].random();
+												switch (specific) {
+													case "ladder":
+														ladders++;
+														break;
+													case "tall ladder":
+														tallLadders++;
 												};
-											} else {
-												specific = "get better";
-											};
+												break;
+											case "coins":
+												specific = Math.floor(Math.random() * 19 + 1);
+												coins += specific;
+												break;
+											case "gems":
+												specific = Math.floor(Math.random() * 3 + 1);
+												gems += specific;
+												break;
+											case "nothing":
+												if (Math.random() < 1/100) {
+													specific = "spawned 1000 sentries";
+													for (let i = 0; i < 1000; i++) {
+														spawnMob("sentry", Math.random() * level.rows.length, 0);
+													};
+												} else {
+													specific = "get better";
+												};
+										};
+										notificate("mystery crate opened! item: " + crateOption + " (" + specific + ")");
 									};
-									notificate("mystery crate opened! item: " + crateOption + " (" + specific + ")");
 									level.features[i] = 0;
+									break;
+								case 10:
+									dybbukTime = 1200;
+									level.features[i] = 0;
+									break;
 							};
 						};
 						if (level.features[i] == 1 && (boots == "magnet boots" || playerY < bakedRows[i] + 1)) {
-							coins++;
+							if (dybbukTime <= 0) {
+								coins++;
+							};
 							level.features[i] = 0;
 						};
 						if ((playerY < bakedRows[i] + 4 && level.features[i] == 3) || (playerY < bakedRows[i] + 6 && level.features[i] == 4)) {
@@ -951,6 +969,9 @@
 						case 9:
 							images.pitfall.draw(rowBuffer[i] * 50 - cameraX, imageHeight, 50, 25);
 							break;
+						case 10:
+							images.dybbukBox.draw(110, 75, 200, 250, rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
+							break;
 						default:
 							images.error.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
 					};
@@ -958,6 +979,11 @@
 			
 				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV >= 0 ? "guyFalling" : "guyJumping"))));
 				images[document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"].draw(playerX * 50 - 25 - cameraX, playerY * -50 - 100 - cameraY, 50, 100);
+				if (dybbukTime > 0) {
+					ctx.globalAlpha = 0.5;
+					images.dybbuk.draw(playerX * 50 - 25 - cameraX, playerY * -50 - 100 - cameraY, 50, 100);
+					ctx.globalAlpha = 1;
+				};
 				for (mob of level.mobs) {
 					switch (mob.type) {
 						case "sentry":

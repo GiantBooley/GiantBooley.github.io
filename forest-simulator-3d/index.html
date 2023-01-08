@@ -304,6 +304,9 @@
 		Math.mod = function(a, b) {
 			return ((a % b) + b) % b;
 		};
+		Array.prototype.random = function() {
+			return this[Math.floor(Math.random() * this.length)];
+		};
 
 		var playerX = 1.5;
 		var playerY = 0;
@@ -356,7 +359,7 @@
 			"-3": [images.stone, 0.7],
 			"-2": [images.stones, 0.75],
 			"-1": [images.dirt, 0.8],
-			"0": [images.grass, 0.575],
+			"0": [images.grass, 0.75],
 			"1": [images.stone, 0.65],
 			"2": [images.snow, 0.9],
 			"3": [images.ice, 0.96],
@@ -367,6 +370,7 @@
 			originalRows: [],
 			features: [],
 			octaves: [],
+			mobs: []
 		};
 		var coins = 0;
 		var gems = 0;
@@ -423,11 +427,14 @@
 		var endFrameTime = 0;
 		var flying = false;
 		var pb = 0;
-		var mobs = [];
 		var notification = "";
 		var notificationTime = 0;
 		var gameTime = 0;
 		var blockSize = 50;
+		var developerMode = false;
+		var macro = [];
+		var macroTime = 0;
+		var macroPlaying = false;
 
 		for (let i = 0; i < 5; i++) {
 			level.octaves.push(perlinNoise1D());
@@ -453,6 +460,10 @@
 				if (Math.random() < 0.0001) pool.push(7);
 				if (Math.random() < 0.025 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size == 1) pool.push(9);
 				level.features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
+
+				if (Math.random() < 0.01) {
+					spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
+				};
 			};
 		};
 		generateLevel();
@@ -549,6 +560,10 @@
 				playerYV = 0;
 				playerX = 1.5;
 				playerY = level.rows[1] ?? 0;
+			} else if (e.key == "m" && developerMode) {
+				macro = prompt("what macro").split(",");
+				macroTime = 0;
+				macroPlaying = true;
 			};
 		};
 		function purchaseLadder() {
@@ -593,9 +608,6 @@
 				potions[potion].time += potions[potion].duration;
 			};
 		};
-		Array.prototype.random = function() {
-			return this[Math.floor(Math.random() * this.length)];
-		};
 		function saveSlot(slot) {
 			try{
 			let saveCode = JSON.stringify({
@@ -615,7 +627,6 @@
 				foods,
 				potions,
 				pb,
-				mobs,
 				gameTime
 			});
 			localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
@@ -642,7 +653,6 @@
 				foods = saveCode.foods ?? foods;
 				potions = saveCode.potions ?? potions;
 				pb = saveCode.pb ?? pb;
-				mobs = saveCode.mobs ?? mobs;
 				gameTime = saveCode.gameTime ?? gameTime;
 			};
 		};
@@ -652,13 +662,20 @@
 		function clearAllSlots() {
 			localStorage.clear();
 		};
-		function spawnMob(mob, x, y) {
-			mobs.push({
-				type: mob,
+		function spawnMob(type, x, y) {
+			let mob = {
+				type: type,
 				x: x,
 				y: y,
 				age: 0
-			});
+			};
+			if (type == "mimic") {
+				mob.mimicTarget = ["coin", "gem"].random();
+				mob.mimicTimer = false;
+				mob.mimicking = true;
+				mob.mimicSpawnAge = 0;
+			};
+			level.mobs.push(mob);
 		};
 		function notificate(message) {
 			notification = message;
@@ -667,10 +684,17 @@
 
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
-			controls.up = isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5));
-			controls.down = isDown("ArrowDown") || isDown("s") || (joystick.strength > 0.5 && (joystick.angle > -67.5 && joystick.angle < 67.5));
-			controls.left = isDown("ArrowLeft") || isDown("a") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5));
-			controls.right = isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5));
+			controls.up = isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5)) || (macroPlaying && parseInt(macro[macroTime][0]));
+			controls.down = isDown("ArrowDown") || isDown("s") || (joystick.strength > 0.5 && (joystick.angle > -67.5 && joystick.angle < 67.5)) || (macroPlaying && parseInt(macro[macroTime][1]));
+			controls.left = isDown("ArrowLeft") || isDown("a") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5)) || (macroPlaying && parseInt(macro[macroTime][2]));
+			controls.right = isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5)) || (macroPlaying && parseInt(macro[macroTime][3]));
+			if (macroPlaying) {
+				macroTime++;
+			};
+			if (macroTime >= macro.length) {
+				macroPlaying = false;
+				macroTime = 0;
+			};
 			if (!shop && !dead) {
 				if (playerX >= level.rows.length) {
 					generateLevel();
@@ -699,9 +723,9 @@
 				if ((hittableRows[0] != undefined && bakedRows[hittableRows[0]] > playerY) || (hittableRows[1] != undefined && bakedRows[hittableRows[1]] > playerY)) {
 					let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
 					if (onGround && playerY >= bakedRows[max] - (boots == "stepping boots" ? 1 : 0.5) && potions["spider potion"].time <= 0) {
-						playerY = bakedRows[max];console.log("step")
+						playerY = bakedRows[max];
 					} else {
-						playerX = Math.ceil(playerX) - 0.5 // = Math.ceil(playerX + playerXV) - 0.5 - playerX;
+						playerXV = Math.ceil(playerX + playerXV) - 0.5 - playerX;
 						if (potions["spider potion"].time > 0) {
 							playerYV = 0;
 							playerY += 0.2;
@@ -713,10 +737,10 @@
 				// Y MOVEMENT //
 
 				if (inLadder) {
-					playerYV = (controls.down - controls.up) * (boots == "magnet boots" ? 0 : -0.1);
+					playerYV = (controls.up - controls.down) * (boots == "magnet boots" ? 0 : 0.1);
 				} else if (flying) {
 					if (controls.up != controls.down) {
-						playerYV = (controls.down - controls.up) * 0.3;
+						playerYV = (controls.up - controls.down) * 0.3;
 					};
 					playerYV *= 0.99;
 				} else {
@@ -814,7 +838,7 @@
 							playerYV = 0;
 						};
 						if (playerY < bakedRows[i] + 3 && level.features[i] == 7) {
-							spawnMob("sentry", playerX, playerY);
+							spawnMob("sentry", i + 0.5, bakedRows[i + 1]);
 							level.features[i] = 8;
 						};
 						if (onGround && playerY == bakedRows[i] && boots !== "tennis rackets" && level.features[i] == 9) {
@@ -826,36 +850,43 @@
 					};
 				};
 
-				for (mob of mobs) {
+				for (mob of level.mobs) {
+					switch (mob.type) {
+						case "sentry":
+							if ( mob.age >= 120) {
+								let xSign = Math.sign(playerX - mob.x)
+								mob.x += xSign * 0.06;
+								if (xSign !== Math.sign(playerX - mob.x)) {
+									mob.x = playerX;
+								};
+								let sentryStepHeight = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+								if (sentryStepHeight - (mob.y) <= 3) {
+									mob.y = sentryStepHeight;
+								} else {
+									mob.x = Math.ceil(mob.x) - 0.5;
+								};
+								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
+									health -= 0.01;
+								};
+							};
+							break;
+						case "mimic":
+							if (!mob.mimicking) {
+								mob.x = (mob.x > playerX ? Math.min : Math.max)(mob.x, mob.x + playerXV);
+								mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
+									health -= 0.01;
+								};
+							} else if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1 && playerY + 2 > mob.y) {
+								mob.mimicTimer = true;
+							};
+							if (mob.mimicTimer) {
+								mob.mimicSpawnAge++;
+								mob.mimicking = (mob.mimicSpawnAge < 120);
+							};
+							break;
+					};
 					mob.age++;
-					if (mob.type == "sentry" && mob.age >= 120) {
-						let xSign = Math.sign(playerX - mob.x)
-						mob.x += xSign * 0.06;
-						if (xSign !== Math.sign(playerX - mob.x)) {
-							mob.x = playerX;
-						};
-						let sentryStepHeight = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
-						if (sentryStepHeight - (mob.y) <= 3) {
-							mob.y = sentryStepHeight;
-						} else {
-							mob.x = Math.ceil(mob.x) - 0.5;
-						};
-						if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
-							health -= 0.01;
-						};
-					};
-					if (mob.type == "mimic") {
-						mob.x = (mob.x > playerX ? Math.min : Math.max)(mob.x, mob.x + playerXV);
-						let mimicStepHeight = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
-						if (mimicStepHeight - (mob.y) <= 3) {
-							mob.y = mimicStepHeight;
-						} else {
-							mob.x = Math.ceil(mob.x) - 0.5;
-						};
-						if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
-							health -= 0.01;
-						};
-					};
 				};
 
 				cameraX = (cameraX * 3 + (playerX * 50 - canvas.width / 2)) / 4;
@@ -927,7 +958,7 @@
 			
 				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV >= 0 ? "guyFalling" : "guyJumping"))));
 				images[document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"].draw(playerX * 50 - 25 - cameraX, playerY * -50 - 100 - cameraY, 50, 100);
-				for (mob of mobs) {
+				for (mob of level.mobs) {
 					switch (mob.type) {
 						case "sentry":
 							if (mob.age >= 120) {
@@ -935,15 +966,28 @@
 							};
 							break;
 						case "mimic":
-							switch (Math.sign(Math.round(playerXV * 1000) / 1000)) {
-								case -1:
-									images.mimic.draw(307, 87, 84, 193, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
-									break;
-								case 0:
-									images.mimic.draw(217, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
-									break;
-								case 1:
-									images.mimic.draw(109, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+							if (mob.mimicking) {
+								switch (mob.mimicTarget) {
+									case "coin":
+										images.coin.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+										break;
+									case "gem":
+										images.gem.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+										break;
+									default:
+										images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+								};
+							} else {
+								switch (Math.sign(Math.round(playerXV * 1000) / 1000)) {
+									case -1:
+										images.mimic.draw(307, 87, 84, 193, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+										break;
+									case 0:
+										images.mimic.draw(217, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+										break;
+									case 1:
+										images.mimic.draw(109, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+								};
 							};
 							break;
 						default:

@@ -352,7 +352,9 @@
 			error: new CanvasImage("rgb(255, 0, 255)", "https://proofthatblog.com/wp-content/uploads/2013/06/question-mark.jpg"),
 			dybbuk: new CanvasImage("rgb(246, 223, 198)", "https://m.media-amazon.com/images/I/71lrPEdwT3L.jpg"),
 			dybbukBox: new CanvasImage("rgb(212, 80, 56)", "https://travel.home.sndimg.com/content/dam/images/travel/fullrights/2016/03/29/0/TPOS101H_215929_761477.1304868.jpg.rend.hgtvcom.616.462.suffix/1491593805712.jpeg"),
-			dybbukBoxOpen: new CanvasImage("rgb(202, 70, 46)", "https://i0.wp.com/bloody-disgusting.com/wp-content/uploads/2012/04/dybbuk-box.jpg")
+			dybbukBoxOpen: new CanvasImage("rgb(202, 70, 46)", "https://i0.wp.com/bloody-disgusting.com/wp-content/uploads/2012/04/dybbuk-box.jpg"),
+			golem: new CanvasImage("rgb(150, 150, 10)", "https://upload.wikimedia.org/wikipedia/commons/9/9f/Prague-golem-reproduction.jpg"),
+			russetGolem: new CanvasImage("rgb(200, 150, 10)", "https://i.etsystatic.com/25674007/r/il/edaabf/2662111538/il_570xN.2662111538_kdmy.jpg")
 		};
 		var layers = {
 			"-7": [images.ironNickelAlloy, 0.85],
@@ -439,6 +441,7 @@
 		var macroTime = 0;
 		var macroPlaying = false;
 		var dybbukTime = 0;
+		var crouching = false;
 
 		for (let i = 0; i < 5; i++) {
 			level.octaves.push(perlinNoise1D());
@@ -468,6 +471,9 @@
 
 				if (Math.random() < 0.0001) {
 					spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
+				};
+				if (Math.random() < 0.0108) {
+					spawnMob("golem", i + 0.5, level.rows[i]);
 				};
 			};
 		};
@@ -570,7 +576,7 @@
 				macroTime = 0;
 				macroPlaying = true;
 			} else if (e.key == "p" && developerMode) {
-				spawnMob(prompt("what mob"), playerX - 5, level.rows[Math.floor(playerX - 5)] ?? 0);
+				spawnMob(prompt("what mob"), playerX - 3, level.rows[Math.floor(playerX - 5)] ?? 0);
 			};
 		};
 		function purchaseLadder() {
@@ -681,6 +687,12 @@
 				mob.mimicTimer = false;
 				mob.mimicking = true;
 				mob.mimicSpawnAge = 0;
+			} else if (mob.type == "golem") {
+				mob.yOffset = arguments[3] ? -3 : 0;
+				mob.riseSpeed = arguments[3] ? 0.01 : 0;
+			} else if (mob.type == "russet golem") {
+				mob.yOffset = arguments[3] ? -6 : 0;
+				mob.riseSpeed = arguments[3] ? 0.008 : 0;
 			};
 			level.mobs.push(mob);
 		};
@@ -706,7 +718,19 @@
 				if (playerX >= level.rows.length) {
 					generateLevel();
 				};
-				let bakedRows = [...level.rows].map((it, i) => it + (level.features[i] == 5) * 5);
+
+				let bakedRows = [...level.rows];
+				for (let i = 0; i < bakedRows.length; i++) {
+					bakedRows[i] += (level.features[i] == 5) * 5;
+					for (let j = 0; j < level.mobs.length; j++) {
+						if (level.mobs[j].type == "golem" && Math.floor(level.mobs[j].x) == i) {
+							bakedRows[i] += level.mobs[j].yOffset + 3;
+						} else if (level.mobs[j].type == "russet golem" && Math.floor(level.mobs[j].x) == i) {
+							bakedRows[i] += level.mobs[j].yOffset + 6;
+						};
+					};
+				};
+
 				gameTime += 1/60;
 
 				for (let potion in potions) {
@@ -872,7 +896,7 @@
 				for (mob of level.mobs) {
 					switch (mob.type) {
 						case "sentry":
-							if ( mob.age >= 120) {
+							if (mob.age >= 120) {
 								let xSign = Math.sign(playerX - mob.x)
 								mob.x += xSign * 0.06;
 								if (xSign !== Math.sign(playerX - mob.x)) {
@@ -902,6 +926,39 @@
 							if (mob.mimicTimer) {
 								mob.mimicSpawnAge++;
 								mob.mimicking = (mob.mimicSpawnAge < 120);
+							};
+							break;
+						case "golem":
+							mob.y = level.rows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+							if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY <= mob.y + 3 && onGround && playerY + 2 > mob.y && mob.riseSpeed == 0) {
+								mob.riseSpeed = -0.01;
+								let spawnOffset = 5;
+								spawnMob("golem", mob.x + spawnOffset, level.rows[mob.x + spawnOffset] ?? 0, true);
+							};
+							mob.yOffset += mob.riseSpeed;
+							if (mob.yOffset > 0) {
+								mob.riseSpeed = 0;
+								mob.yOffset = 0;
+							} else if (mob.yOffset <= -3) {
+								level.mobs.splice(level.mobs.indexOf(mob), 1);
+								continue;
+							};
+							break;
+						case "russet golem":
+							mob.y = level.rows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+							if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY <= mob.y + 6 && onGround && playerY + 2 > mob.y && mob.riseSpeed == 0) {
+								mob.riseSpeed = -0.008;
+								let spawnOffset = 5;
+								spawnMob("golem", mob.x + 3, level.rows[mob.x + 3] ?? 0, true);
+								spawnMob("russet golem", mob.x + spawnOffset, level.rows[mob.x + spawnOffset] ?? 0, true);
+							};
+							mob.yOffset += mob.riseSpeed;
+							if (mob.yOffset > 0) {
+								mob.riseSpeed = 0;
+								mob.yOffset = 0;
+							} else if (mob.yOffset <= -6) {
+								level.mobs.splice(level.mobs.indexOf(mob), 1);
+								continue;
 							};
 							break;
 					};
@@ -1019,6 +1076,12 @@
 										images.mimic.draw(109, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
 								};
 							};
+							break;
+						case "golem":
+							images.golem.draw(0, 0, 1670, 1837 - (mob.yOffset * -50 * (1830 / 150)), mob.x * 50 - 25 - cameraX, mob.y * -50 - 150 - mob.yOffset * 50 - cameraY, 50, 150 - mob.yOffset * -50);
+							break;
+						case "russet golem":
+							images.russetGolem.draw(0, 0, 570, 570 - (mob.yOffset * -50 * (570 / 300)), mob.x * 50 - 25 - cameraX, mob.y * -50 - 300 - mob.yOffset * 50 - cameraY, 50, 300 - mob.yOffset * -50);
 							break;
 						default:
 							images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 100 - cameraY, 50, 100);

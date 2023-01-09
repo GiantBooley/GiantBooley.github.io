@@ -351,7 +351,8 @@
 			mimic: new CanvasImage("rgb(240, 240, 240)", "https://www.halloweenforum.com/attachments/large-jpg.524714/"),
 			error: new CanvasImage("rgb(255, 0, 255)", "https://proofthatblog.com/wp-content/uploads/2013/06/question-mark.jpg"),
 			dybbuk: new CanvasImage("rgb(246, 223, 198)", "https://m.media-amazon.com/images/I/71lrPEdwT3L.jpg"),
-			dybbukBox: new CanvasImage("rgb(212, 80, 56)", "https://travel.home.sndimg.com/content/dam/images/travel/fullrights/2016/03/29/0/TPOS101H_215929_761477.1304868.jpg.rend.hgtvcom.616.462.suffix/1491593805712.jpeg")
+			dybbukBox: new CanvasImage("rgb(212, 80, 56)", "https://travel.home.sndimg.com/content/dam/images/travel/fullrights/2016/03/29/0/TPOS101H_215929_761477.1304868.jpg.rend.hgtvcom.616.462.suffix/1491593805712.jpeg"),
+			dybbukBoxOpen: new CanvasImage("rgb(202, 70, 46)", "https://i0.wp.com/bloody-disgusting.com/wp-content/uploads/2012/04/dybbuk-box.jpg")
 		};
 		var layers = {
 			"-7": [images.ironNickelAlloy, 0.85],
@@ -453,7 +454,7 @@
 			};
 
 			// round stuff and coins n gems
-			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox
+			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen
 				level.rows[i] = level.originalRows[i] = Math.round(level.rows[i]);
 				let pool = [];
 				if (Math.random() < 0.05) pool.push(1);
@@ -461,7 +462,7 @@
 				if (Math.random() < 0.001) pool.push(6);
 				if (Math.random() < 0.0002) pool.push(5);
 				if (Math.random() < 0.0001) pool.push(7);
-				if (Math.random() < 0.1001) pool.push(10);
+				if (Math.random() < 0.0001) pool.push(10);
 				if (Math.random() < 0.025 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size == 1) pool.push(9);
 				level.features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 
@@ -838,7 +839,7 @@
 									break;
 								case 10:
 									dybbukTime = 1200;
-									level.features[i] = 0;
+									level.features[i] = 11;
 									break;
 							};
 						};
@@ -971,6 +972,9 @@
 							break;
 						case 10:
 							images.dybbukBox.draw(110, 75, 200, 250, rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
+							break;
+						case 11:
+							images.dybbukBoxOpen.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
 							break;
 						default:
 							images.error.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);

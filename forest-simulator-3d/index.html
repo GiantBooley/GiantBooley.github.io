@@ -354,7 +354,8 @@
 			dybbukBox: new CanvasImage("rgb(212, 80, 56)", "https://travel.home.sndimg.com/content/dam/images/travel/fullrights/2016/03/29/0/TPOS101H_215929_761477.1304868.jpg.rend.hgtvcom.616.462.suffix/1491593805712.jpeg"),
 			dybbukBoxOpen: new CanvasImage("rgb(202, 70, 46)", "https://i0.wp.com/bloody-disgusting.com/wp-content/uploads/2012/04/dybbuk-box.jpg"),
 			golem: new CanvasImage("rgb(150, 150, 10)", "https://upload.wikimedia.org/wikipedia/commons/9/9f/Prague-golem-reproduction.jpg"),
-			russetGolem: new CanvasImage("rgb(200, 150, 10)", "https://i.etsystatic.com/25674007/r/il/edaabf/2662111538/il_570xN.2662111538_kdmy.jpg")
+			russetGolem: new CanvasImage("rgb(200, 150, 10)", "https://i.etsystatic.com/25674007/r/il/edaabf/2662111538/il_570xN.2662111538_kdmy.jpg"),
+			totem: new CanvasImage("rgb(180, 180, 20)", "https://m.media-amazon.com/images/I/41yYu0ji5GL._AC_SX466_.jpg")
 		};
 		var layers = {
 			"-7": [images.ironNickelAlloy, 0.85],
@@ -375,10 +376,12 @@
 			originalRows: [],
 			features: [],
 			octaves: [],
-			mobs: []
+			mobs: [],
+			featureEntities: []
 		};
 		var coins = 0;
 		var gems = 0;
+		var totems = 0;
 		var fac = 
 			"Marina silva is a brazilian politician and an activist for deforestation and other things. She was a rubber tapper and found that land was being invaded by rubber tappers and she started protecting thousands of hectares of land."
 		;
@@ -457,23 +460,31 @@
 			};
 
 			// round stuff and coins n gems
-			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen
+			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem
 				level.rows[i] = level.originalRows[i] = Math.round(level.rows[i]);
 				let pool = [];
-				if (Math.random() < 0.05) pool.push(1);
-				if (Math.random() < 0.005) pool.push(2);
-				if (Math.random() < 0.001) pool.push(6);
-				if (Math.random() < 0.0002) pool.push(5);
-				if (Math.random() < 0.0001) pool.push(7);
-				if (Math.random() < 0.0001) pool.push(10);
-				if (Math.random() < 0.025 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size == 1) pool.push(9);
+				if (Math.random() < 1 / 20) pool.push(1);
+				if (Math.random() < 1 / 200) pool.push(2);
+				if (Math.random() < 1 / 1000) pool.push(6);
+				if (Math.random() < 1 / 5000) pool.push(5);
+				if (Math.random() < 1 / 4000) pool.push(7);
+				if (Math.random() < 1 / 2000) pool.push(10);
+				if (Math.random() < 1 / 8000) pool.push(12);
+				if (Math.random() < 1 / 40 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size == 1) pool.push(9);
 				level.features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 
-				if (Math.random() < 0.0001) {
+				if (Math.random() < 1 / 800) {
+					placeFeatureEntity("golem", i, false);
+				};
+
+				if (Math.random() < 1 / 10000) {
 					spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
 				};
-				if (Math.random() < 0.0108) {
+				if (Math.random() < 1 / 800) {
 					spawnMob("golem", i + 0.5, level.rows[i]);
+				};
+				if (Math.random() < 1 / 2000) {
+					spawnMob("russet golem", i + 0.5, level.rows[i]);
 				};
 			};
 		};
@@ -640,7 +651,8 @@
 				foods,
 				potions,
 				pb,
-				gameTime
+				gameTime,
+				totems
 			});
 			localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 		} catch(e) {alert(e.stack)}
@@ -667,6 +679,7 @@
 				potions = saveCode.potions ?? potions;
 				pb = saveCode.pb ?? pb;
 				gameTime = saveCode.gameTime ?? gameTime;
+				totems = saveCOde.totems ?? totems;
 			};
 		};
 		function clearSlot(slot) {
@@ -687,18 +700,25 @@
 				mob.mimicTimer = false;
 				mob.mimicking = true;
 				mob.mimicSpawnAge = 0;
-			} else if (mob.type == "golem") {
-				mob.yOffset = arguments[3] ? -3 : 0;
-				mob.riseSpeed = arguments[3] ? 0.01 : 0;
-			} else if (mob.type == "russet golem") {
-				mob.yOffset = arguments[3] ? -6 : 0;
-				mob.riseSpeed = arguments[3] ? 0.008 : 0;
 			};
 			level.mobs.push(mob);
 		};
 		function notificate(message) {
 			notification = message;
 			notificationTime = 180;
+		};
+		function placeFeatureEntity(type, x) {
+			let featureEntity = {
+				"type": type
+			};
+			if (type == "golem"){
+				featureEntity.yOffset = arguments[2] ? -3 : 0;
+				featureEntity.riseSpeed = arguments[2] ? 0.01 : 0;
+			} else if (type == "russet golem"){
+				featureEntity.yOffset = arguments[2] ? -6 : 0;
+				featureEntity.riseSpeed = arguments[2] ? 0.008 : 0;
+			};
+			level.featureEntities[Math.floor(x)] = featureEntity;
 		};
 
 		function tick() {
@@ -741,13 +761,15 @@
 				// X MOVEMENT //
 				
 				let playerSpeed = 0.2 + (boots == "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
+				let groundFriction = layers[clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1];
 				if (controls.right != controls.left) {
 					//move
 					let sign = controls.right - controls.left;
-					playerXV = inLadder ? sign * (boots == "magnet boots" ? 0 : 0.1) : (flying ? sign * 0.3 : (sign * playerSpeed + (sign * 0.04 * (controls.up && onGround))));
+					let maxXV = (inLadder ? sign * (boots == "magnet boots" ? 0 : 0.1) : (flying ? sign * 0.3 : (sign * playerSpeed)));
+					playerXV = lerp(maxXV, playerXV, onGround ? groundFriction : 0.3) + (sign * 0.04 * (controls.up && onGround));
 				} else {
 					//friction
-					playerXV *= inLadder ? 0 : (onGround ? layers[clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1] : 0.99);
+					playerXV *= inLadder ? 0 : (onGround ? groundFriction : 0.99);
 				};
 
 				let hittableRows = getHittableRows(playerX + playerXV);

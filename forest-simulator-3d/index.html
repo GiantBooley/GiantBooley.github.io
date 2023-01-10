@@ -456,7 +456,7 @@
 				for (let j = 0; j < level.octaves.length; j++) {
 					perlinHeight += ((perlinGetVal(level.octaves[j], i / 10) - 0.5) * 4) / (2 ** j);
 				};
-				level.rows[i] = level.originalRows[i] = (level.rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
+				level.rows[i] = level.originalRows[i] = -3 //(level.rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
 			};
 
 			// round stuff and coins n gems
@@ -742,12 +742,10 @@
 				let bakedRows = [...level.rows];
 				for (let i = 0; i < bakedRows.length; i++) {
 					bakedRows[i] += (level.features[i] == 5) * 5;
-					for (let j = 0; j < level.mobs.length; j++) {
-						if (level.mobs[j].type == "golem" && Math.floor(level.mobs[j].x) == i) {
-							bakedRows[i] += level.mobs[j].yOffset + 3;
-						} else if (level.mobs[j].type == "russet golem" && Math.floor(level.mobs[j].x) == i) {
-							bakedRows[i] += level.mobs[j].yOffset + 6;
-						};
+					if (level.featureEntities[i] && level.featureEntities[i].type == "golem") {
+						bakedRows[i] += level.featureEntities[i].yOffset + 3;
+					} else if (level.featureEntities[i] && level.featureEntities[i].type == "russet golem") {
+						bakedRows[i] += level.featureEntities[i].yOffset + 6;
 					};
 				};
 
@@ -914,8 +912,27 @@
 						};
 					};
 				};
+				for (let i = 0; i < level.featureEntities.length; i++) {
+					if (level.featureEntities[i]) {
+						if (level.featureEntities[i].type == "golem") {
+							if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 3 && onGround && level.featureEntities[i].riseSpeed == 0) {
+								level.featureEntities[i].riseSpeed = -0.01;
+								let spawnOffset = 5;
+								placeFeatureEntity("golem", i + spawnOffset, true);
+							};
+							level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
+							if (level.featureEntities[i].yOffset > 0) {
+								level.featureEntities[i].riseSpeed = 0;
+								level.featureEntities[i].yOffset = 0;
+							} else if (level.featureEntities[i].yOffset <= -3) {
+								level.featureEntities[i] = null;
+								continue;
+							};
+						};
+					};
+				};
 
-				for (mob of level.mobs) {
+				for (let mob of level.mobs) {
 					switch (mob.type) {
 						case "sentry":
 							if (mob.age >= 120) {
@@ -948,39 +965,6 @@
 							if (mob.mimicTimer) {
 								mob.mimicSpawnAge++;
 								mob.mimicking = (mob.mimicSpawnAge < 120);
-							};
-							break;
-						case "golem":
-							mob.y = level.rows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
-							if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY <= mob.y + 3 && onGround && playerY + 2 > mob.y && mob.riseSpeed == 0) {
-								mob.riseSpeed = -0.01;
-								let spawnOffset = 5;
-								spawnMob("golem", mob.x + spawnOffset, level.rows[mob.x + spawnOffset] ?? 0, true);
-							};
-							mob.yOffset += mob.riseSpeed;
-							if (mob.yOffset > 0) {
-								mob.riseSpeed = 0;
-								mob.yOffset = 0;
-							} else if (mob.yOffset <= -3) {
-								level.mobs.splice(level.mobs.indexOf(mob), 1);
-								continue;
-							};
-							break;
-						case "russet golem":
-							mob.y = level.rows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
-							if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY <= mob.y + 6 && onGround && playerY + 2 > mob.y && mob.riseSpeed == 0) {
-								mob.riseSpeed = -0.008;
-								let spawnOffset = 5;
-								spawnMob("golem", mob.x + 3, level.rows[mob.x + 3] ?? 0, true);
-								spawnMob("russet golem", mob.x + spawnOffset, level.rows[mob.x + spawnOffset] ?? 0, true);
-							};
-							mob.yOffset += mob.riseSpeed;
-							if (mob.yOffset > 0) {
-								mob.riseSpeed = 0;
-								mob.yOffset = 0;
-							} else if (mob.yOffset <= -6) {
-								level.mobs.splice(level.mobs.indexOf(mob), 1);
-								continue;
 							};
 							break;
 					};
@@ -1016,9 +1000,9 @@
 				for (let i = 0; i < rowBuffer.length; i++) {
 					let ice = getLayer(level.rows[rowBuffer[i]]) == 2 && level.rows[rowBuffer[i]] - 100 < (level.originalRows[rowBuffer[i]] - 100) * 0.9;
 					let groundImage = ice ? images.packedSnow : layers[clamp(getLayer(level.rows[rowBuffer[i]]), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][0];
-					let imageWidth = groundImage.image.height * (50 / (canvas.height * 2));
+					let imageWidth = groundImage.image.height * (50 / (50 * 20));
 					let imageHeight = level.rows[rowBuffer[i]] * -50 - cameraY;
-					groundImage.draw(Math.floor(((imageWidth * rowBuffer[i]) % (Math.floor(groundImage.image.width / imageWidth) * imageWidth)) / imageWidth) * imageWidth, 0, imageWidth, groundImage.image.height, rowBuffer[i] * 50 - cameraX, imageHeight, 50, canvas.height * 2);
+					groundImage.draw((imageWidth * rowBuffer[i]) % (Math.floor(groundImage.image.width / imageWidth) * imageWidth), 0, imageWidth, imageWidth * 20, rowBuffer[i] * 50 - cameraX, imageHeight, 50, 50 * 20);
 					switch (level.features[rowBuffer[i]]) {
 						case 0:
 							break;
@@ -1058,6 +1042,19 @@
 						default:
 							images.error.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
 					};
+					let featureEntity = level.featureEntities[rowBuffer[i]];
+					if (featureEntity) {
+						switch (featureEntity.type) {
+							case "golem":
+								images.golem.draw(0, 0, 1670, 1837 - (featureEntity.yOffset * -50 * (1830 / 150)), rowBuffer[i] * 50 - cameraX, imageHeight - 150 - featureEntity.yOffset * 50, 50, 150 - featureEntity.yOffset * -50);
+								break;
+							case "russet golem":
+								images.russetGolem.draw(0, 0, 570, 570 - (featureEntity.yOffset * -50 * (570 / 300)), rowBuffer[i] * 50 - cameraX, imageHeight - 300 - featureEntity.yOffset * 50, 50, 300 - featureEntity.yOffset * -50);
+								break;
+							default:
+								images.error.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
+						};
+					};
 				};
 			
 				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV >= 0 ? "guyFalling" : "guyJumping"))));
@@ -1067,6 +1064,7 @@
 					images.dybbuk.draw(playerX * 50 - 25 - cameraX, playerY * -50 - 100 - cameraY, 50, 100);
 					ctx.globalAlpha = 1;
 				};
+
 				for (mob of level.mobs) {
 					switch (mob.type) {
 						case "sentry":
@@ -1098,12 +1096,6 @@
 										images.mimic.draw(109, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
 								};
 							};
-							break;
-						case "golem":
-							images.golem.draw(0, 0, 1670, 1837 - (mob.yOffset * -50 * (1830 / 150)), mob.x * 50 - 25 - cameraX, mob.y * -50 - 150 - mob.yOffset * 50 - cameraY, 50, 150 - mob.yOffset * -50);
-							break;
-						case "russet golem":
-							images.russetGolem.draw(0, 0, 570, 570 - (mob.yOffset * -50 * (570 / 300)), mob.x * 50 - 25 - cameraX, mob.y * -50 - 300 - mob.yOffset * 50 - cameraY, 50, 300 - mob.yOffset * -50);
 							break;
 						default:
 							images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 100 - cameraY, 50, 100);
@@ -1140,12 +1132,12 @@
 		};
 		function loop() {
 			startFrameTime = performance.now();
-			try {
+			//try {
 				tick();
-			} catch (e) {
-				alert(e.stack);
-				return;
-			};
+			//} catch (e) {
+			//	alert(e.stack);
+			//	return;
+			//};
 			endFrameTime = performance.now();
 			fps = ((endFrameTime - startFrameTime) / 1000);
 			requestAnimationFrame(loop);

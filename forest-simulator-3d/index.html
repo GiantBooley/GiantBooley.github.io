@@ -914,6 +914,9 @@
 				if (onGround) {
 					if (getLayer(level.rows[max]) == 2 && level.rows[max] - 200 > (level.originalRows[max] - 200) * 0.9 && boots != "tennis rackets") {
 						level.rows[max] -= 0.005;
+						if (level.rows[max] - 200 < (level.originalRows[max] - 200) * 0.9) {
+							level.rows[max] = (level.originalRows[max] - 200) * 0.9 + 200;
+						};
 					};
 					playerY = bakedRows[max];
 					playerYV = 0;
@@ -1115,6 +1118,12 @@
 								mob.mimicSpawnAge++;
 								mob.mimicking = (mob.mimicSpawnAge < 120);
 							};
+							if (mob.mimicSpawnAge - 120 >= 1800) {
+								if (level.features[Math.floor(mob.x)] === 0) {
+									level.features[Math.floor(mob.x)] = {"coin": 1, "gem": 2}[mob.mimicTarget];
+								};
+								level.mobs.splice(level.mobs.indexOf(mob));
+							};
 							break;
 					};
 					mob.age++;
@@ -1151,7 +1160,7 @@
 				// grass
 				let rowBuffer = Object.keys(level.rows).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width);
 				for (let i = 0; i < rowBuffer.length; i++) {
-					let ice = getLayer(level.rows[rowBuffer[i]]) == 2 && level.rows[rowBuffer[i]] - 100 < (level.originalRows[rowBuffer[i]] - 100) * 0.9;
+					let ice = getLayer(level.rows[rowBuffer[i]]) === 2 && Math.round((level.rows[rowBuffer[i]] - 200) * 1000) / 1000 <= Math.round((level.originalRows[rowBuffer[i]] - 200) * 0.9 * 1000) / 1000;
 					let groundImage = ice ? images.packedSnow : layers[clamp(getLayer(level.rows[rowBuffer[i]]), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][0];
 					let blockUVSize = groundImage.width / 25;
 					let rowY = level.rows[rowBuffer[i]] * -50 - cameraY;

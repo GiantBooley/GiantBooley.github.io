@@ -121,6 +121,32 @@
 				text-align: center;
 				text-shadow: 0px 0px 3px black;
 			}
+			#obelisk-shop {
+				display: none;
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				transform: translate(-50%, -50%);
+				background-color: white;
+				border-radius: 10px;
+				border: 5px solid black;
+				padding: 5px;
+				width: 80%;
+				height: calc(100% - 100px);
+				overflow: auto;
+			}
+			#obelisk-shop-button {
+				position: absolute;
+				top: 70px;
+				right: 10px;
+				color: black;
+				background-color: white;
+				border: 5px solid black;
+				border-radius: 5px;
+				padding: 10px;
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 20px;
+			}
 		</style>
 	</head>
 	<body>
@@ -131,6 +157,7 @@
 				</div>
 				<div id="stats">score: -<br>coins: -</div>
 				<button id="shop-button" onclick="shopButton();">SHOP</button>
+				<button id="obelisk-shop-button" onclick="obeliskShopButton();">OBELISK</button>
 				<div id="health">
 					<div id="health-inner"></div>
 				</div>
@@ -157,9 +184,10 @@
 						<button onclick="clickShoeButton(this, 'tennis rackets');">Tennis rackets (30 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'running shoes');">Running shoes (60 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'spring boots');">Spring boots (90 coins)</button><br>
+						<button onclick="clickShoeButton(this, 'spike boots');">Spike boots (100 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'feather boots');">Feather boots (120 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'stepping boots');">Stepping boots (150 coins)</button><br>
-						<button onclick="clickShoeButton(this, 'magnet boots');">Magnet boots (170 coins)</button>
+						<button onclick="clickShoeButton(this, 'magnet boots');">Magnet boots (170 coins)</button><br>
 					</div><br>
 					<div id="food">
 						<h3>food</h3><br>
@@ -182,15 +210,23 @@
 				</div>
 				<div id="shop-gems">
 					<div id="potions">
-						<h3>potions</h3>
+						<h3>alchemy (potions)</h3>
 						<label>speed potion (10 seconds)</label><label id="speed-potion-howmany">(0)</label><button onclick="chugPotion('speed potion');">chug</button><button onclick="brewPotion('speed potion');">brew (2 gems)</button><br>
 						<label>jumping potion (10 seconds)</label><label id="jumping-potion-howmany">(0)</label><button onclick="chugPotion('jumping potion');">chug</button><button onclick="brewPotion('jumping potion');">brew (3 gems)</button><br>
 						<label>regeneration potion (10 seconds)</label><label id="regeneration-potion-howmany">(0)</label><button onclick="chugPotion('regeneration potion');">chug</button><button onclick="brewPotion('regeneration potion');">brew (5 gems)</button><br>
 						<label>spider potion (10 seconds)</label><label id="spider-potion-howmany">(0)</label><button onclick="chugPotion('spider potion');">chug</button><button onclick="brewPotion('spider potion');">brew (7 gems)</button><br>
 						<label>levitation potion (10 seconds)</label><label id="levitation-potion-howmany">(0)</label><button onclick="chugPotion('levitation potion');">chug</button><button onclick="brewPotion('levitation potion');">brew (8 gems)</button><br>
+						<label>anti gravity potion (10 seconds)</label><label id="anti-gravity-potion-howmany">(0)</label><button onclick="chugPotion('anti gravity potion');">chug</button><button onclick="brewPotion('anti gravity potion');">brew (10 gems)</button><br>
 						<label>bird potion (10 seconds)</label><label id="bird-potion-howmany">(0)</label><button onclick="chugPotion('bird potion');">chug</button><button onclick="brewPotion('bird potion');">brew (12 gems)</button>
 					</div>
 				</div>
+			</div>
+			<div id="obelisk-shop">
+				<h1>obelisk</h1>
+				<hr>
+				<label>health</label><button onclick="obeliskShopUpgradeButton('health');">upgrade (1 totem)</button><br>
+				<label>speed</label><button onclick="obeliskShopUpgradeButton('speed');">upgrade (1 totem)</button><br>
+				<label>jump</label><button onclick="obeliskShopUpgradeButton('jump');">upgrade (1 totem)</button>
 			</div>
 			<div id="notification">
 
@@ -217,16 +253,24 @@
 		class CanvasImage {
 			constructor(color, src) {
 				this.image = new Image();
-				this.image.src = src;
+				//this.image.crossOrigin = "anonymous";
+				this.width = 500;
+				this.height = 500;
+				this.url = src;
 				this.loaded = false;
 				this.color = color;
 				let canvasimagething = this;
 				this.image.onload = function() {
 					canvasimagething.loaded = true;
+					canvasimagething.width = this.width;
+					canvasimagething.height = this.height;
 					imagesLoaded++;
 				};
 			};
 			draw(sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
+				if (this.image.src !== this.url) {
+					this.image.src = this.url;
+				};
 				ctx.fillStyle = this.color ?? "rgb(255, 0, 255)";
 				if (arguments.length == 2) {
 					if (this.loaded) {
@@ -304,13 +348,16 @@
 		Math.mod = function(a, b) {
 			return ((a % b) + b) % b;
 		};
+		Array.prototype.random = function() {
+			return this[Math.floor(Math.random() * this.length)];
+		};
 
-		var playerX = 75;
-		var playerY = -900;
+		var playerX = 1.5;
+		var playerY = 0;
 		var playerXV = 0;
 		var playerYV = 0;
-		var cameraX = playerX - canvas.width / 2;
-		var cameraY = playerY - canvas.height / 2;
+		var cameraX = playerX * 50 - (canvas.width / 2);
+		var cameraY = (playerY + 1) * -50 - (canvas.height / 2);
 		var onGround = false;
 		var seeds = [];
 		var imagesLoaded = 0;
@@ -344,30 +391,42 @@
 			pitfall: new CanvasImage("128, 128, 50", "https://content.instructables.com/FJL/5NV5/FV4LSDNT/FJL5NV5FV4LSDNT.jpg?auto=webp&fit=bounds&frame=1"),
 			skyNight: new CanvasImage("rgb(0, 0, 0)", "https://images.unsplash.com/photo-1528818955841-a7f1425131b5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8c3RhcnJ5JTIwc2t5fGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
 			moon: new CanvasImage("rgb(70, 170, 170)", "https://bigthink.com/wp-content/uploads/2020/10/origin-26.jpg"),
-			ironNickelAlloy: new CanvasImage("rgb(210, 210, 210)", "https://cdn.openpr.com/R/b/Rb1218790_g.jpg")
+			ironNickelAlloy: new CanvasImage("rgb(210, 210, 210)", "https://cdn.openpr.com/R/b/Rb1218790_g.jpg"),
+			mimic: new CanvasImage("rgb(240, 240, 240)", "https://www.halloweenforum.com/attachments/large-jpg.524714/"),
+			error: new CanvasImage("rgb(255, 0, 255)", "https://proofthatblog.com/wp-content/uploads/2013/06/question-mark.jpg"),
+			dybbuk: new CanvasImage("rgb(246, 223, 198)", "https://m.media-amazon.com/images/I/71lrPEdwT3L.jpg"),
+			dybbukBox: new CanvasImage("rgb(212, 80, 56)", "https://travel.home.sndimg.com/content/dam/images/travel/fullrights/2016/03/29/0/TPOS101H_215929_761477.1304868.jpg.rend.hgtvcom.616.462.suffix/1491593805712.jpeg"),
+			dybbukBoxOpen: new CanvasImage("rgb(202, 70, 46)", "https://i0.wp.com/bloody-disgusting.com/wp-content/uploads/2012/04/dybbuk-box.jpg"),
+			golem: new CanvasImage("rgb(150, 150, 10)", "https://upload.wikimedia.org/wikipedia/commons/9/9f/Prague-golem-reproduction.jpg"),
+			russetGolem: new CanvasImage("rgb(200, 150, 10)", "https://i.etsystatic.com/25674007/r/il/edaabf/2662111538/il_570xN.2662111538_kdmy.jpg"),
+			totem: new CanvasImage("rgb(180, 180, 20)", "https://m.media-amazon.com/images/I/41yYu0ji5GL._AC_SX466_.jpg"),
+			obelisk: new CanvasImage("rgb(30, 30, 120)", "https://cdnb.artstation.com/p/assets/images/images/029/560/119/large/julia-eriksson-rezle-juliaerikssonpillar.jpg?1597936831")
 		};
 		var layers = {
-			"-7": [images.ironNickelAlloy, 0.85],
-			"-6": [images.lava, 0.9],
-			"-5": [images.magma, 0.77],
-			"-4": [images.darkStone, 0.65],
-			"-3": [images.stone, 0.7],
-			"-2": [images.stones, 0.75],
-			"-1": [images.dirt, 0.8],
-			"0": [images.grass, 0.75],
-			"1": [images.stone, 0.65],
-			"2": [images.snow, 0.9],
-			"3": [images.ice, 0.96],
-			"4": [images.moon, 0.7]
+			"-7": [images.ironNickelAlloy, 0.14],
+			"-6": [images.lava, 0.1],
+			"-5": [images.magma, 0.23],
+			"-4": [images.darkStone, 0.35],
+			"-3": [images.stone, 0.3],
+			"-2": [images.stones, 0.25],
+			"-1": [images.dirt, 0.2],
+			"0": [images.grass, 0.35],
+			"1": [images.stone, 0.35],
+			"2": [images.snow, 0.1],
+			"3": [images.ice, 0.03],
+			"4": [images.moon, 0.3]
 		};
 		var level = {
 			rows: [],
 			originalRows: [],
 			features: [],
 			octaves: [],
+			mobs: [],
+			featureEntities: []
 		};
 		var coins = 0;
 		var gems = 0;
+		var totems = 0;
 		var fac = 
 			"Marina silva is a brazilian politician and an activist for deforestation and other things. She was a rubber tapper and found that land was being invaded by rubber tappers and she started protecting thousands of hectares of land."
 		;
@@ -378,6 +437,7 @@
 			"tennis rackets": {bought: false, cost: 30},
 			"running shoes": {bought: false, cost: 60},
 			"spring boots": {bought: false, cost: 90},
+			"spike boots": {bought: false, cost: 100},
 			"feather boots": {bought: false, cost: 120},
 			"stepping boots": {bought: false, cost: 150},
 			"magnet boots": {bought: false, cost: 170}
@@ -400,6 +460,7 @@
 			"regeneration potion": {cost: 5, time: 0, duration: 10, howmany: 0},
 			"spider potion": {cost: 7, time: 0, duration: 10, howmany: 0},
 			"levitation potion": {cost: 8, time: 0, duration: 10, howmany: 0},
+			"anti gravity potion": {cost: 10, time: 0, duration: 10, howmany: 0},
 			"bird potion": {cost: 12, time: 0, duration: 10, howmany: 0}
 		};
 		var boots = "sketchers";
@@ -416,15 +477,25 @@
 		};
 		var tallLadders = 0;
 		var score = 0;
+		var frameCount = 0;
 		var fps = 0;
-		var startFrameTime = 0;
-		var endFrameTime = 0;
+		var fpsUpdateTime = 0;
 		var flying = false;
 		var pb = 0;
-		var mobs = [];
 		var notification = "";
 		var notificationTime = 0;
 		var gameTime = 0;
+		var blockSize = 50;
+		var developerMode = true;
+		var macro = [];
+		var macroTime = 0;
+		var macroPlaying = false;
+		var dybbukTime = 0;
+		var crouching = false;
+		var obeliskShop = false;
+		var basePlayerSpeed = 0.2;
+		var baseJumpHeight = 0.24;
+		var maxHealth = 1;
 
 		for (let i = 0; i < 5; i++) {
 			level.octaves.push(perlinNoise1D());
@@ -436,32 +507,46 @@
 				for (let j = 0; j < level.octaves.length; j++) {
 					perlinHeight += ((perlinGetVal(level.octaves[j], i / 10) - 0.5) * 4) / (2 ** j);
 				};
-				level.rows[i] = level.originalRows[i] = (level.rows[i - 1] ?? 0) + perlinHeight; // (Math.floor(Math.random() * 7) - 3);
+				level.rows[i] = level.originalRows[i] = (level.rows[i - 1] ?? 0) + perlinHeight;
+				level.featureEntities[i] = null;
 			};
 
 			// round stuff and coins n gems
-			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall
+			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem
 				level.rows[i] = level.originalRows[i] = Math.round(level.rows[i]);
 				let pool = [];
-				if (Math.random() < 0.05) pool.push(1);
-				if (Math.random() < 0.005) pool.push(2);
-				if (Math.random() < 0.001) pool.push(6);
-				if (Math.random() < 0.0002) pool.push(5);
-				if (Math.random() < 0.0001) pool.push(7);
-				if (Math.random() < 0.025 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size == 1) pool.push(9);
+				if (Math.random() < 1 / 20) pool.push(1);
+				if (Math.random() < 1 / 200) pool.push(2);
+				if (Math.random() < 1 / 1000) pool.push(6);
+				if (Math.random() < 1 / 5000) pool.push(5);
+				if (Math.random() < 1 / 4000) pool.push(7);
+				if (Math.random() < 1 / 2000) pool.push(10);
+				if (Math.random() < 1 / 8000) pool.push(12);
+				if (Math.random() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size == 1) pool.push(9);
 				level.features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
+
+				if (Math.random() < 1 / 3000) {
+					placeFeatureEntity("golem", i, false);
+				};
+				if (Math.random() < 1 / 8000) {
+					placeFeatureEntity("russet golem", i, false);
+				};
+
+				if (Math.random() < 1 / 10000) {
+					spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
+				};
 			};
 		};
 		generateLevel();
-		playerY = level.rows[1] * -50 - 50;
+		playerY = level.rows[1];
 		function getHittableRows(x) {
 			hittableRows = [];
-			if (Math.mod(x, 50) < 25) {
-				hittableRows.push(Math.floor(x / 50) - 1);
+			if (Math.mod(x, 1) < 0.5) {
+				hittableRows.push(Math.floor(x) - 1);
 			};
-			hittableRows.push(Math.floor(x / 50));
-			if (Math.mod(x, 50) > 25) {
-				hittableRows.push(Math.floor(x / 50) + 1);
+			hittableRows.push(Math.floor(x));
+			if (Math.mod(x, 1) > 0.5) {
+				hittableRows.push(Math.floor(x) + 1);
 			};
 			return hittableRows;
 		};
@@ -504,6 +589,14 @@
 				document.getElementById("canvas-wrapper").focus();
 			};
 		};
+		function obeliskShopButton() {
+			if (obeliskShop = !obeliskShop) {
+				document.getElementById("obelisk-shop").style.display = "block";
+			} else {
+				document.getElementById("obelisk-shop").style.display = "none";
+				document.getElementById("canvas-wrapper").focus();
+			};
+		};
 		function clickShoeButton(button, bootsreal) {
 			if (bootses[bootsreal].bought) {
 				boots = bootsreal;
@@ -528,7 +621,7 @@
 			if (foods[food].howmany >= 1) {
 				foods[food].howmany--;
 				health += foods[food].hunger;
-				health = clamp(health, 0, 1);
+				health = clamp(health, 0, maxHealth);
 			};
 		};
 		function keyDownFunction(e) {
@@ -539,13 +632,19 @@
 				setTimeout(() => {
 					facasd = false;
 				}, 3000);
-			} else if (e.key == "l") {
+			} else if (e.key == "l" && developerMode) {
 				level.rows = JSON.parse(prompt("what level rows"));
 			} else if (e.key == "r") {
 				playerXV = 0;
 				playerYV = 0;
-				playerX = 75;
-				playerY = rows[1] * -50 ?? 0;
+				playerX = 1.5;
+				playerY = level.rows[1] ?? 0;
+			} else if (e.key == "m" && developerMode) {
+				macro = prompt("what macro").split(",");
+				macroTime = 0;
+				macroPlaying = true;
+			} else if (e.key == "p" && developerMode) {
+				spawnMob(prompt("what mob"), playerX - 3, level.rows[Math.floor(playerX - 3)] ?? 0);
 			};
 		};
 		function purchaseLadder() {
@@ -557,8 +656,8 @@
 			};
 		};
 		function placeLadder() {
-			if (ladders >= 1 && level.features[Math.floor(playerX / 50)] == 0) {
-				level.features[Math.floor(playerX / 50)] = 3;
+			if (ladders >= 1 && level.features[Math.floor(playerX)] == 0) {
+				level.features[Math.floor(playerX)] = 3;
 				ladders--;
 			};
 		};
@@ -571,8 +670,8 @@
 			};
 		};
 		function placeTallLadder() {
-			if (tallLadders >= 1 && level.features[Math.floor(playerX / 50)] == 0) {
-				level.features[Math.floor(playerX / 50)] = 4;
+			if (tallLadders >= 1 && level.features[Math.floor(playerX)] == 0) {
+				level.features[Math.floor(playerX)] = 4;
 				tallLadders--;
 			};
 		};
@@ -589,9 +688,6 @@
 				potions[potion].howmany--;
 				potions[potion].time += potions[potion].duration;
 			};
-		};
-		Array.prototype.random = function() {
-			return this[Math.floor(Math.random() * this.length)];
 		};
 		function saveSlot(slot) {
 			try{
@@ -612,8 +708,12 @@
 				foods,
 				potions,
 				pb,
-				mobs,
-				gameTime
+				gameTime,
+				totems,
+				dybbukTime,
+				basePlayerSpeed,
+				baseJumpHeight,
+				maxHealth
 			});
 			localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 		} catch(e) {alert(e.stack)}
@@ -639,8 +739,12 @@
 				foods = saveCode.foods ?? foods;
 				potions = saveCode.potions ?? potions;
 				pb = saveCode.pb ?? pb;
-				mobs = saveCode.mobs ?? mobs;
 				gameTime = saveCode.gameTime ?? gameTime;
+				totems = saveCode.totems ?? totems;
+				dybbukTime = saveCode.dybbukTime ?? dybbukTime;
+				basePlayerSpeed = saveCode.basePlayerSpeed ?? basePlayerSpeed;
+				baseJumpHeight = saveCode.baseJumpHeight ?? baseJumpHeight;
+				maxHealth = saveCode.maxHealth ?? maxHealth;
 			};
 		};
 		function clearSlot(slot) {
@@ -649,203 +753,390 @@
 		function clearAllSlots() {
 			localStorage.clear();
 		};
-		function spawnMob(mob, x, y) {
-			mobs.push({
-				type: mob,
+		function spawnMob(type, x, y) {
+			let mob = {
+				type: type,
 				x: x,
 				y: y,
 				age: 0
-			});
+			};
+			if (type == "mimic") {
+				mob.mimicTarget = ["coin", "gem"].random();
+				mob.mimicTimer = false;
+				mob.mimicking = true;
+				mob.mimicSpawnAge = 0;
+			};
+			level.mobs.push(mob);
 		};
 		function notificate(message) {
 			notification = message;
 			notificationTime = 180;
 		};
+		function placeFeatureEntity(type, x) {
+			let featureEntity = {
+				"type": type
+			};
+			if (type == "golem"){
+				featureEntity.yOffset = arguments[2] ? -3 : 0;
+				featureEntity.riseSpeed = arguments[2] ? 0.01 : 0;
+			} else if (type == "russet golem"){
+				featureEntity.yOffset = arguments[2] ? -6 : 0;
+				featureEntity.riseSpeed = arguments[2] ? 0.008 : 0;
+			} else if (type == "obelisk"){
+				featureEntity.yOffset = arguments[2] ? -4 : 0;
+				featureEntity.riseSpeed = arguments[2] ? 0.005 : 0;
+			};
+			level.featureEntities[Math.floor(x)] = featureEntity;
+		};
+		function obeliskShopUpgradeButton(item) {
+			if (totems >= 1) {
+				switch (item) {
+					case "health":
+						if (maxHealth < 2) {
+							maxHealth = Math.min(maxHealth + 0.1, 2);
+						} else {
+							alert("upgrade maxed");
+						};
+						break;
+					case "speed":
+						if (basePlayerSpeed < 0.35) {
+							basePlayerSpeed = Math.min(basePlayerSpeed + 0.02, 0.35);
+						} else {
+							alert("upgrade maxed");
+						};
+						break;
+					case "jump":
+						if (baseJumpHeight < 0.5) {
+							baseJumpHeight = Math.min(baseJumpHeight + 0.03, 0.5);
+						} else {
+							alert("upgrade maxed");
+						};
+						break;
+				};
+				totems--;
+			} else {
+				alert("bankrupt");
+			};
+		};
 
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
-			controls.up = isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5));
-			controls.down = isDown("ArrowDown") || isDown("s") || (joystick.strength > 0.5 && (joystick.angle > -67.5 && joystick.angle < 67.5));
-			controls.left = isDown("ArrowLeft") || isDown("a") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5));
-			controls.right = isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5));
-			if (!shop && !dead) {
-				if (playerX / 50 >= level.rows.length) {
+			controls.up = isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5)) || (macroPlaying && parseInt(macro[macroTime][0]));
+			controls.down = isDown("ArrowDown") || isDown("s") || (joystick.strength > 0.5 && (joystick.angle > -67.5 && joystick.angle < 67.5)) || (macroPlaying && parseInt(macro[macroTime][1]));
+			controls.left = isDown("ArrowLeft") || isDown("a") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5)) || (macroPlaying && parseInt(macro[macroTime][2]));
+			controls.right = isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5)) || (macroPlaying && parseInt(macro[macroTime][3]));
+			if (macroPlaying) {
+				macroTime++;
+			};
+			if (macroTime >= macro.length) {
+				macroPlaying = false;
+				macroTime = 0;
+			};
+			if (!shop && !dead && !obeliskShop) {
+				if (playerX >= level.rows.length) {
 					generateLevel();
 				};
-				let bakedRows = [...level.rows].map((it, i) => it + (level.features[i] == 5) * 5);
+
+				let bakedRows = [...level.rows];
+				for (let i = 0; i < bakedRows.length; i++) {
+					bakedRows[i] += (level.features[i] == 5) * 5;
+					if (level.featureEntities[i] && level.featureEntities[i].type == "golem") {
+						bakedRows[i] += level.featureEntities[i].yOffset + 3;
+					} else if (level.featureEntities[i] && level.featureEntities[i].type == "russet golem") {
+						bakedRows[i] += level.featureEntities[i].yOffset + 6;
+					};
+				};
+
 				gameTime += 1/60;
 
 				for (let potion in potions) {
 					potions[potion].time = Math.max(potions[potion].time - (1 / 60), 0);
 				};
 				flying = potions["bird potion"].time > 0;
-				let playerSpeed = 10 + (boots == "running shoes") * 2 + (potions["speed potion"].time > 0) * 5;
+
+				// X MOVEMENT //
+				
+				let playerSpeed = basePlayerSpeed + (boots === "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
+				let groundFriction = (boots === "spike boots") ? 0.9 : layers[clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1];
 				if (controls.right != controls.left) {
-					let sign = (controls.right - controls.left);
-					playerXV = inLadder ? sign * (boots == "magnet boots" ? 0 : 5) : (flying ? sign * 15 : (sign * playerSpeed + (sign * 2 * (controls.up && onGround))));
-				};
-				playerX += playerXV;
-				let hittableRows;
-				let playerColliding = () => {
-					hittableRows = getHittableRows(playerX);
-					return (hittableRows[0] != undefined && bakedRows[hittableRows[0]] * -50 < playerY + 50) || (hittableRows[1] != undefined && bakedRows[hittableRows[1]] * -50 < playerY + 50);
+					//move
+					let sign = controls.right - controls.left;
+					let maxXV = (inLadder ? sign * (boots == "magnet boots" ? 0 : 0.1) : (flying ? sign * 0.3 : (sign * playerSpeed)));
+					playerXV = lerp(maxXV, playerXV, onGround ?  1 - groundFriction : 0.3) + (sign * 0.04 * (controls.up && onGround));
+				} else {
+					//friction
+					playerXV *= inLadder ? 0 : (onGround ? 1 - groundFriction : 0.99);
 				};
 
-				if (playerColliding()) {
-					let max = getHittableRows(playerX).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
-					if (onGround && playerY / -50 - 1 >= bakedRows[max] - (boots == "stepping boots" ? 1 : 0.5) && potions["spider potion"].time <= 0) {
-						playerY -= (bakedRows[max] - (playerY / -50 - 1)) * 50;
+				let hittableRows = getHittableRows(playerX + playerXV);
+				if ((hittableRows[0] != undefined && bakedRows[hittableRows[0]] > playerY) || (hittableRows[1] != undefined && bakedRows[hittableRows[1]] > playerY)) {
+					let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
+					if (onGround && playerY >= bakedRows[max] - (boots == "stepping boots" ? 1 : 0.5) && potions["spider potion"].time <= 0) {
+						playerY = bakedRows[max];
 					} else {
-						playerX = Math.ceil(playerX / 50) * 50 - 25;
-						playerXV = 0;
+						playerXV = Math.ceil(playerX + (playerXV / 2)) - 0.5 - playerX;
 						if (potions["spider potion"].time > 0) {
 							playerYV = 0;
-							playerY -= 10;
+							playerY += 0.2;
 						};
 					};
 				};
+				playerX += playerXV;
+				
+				// Y MOVEMENT //
+
 				if (inLadder) {
-					playerYV = (controls.down - controls.up) * (boots == "magnet boots" ? 0 : 5);
+					playerYV = (controls.up - controls.down) * (boots == "magnet boots" ? 0 : 0.1);
 				} else if (flying) {
 					if (controls.up != controls.down) {
-						playerYV = (controls.down - controls.up) * 15;
+						playerYV = (controls.up - controls.down) * 0.3;
 					};
 					playerYV *= 0.99;
 				} else {
-					let jumpHeight = -12 + (boots == "spring boots") * -3 + (potions["jumping potion"].time > 0) * -4;
-					playerYV += controls.up * onGround * (jumpHeight - Math.abs(playerXV) * 0.15);
+					let jumpHeight = baseJumpHeight + (boots == "spring boots") * 0.06 + (potions["jumping potion"].time > 0) * 0.08;
+					playerYV += controls.up * onGround * (jumpHeight + Math.abs(playerXV) * 0.15);
 				};
-				playerY += playerYV;
+
+				//gravity
+				let layer = clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)));
+				playerYV = potions["levitation potion"].time > 0 ? 0.1 : (playerYV + ((inLadder || flying) ? 0 : (-0.012 + (boots === "magnet boots" && layer === -7) * -0.012 + (layer === 4) * 0.005 + (potions["anti gravity potion"].time > 0) * 0.005)));
+
+				if (boots == "feather boots") {
+					playerYV = Math.max(playerYV, -0.3);
+				};
 				hittableRows = getHittableRows(playerX);
 				let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
 				let oldOnGround = onGround;
-				onGround = playerY > bakedRows[max] * -50 - 50;
-				if (!oldOnGround && onGround && playerYV > 30) {
-					health -= playerYV * 0.001;
+				onGround = playerY + playerYV <= bakedRows[max];
+				if (!oldOnGround && onGround && playerYV <= -0.6) {
+					health -= playerYV * -0.05;
 				};
 				if (onGround) {
 					if (getLayer(level.rows[max]) == 2 && level.rows[max] - 200 > (level.originalRows[max] - 200) * 0.9 && boots != "tennis rackets") {
 						level.rows[max] -= 0.005;
 					};
-					playerY = bakedRows[max] * -50 - 50;
+					playerY = bakedRows[max];
 					playerYV = 0;
 				};
+				playerY += playerYV;
+
+				// ROW LOOP //
+
 				let oldInLadder = inLadder;
 				inLadder = false;
-				for (let i = 0; i < level.features.length; i++) {
-					if (playerX / 50 + 0.5 > i && playerX / 50 - 0.5 < i + 1) {
-						if (playerY / -50 - 1 < bakedRows[i] + 1) {
+				dybbukTime = Math.max(0, dybbukTime - 1);
+				document.getElementById("obelisk-shop-button").style.display = "none";
+				for (let i = 0; i < level.rows.length; i++) {
+					// features
+					if (playerX + 0.5 > i && playerX - 0.5 < i + 1) {
+						if (playerY < bakedRows[i] + 1) {
 							switch (level.features[i]) {
 								case 2:
-									gems++;
+									if (dybbukTime <= 0) {
+										gems++;
+									};
 									level.features[i] = 0;
 									break;
 								case 6:
-									let crateOption = ["food", "potion", "ladder", "coins", "gems", "nothing"].random();
-									let specific = null;
-									switch (crateOption) {
-										case "food":
-											specific = Object.keys(foods).random();
-											foods[specific].howmany++;
-											break;
-										case "potion":
-											specific = Object.keys(potions).random();
-											potions[specific].howmany++;
-											break;
-										case "ladder":
-											specific = ["ladder", "tall ladder"].random();
-											switch (specific) {
-												case "ladder":
-													ladders++;
-													break;
-												case "tall ladder":
-													tallLadders++;
-											};
-											break;
-										case "coins":
-											specific = Math.floor(Math.random() * 19 + 1);
-											coins += specific;
-											break;
-										case "gems":
-											specific = Math.floor(Math.random() * 3 + 1);
-											gems += specific;
-											break;
-										case "nothing":
-											if (Math.random() < 1/100) {
-												specific = "spawned 1000 sentries";
-												for (let i = 0; i < 1000; i++) {
-													spawnMob("sentry", Math.random() * level.rows.length * 50, 0);
+									if (dybbukTime <= 0) {
+										let crateOption = ["food", "potion", "ladder", "coins", "gems", "nothing"].random();
+										let specific = null;
+										switch (crateOption) {
+											case "food":
+												specific = Object.keys(foods).random();
+												foods[specific].howmany++;
+												break;
+											case "potion":
+												specific = Object.keys(potions).random();
+												potions[specific].howmany++;
+												break;
+											case "ladder":
+												specific = ["ladder", "tall ladder"].random();
+												switch (specific) {
+													case "ladder":
+														ladders++;
+														break;
+													case "tall ladder":
+														tallLadders++;
 												};
-											} else {
-												specific = "get better";
-											};
+												break;
+											case "coins":
+												specific = Math.floor(Math.random() * 19 + 1);
+												coins += specific;
+												break;
+											case "gems":
+												specific = Math.floor(Math.random() * 3 + 1);
+												gems += specific;
+												break;
+											case "nothing":
+												if (Math.random() < 1/100) {
+													specific = "spawned 1000 sentries";
+													for (let i = 0; i < 1000; i++) {
+														spawnMob("sentry", Math.random() * level.rows.length, 0);
+													};
+												} else {
+													specific = "get better";
+												};
+										};
+										notificate("mystery crate opened! item: " + crateOption + " (" + specific + ")");
 									};
-									notificate("mystery crate opened! item: " + crateOption + " (" + specific + ")");
 									level.features[i] = 0;
+									break;
+								case 10:
+									dybbukTime = 1200;
+									level.features[i] = 11;
+									break;
+								case 12:
+									if (dybbukTime <= 0) {
+										totems++;
+										level.features[i] = 0;
+									};
+									break;
 							};
 						};
-						if (level.features[i] == 1 && (boots == "magnet boots" || playerY / -50 - 1 < bakedRows[i] + 1)) {
-							coins++;
+						if (level.features[i] == 1 && (boots == "magnet boots" || playerY < bakedRows[i] + 1)) {
+							if (dybbukTime <= 0) {
+								coins++;
+							};
 							level.features[i] = 0;
 						};
-						if ((playerY / -50 - 1 < bakedRows[i] + 4 && level.features[i] == 3) || (playerY / -50 - 1 < bakedRows[i] + 6 && level.features[i] == 4)) {
+						if ((playerY < bakedRows[i] + 4 && level.features[i] == 3) || (playerY < bakedRows[i] + 6 && level.features[i] == 4)) {
 							inLadder = true;
 						};
 						if (inLadder != oldInLadder) {
 							playerXV = 0;
 							playerYV = 0;
 						};
-						if (playerY / -50 - 1 < bakedRows[i] + 3 && level.features[i] == 7) {
-							spawnMob("sentry", playerX, playerY);
+						if (playerY < bakedRows[i] + 3 && level.features[i] == 7) {
+							if (dybbukTime <= 0) {
+								spawnMob("sentry", i + 0.5, bakedRows[i + 1]);
+							};
 							level.features[i] = 8;
 						};
-						if (onGround && playerY / -50 - 1 == bakedRows[i] && boots !== "tennis rackets" && level.features[i] == 9) {
+						if (onGround && playerY == bakedRows[i] && boots !== "tennis rackets" && level.features[i] == 9) {
 							level.rows[i - 1] = level.rows[i] = level.rows[i + 1] = level.rows[i] - 4;
 							level.features[i - 1] = 0;
 							level.features[i] = 0;
 							level.features[i + 1] = 0;
 						};
 					};
-				};
-				playerXV *= inLadder ? 0 : (onGround ? layers[clamp(getLayer(playerY / -50), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1] : 0.99);
-				playerYV = potions["levitation potion"].time > 0 ? -5 : (playerYV + ((inLadder || flying) ? 0 : ((boots == "magnet boots" && getLayer(playerY / -50) == -7) ? 1.2 : 0.6)));
-				if (boots == "feather boots") {
-					playerYV = Math.min(playerYV, 15);
-				};
-
-				for (mob of mobs) {
-					mob.age++;
-					if (mob.type !== "sentry" || mob.age >= 120) {
-						let xSign = Math.sign(playerX - mob.x)
-						mob.x += xSign * 3;
-						if (xSign !== Math.sign(playerX - mob.x)) {
-							mob.x = playerX;
-						};
-						let sentryStepHeight = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
-						if (sentryStepHeight - (mob.y / -50 - 2) <= 3) {
-							mob.y = sentryStepHeight * -50 - 100;
-						} else {
-							mob.x = Math.ceil(mob.x / 50) * 50 - 25;
-						};
-						if (mob.x + 25 > playerX - 25 && mob.x - 25 < playerX + 25 && playerY + 50 > mob.y - 100) {
-							health -= 0.01;
+					// feature entities
+					if (level.featureEntities[i]) {
+						let spawnOffset;
+						switch (level.featureEntities[i].type) {
+							case "golem":
+								spawnOffset = 35;
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 3 && onGround && level.featureEntities[i].riseSpeed == 0 && level.featureEntities[i + spawnOffset] == null) {
+									level.featureEntities[i].riseSpeed = -0.01;
+									placeFeatureEntity("golem", i + spawnOffset, true);
+								};
+								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
+								if (level.featureEntities[i].yOffset > 0) {
+									level.featureEntities[i].riseSpeed = 0;
+									level.featureEntities[i].yOffset = 0;
+								} else if (level.featureEntities[i].yOffset <= -3) {
+									level.featureEntities[i] = null;
+									continue;
+								};
+								break;
+							case "russet golem":
+								spawnOffset = 10.0;
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 6 && onGround && level.featureEntities[i].riseSpeed == 0 && level.featureEntities[i + spawnOffset] == null) {
+									level.featureEntities[i].riseSpeed = -0.01;
+									placeFeatureEntity("russet golem", i + spawnOffset, true);
+									if (level.featureEntities[i + Math.floor(spawnOffset / 2)] == null)  {
+										placeFeatureEntity("golem", i + Math.floor(spawnOffset / 2), true);
+									};
+								};
+								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
+								if (level.featureEntities[i].yOffset > 0) {
+									level.featureEntities[i].riseSpeed = 0;
+									level.featureEntities[i].yOffset = 0;
+								} else if (level.featureEntities[i].yOffset <= -6) {
+									level.featureEntities[i] = null;
+									continue;
+								};
+								break;
+							case "obelisk":
+								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
+								if (level.featureEntities[i].yOffset > 0) {
+									level.featureEntities[i].riseSpeed = 0;
+									level.featureEntities[i].yOffset = 0;
+								} else if (level.featureEntities[i].yOffset <= -4) {
+									level.featureEntities[i] = null;
+									continue;
+								};
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY < level.rows[i] + 4 && level.featureEntities[i].riseSpeed == 0) {
+									document.getElementById("obelisk-shop-button").style.display = "block";
+								};
+								break;
 						};
 					};
 				};
 
-				cameraX = (cameraX * 3 + (playerX - canvas.width / 2)) / 4;
-				cameraY = (cameraY * 3 + (playerY - canvas.height / 2)) / 4;
-				score = Math.max(score, Math.floor(playerX / 50));
+				for (let mob of level.mobs) {
+					switch (mob.type) {
+						case "sentry":
+							if (mob.age >= 120) {
+								let xSign = Math.sign(playerX - mob.x)
+								mob.x += xSign * 0.06;
+								if (xSign !== Math.sign(playerX - mob.x)) {
+									mob.x = playerX;
+								};
+								let sentryStepHeight = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+								if (sentryStepHeight - (mob.y) <= 3) {
+									mob.y = sentryStepHeight;
+								} else {
+									mob.x = Math.ceil(mob.x) - 0.5;
+								};
+								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
+									health -= 0.01;
+								};
+								for (let collisionMob of level.mobs) {
+									if (mob.x + 0.5 > collisionMob.x - 0.5 && mob.x - 0.5 < collisionMob.x + 0.5 && collisionMob.y < mob.y + 4 && collisionMob.y + 4 > mob.y && collisionMob.type === "mimic" && !collisionMob.mimicking) {
+										placeFeatureEntity("obelisk", Math.floor((mob.x + collisionMob.x) / 2), true);
+										level.mobs.splice(level.mobs.indexOf(mob));
+										level.mobs.splice(level.mobs.indexOf(collisionMob));
+									};
+								};
+							};
+							break;
+						case "mimic":
+							if (!mob.mimicking) {
+								mob.x = (mob.x > playerX ? Math.min : Math.max)(mob.x, mob.x + playerXV);
+								mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
+									health -= 0.01;
+								};
+							} else if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1 && playerY + 2 > mob.y && dybbukTime <= 0) {
+								mob.mimicTimer = true;
+							};
+							if (mob.mimicTimer) {
+								mob.mimicSpawnAge++;
+								mob.mimicking = (mob.mimicSpawnAge < 120);
+							};
+							break;
+					};
+					mob.age++;
+				};
+
+				cameraX = (cameraX * 3 + (playerX * 50 - canvas.width / 2)) / 4;
+				cameraY = (cameraY * 3 + ((playerY + 1) * -50 - canvas.height / 2)) / 4;
+				score = Math.max(score, Math.floor(playerX));
 				pb = Math.max(pb, score);
 
 				health += potions["regeneration potion"].time > 0 ? 0.0008 : -0.00008;
-				health = clamp(health, 0, 1);
+				health = clamp(health, 0, maxHealth);
 				dead = health <= 0;
 				notificationTime = Math.max(0, notificationTime - 1);
 
+
+				// draw screen vv
+
+
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-				images[((gameTime % 600 < 300 && getLayer(playerY / -50) < 4) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
+				images[((gameTime % 600 < 300 && getLayer(playerY) < 4) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
 				
 				if (cameraY > 200) {
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
@@ -854,52 +1145,121 @@
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
 				};
 				
-				images.hills.draw(0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4, (200 - cameraY) / 4, canvas.width, canvas.height);
-				images.hills.draw(0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, canvas.height);
+				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4, (200 - cameraY) / 4, canvas.width, canvas.height);
+				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, canvas.height);
 
 				// grass
-				let rowBuffer = Object.keys(level.rows).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width)
+				let rowBuffer = Object.keys(level.rows).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width);
 				for (let i = 0; i < rowBuffer.length; i++) {
 					let ice = getLayer(level.rows[rowBuffer[i]]) == 2 && level.rows[rowBuffer[i]] - 100 < (level.originalRows[rowBuffer[i]] - 100) * 0.9;
 					let groundImage = ice ? images.packedSnow : layers[clamp(getLayer(level.rows[rowBuffer[i]]), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][0];
-					let imageWidth = groundImage.image.height * (50 / (canvas.height * 2));
-					let imageHeight = level.rows[rowBuffer[i]] * -50 - cameraY;
-					groundImage.draw(Math.floor(((imageWidth * rowBuffer[i]) % (Math.floor(groundImage.image.width / imageWidth) * imageWidth)) / imageWidth) * imageWidth, 0, imageWidth, groundImage.image.height, rowBuffer[i] * 50 - cameraX, imageHeight, 50, canvas.height * 2);
+					let blockUVSize = groundImage.width / 25;
+					let rowY = level.rows[rowBuffer[i]] * -50 - cameraY;
+					groundImage.draw((blockUVSize * rowBuffer[i]) % (Math.floor(groundImage.width / blockUVSize) * blockUVSize), 0, blockUVSize, groundImage.height, rowBuffer[i] * 50 - cameraX, rowY, 50, 50 * (groundImage.height / blockUVSize));
 					switch (level.features[rowBuffer[i]]) {
+						case 0:
+							break;
 						case 1:
-							images.coin.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
+							images.coin.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
 							break;
 						case 2:
-							images.gem.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
+							images.gem.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
 							break;
 						case 3:
-							images.ladder.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 200, 50, 200);
+							images.ladder.draw(rowBuffer[i] * 50 - cameraX, rowY - 200, 50, 200);
 							break;
 						case 4:
-							images.ladder.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 300, 50, 300);
+							images.ladder.draw(rowBuffer[i] * 50 - cameraX, rowY - 300, 50, 300);
 							break;
 						case 5:
-							images.stones.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 250, 50, 250);
+							images.stones.draw(rowBuffer[i] * 50 - cameraX, rowY - 250, 50, 250);
 							break;
 						case 6:
-							images.mysteryCrate.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 50, 50, 50);
+							images.mysteryCrate.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
 							break;
 						case 7:
-							images.sentryBarracks.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 150, 50, 150);
+							images.sentryBarracks.draw(rowBuffer[i] * 50 - cameraX, rowY - 150, 50, 150);
 							break;
 						case 8:
-							images.sentryBarracks.draw(rowBuffer[i] * 50 - cameraX, imageHeight - 150, 50, 150);
+							images.sentryBarracks.draw(rowBuffer[i] * 50 - cameraX, rowY - 150, 50, 150);
 							break;
 						case 9:
-							images.pitfall.draw(rowBuffer[i] * 50 - cameraX, imageHeight, 50, 25);
+							images.pitfall.draw(rowBuffer[i] * 50 - cameraX, rowY, 50, 25);
+							break;
+						case 10:
+							images.dybbukBox.draw(110, 75, 200, 250, rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+							break;
+						case 11:
+							images.dybbukBoxOpen.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+							break;
+						case 12:
+							images.totem.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+							break;
+						default:
+							images.error.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+					};
+					let featureEntity = level.featureEntities[rowBuffer[i]];
+					if (featureEntity) {
+						switch (featureEntity.type) {
+							case "golem":
+								images.golem.draw(0, 0, 1670, 1837 - (featureEntity.yOffset * -50 * (1830 / 150)), rowBuffer[i] * 50 - cameraX, rowY - 150 - featureEntity.yOffset * 50, 50, 150 - featureEntity.yOffset * -50);
+								break;
+							case "russet golem":
+								images.russetGolem.draw(0, 0, 570, 570 - (featureEntity.yOffset * -50 * (570 / 300)), rowBuffer[i] * 50 - cameraX, rowY - 300 - featureEntity.yOffset * 50, 50, 300 - featureEntity.yOffset * -50);
+								break;
+							case "obelisk":
+								images.obelisk.draw(875, 50, 200, 730 - (featureEntity.yOffset * -50 * (730 / 200)), rowBuffer[i] * 50 - cameraX, rowY - 200 - featureEntity.yOffset * 50, 50, 200 - featureEntity.yOffset * -50);
+								break;
+							default:
+								images.error.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+						};
 					};
 				};
 			
-				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 5 ? "guyRunning" : "guy") : (playerYV >= 0 ? "guyFalling" : "guyJumping"))));
-				images[document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"].draw(playerX - 25 - cameraX, playerY - 50 - cameraY, 50, 100);
-				for (mob of mobs) {
-					if (mob.type != "sentry" || mob.age >= 120) {
-						images[mob.type].draw(mob.x - 25 - cameraX, mob.y - 100 - cameraY, 50, 200);
+				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV <= 0 ? "guyFalling" : "guyJumping"))));
+				images[document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"].draw(playerX * 50 - 25 - cameraX, playerY * -50 - 100 - cameraY, 50, 100);
+				if (dybbukTime > 0) {
+					ctx.globalAlpha = 0.5;
+					images.dybbuk.draw(playerX * 50 - 25 - cameraX, playerY * -50 - 100 - cameraY, 50, 100);
+					ctx.globalAlpha = 1;
+				};
+
+				for (let mob of level.mobs) {
+					if (mob.x * 50 + 25 - cameraX > 0 && mob.x * 50 - 25 - cameraX < canvas.width) {
+						switch (mob.type) {
+							case "sentry":
+								if (mob.age >= 120) {
+									images.sentry.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+								};
+								break;
+							case "mimic":
+								if (mob.mimicking) {
+									switch (mob.mimicTarget) {
+										case "coin":
+											images.coin.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+											break;
+										case "gem":
+											images.gem.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+											break;
+										default:
+											images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+									};
+								} else {
+									switch (Math.sign(Math.round(playerXV * 1000) / 1000)) {
+										case -1:
+											images.mimic.draw(307, 87, 84, 193, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+											break;
+										case 0:
+											images.mimic.draw(217, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+											break;
+										case 1:
+											images.mimic.draw(109, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+									};
+								};
+								break;
+							default:
+								images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 100 - cameraY, 50, 100);
+						};
 					};
 				};
 				ctx.font = "30px arial";
@@ -910,9 +1270,11 @@
 					ctx.fillText("started protecting thousands of hectares of land.", 0, 350);
 				};
 			};
-			let r = clamp(2 - health * 2, 0, 1) * 255;
-			let g = clamp(health * 2, 0, 1) * 255;
+			let healthPercent = health / maxHealth
+			let r = clamp(2 - healthPercent * 2, 0, 1) * 255;
+			let g = clamp(healthPercent * 2, 0, 1) * 255;
 			let b = (potions["regeneration potion"].time > 0) * 127;
+			document.getElementById("health").style.width = 600 * (maxHealth / 1) + "px";
 			document.getElementById("health-inner").style.width = 600 * health + "px";
 			document.getElementById("health-inner").style.backgroundColor = "rgb(" + r + ", " + g + ", " + b + ")";
 			if (dead) {
@@ -920,7 +1282,7 @@
 				ctx.fillStyle = "red";
 				ctx.fillText("you died", 200, 200);
 			};
-			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY / -50 - 1) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>boots: " + boots + "<br>frametime: " + Math.round(fps * 10000) / 10000;
+			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps;
 			document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 			for (let food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
@@ -932,15 +1294,19 @@
 			document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
 		};
 		function loop() {
-			startFrameTime = performance.now();
 			try {
 				tick();
 			} catch (e) {
 				alert(e.stack);
 				return;
 			};
-			endFrameTime = performance.now();
-			fps = ((endFrameTime - startFrameTime) / 1000);
+			frameCount++;
+			let now = performance.now();
+			if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {
+				fpsUpdateTime = now;
+				fps = frameCount;
+				frameCount = 0;
+			};
 			requestAnimationFrame(loop);
 		};
 		loop();

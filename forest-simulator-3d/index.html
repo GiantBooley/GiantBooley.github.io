@@ -532,7 +532,7 @@
 					placeFeatureEntity("russet golem", i, false);
 				};
 
-				if (Math.random() < 1 / 10000) {
+				if (Math.random() < 1 / 5000) {
 					spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
 				};
 			};
@@ -1043,7 +1043,7 @@
 								};
 								break;
 							case "russet golem":
-								spawnOffset = 10.0;
+								spawnOffset = 100;
 								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 6 && onGround && level.featureEntities[i].riseSpeed == 0 && level.featureEntities[i + spawnOffset] == null) {
 									level.featureEntities[i].riseSpeed = -0.01;
 									placeFeatureEntity("russet golem", i + spawnOffset, true);

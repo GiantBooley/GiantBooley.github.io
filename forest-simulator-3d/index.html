@@ -184,9 +184,10 @@
 						<button onclick="clickShoeButton(this, 'tennis rackets');">Tennis rackets (30 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'running shoes');">Running shoes (60 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'spring boots');">Spring boots (90 coins)</button><br>
+						<button onclick="clickShoeButton(this, 'spike boots');">Spike boots (100 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'feather boots');">Feather boots (120 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'stepping boots');">Stepping boots (150 coins)</button><br>
-						<button onclick="clickShoeButton(this, 'magnet boots');">Magnet boots (170 coins)</button>
+						<button onclick="clickShoeButton(this, 'magnet boots');">Magnet boots (170 coins)</button><br>
 					</div><br>
 					<div id="food">
 						<h3>food</h3><br>
@@ -209,12 +210,13 @@
 				</div>
 				<div id="shop-gems">
 					<div id="potions">
-						<h3>potions</h3>
+						<h3>alchemy (potions)</h3>
 						<label>speed potion (10 seconds)</label><label id="speed-potion-howmany">(0)</label><button onclick="chugPotion('speed potion');">chug</button><button onclick="brewPotion('speed potion');">brew (2 gems)</button><br>
 						<label>jumping potion (10 seconds)</label><label id="jumping-potion-howmany">(0)</label><button onclick="chugPotion('jumping potion');">chug</button><button onclick="brewPotion('jumping potion');">brew (3 gems)</button><br>
 						<label>regeneration potion (10 seconds)</label><label id="regeneration-potion-howmany">(0)</label><button onclick="chugPotion('regeneration potion');">chug</button><button onclick="brewPotion('regeneration potion');">brew (5 gems)</button><br>
 						<label>spider potion (10 seconds)</label><label id="spider-potion-howmany">(0)</label><button onclick="chugPotion('spider potion');">chug</button><button onclick="brewPotion('spider potion');">brew (7 gems)</button><br>
 						<label>levitation potion (10 seconds)</label><label id="levitation-potion-howmany">(0)</label><button onclick="chugPotion('levitation potion');">chug</button><button onclick="brewPotion('levitation potion');">brew (8 gems)</button><br>
+						<label>anti gravity potion (10 seconds)</label><label id="anti-gravity-potion-howmany">(0)</label><button onclick="chugPotion('anti gravity potion');">chug</button><button onclick="brewPotion('anti gravity potion');">brew (10 gems)</button><br>
 						<label>bird potion (10 seconds)</label><label id="bird-potion-howmany">(0)</label><button onclick="chugPotion('bird potion');">chug</button><button onclick="brewPotion('bird potion');">brew (12 gems)</button>
 					</div>
 				</div>
@@ -252,12 +254,16 @@
 			constructor(color, src) {
 				this.image = new Image();
 				//this.image.crossOrigin = "anonymous";
+				this.width = 500;
+				this.height = 500;
 				this.url = src;
 				this.loaded = false;
 				this.color = color;
 				let canvasimagething = this;
 				this.image.onload = function() {
 					canvasimagething.loaded = true;
+					canvasimagething.width = this.width;
+					canvasimagething.height = this.height;
 					imagesLoaded++;
 				};
 			};
@@ -431,6 +437,7 @@
 			"tennis rackets": {bought: false, cost: 30},
 			"running shoes": {bought: false, cost: 60},
 			"spring boots": {bought: false, cost: 90},
+			"spike boots": {bought: false, cost: 100},
 			"feather boots": {bought: false, cost: 120},
 			"stepping boots": {bought: false, cost: 150},
 			"magnet boots": {bought: false, cost: 170}
@@ -453,6 +460,7 @@
 			"regeneration potion": {cost: 5, time: 0, duration: 10, howmany: 0},
 			"spider potion": {cost: 7, time: 0, duration: 10, howmany: 0},
 			"levitation potion": {cost: 8, time: 0, duration: 10, howmany: 0},
+			"anti gravity potion": {cost: 10, time: 0, duration: 10, howmany: 0},
 			"bird potion": {cost: 12, time: 0, duration: 10, howmany: 0}
 		};
 		var boots = "sketchers";
@@ -469,9 +477,9 @@
 		};
 		var tallLadders = 0;
 		var score = 0;
+		var frameCount = 0;
 		var fps = 0;
-		var startFrameTime = 0;
-		var endFrameTime = 0;
+		var fpsUpdateTime = 0;
 		var flying = false;
 		var pb = 0;
 		var notification = "";
@@ -636,7 +644,7 @@
 				macroTime = 0;
 				macroPlaying = true;
 			} else if (e.key == "p" && developerMode) {
-				spawnMob(prompt("what mob"), playerX - 3, level.rows[Math.floor(playerX - 5)] ?? 0);
+				spawnMob(prompt("what mob"), playerX - 3, level.rows[Math.floor(playerX - 3)] ?? 0);
 			};
 		};
 		function purchaseLadder() {
@@ -791,8 +799,8 @@
 						};
 						break;
 					case "speed":
-						if (basePlayerSpeed < 0.5) {
-							basePlayerSpeed = Math.min(basePlayerSpeed + 0.03, 0.5);
+						if (basePlayerSpeed < 0.35) {
+							basePlayerSpeed = Math.min(basePlayerSpeed + 0.02, 0.35);
 						} else {
 							alert("upgrade maxed");
 						};
@@ -848,8 +856,8 @@
 
 				// X MOVEMENT //
 				
-				let playerSpeed = basePlayerSpeed + (boots == "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
-				let groundFriction = layers[clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1];
+				let playerSpeed = basePlayerSpeed + (boots === "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
+				let groundFriction = (boots === "spike boots") ? 0.9 : layers[clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1];
 				if (controls.right != controls.left) {
 					//move
 					let sign = controls.right - controls.left;
@@ -890,7 +898,8 @@
 				};
 
 				//gravity
-				playerYV = potions["levitation potion"].time > 0 ? 0.1 : (playerYV + ((inLadder || flying) ? 0 : ((boots == "magnet boots" && clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers))) == -7) ? -0.024 : -0.012)));
+				let layer = clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)));
+				playerYV = potions["levitation potion"].time > 0 ? 0.1 : (playerYV + ((inLadder || flying) ? 0 : (-0.012 + (boots === "magnet boots" && layer === -7) * -0.012 + (layer === 4) * 0.005 + (potions["anti gravity potion"].time > 0) * 0.005)));
 
 				if (boots == "feather boots") {
 					playerYV = Math.max(playerYV, -0.3);
@@ -911,12 +920,14 @@
 				};
 				playerY += playerYV;
 
-				// FEATURE COLLISION //
+				// ROW LOOP //
 
 				let oldInLadder = inLadder;
 				inLadder = false;
 				dybbukTime = Math.max(0, dybbukTime - 1);
-				for (let i = 0; i < level.features.length; i++) {
+				document.getElementById("obelisk-shop-button").style.display = "none";
+				for (let i = 0; i < level.rows.length; i++) {
+					// features
 					if (playerX + 0.5 > i && playerX - 0.5 < i + 1) {
 						if (playerY < bakedRows[i] + 1) {
 							switch (level.features[i]) {
@@ -976,8 +987,10 @@
 									level.features[i] = 11;
 									break;
 								case 12:
-									totems++;
-									level.features[i] = 0;
+									if (dybbukTime <= 0) {
+										totems++;
+										level.features[i] = 0;
+									};
 									break;
 							};
 						};
@@ -995,7 +1008,9 @@
 							playerYV = 0;
 						};
 						if (playerY < bakedRows[i] + 3 && level.features[i] == 7) {
-							spawnMob("sentry", i + 0.5, bakedRows[i + 1]);
+							if (dybbukTime <= 0) {
+								spawnMob("sentry", i + 0.5, bakedRows[i + 1]);
+							};
 							level.features[i] = 8;
 						};
 						if (onGround && playerY == bakedRows[i] && boots !== "tennis rackets" && level.features[i] == 9) {
@@ -1005,53 +1020,56 @@
 							level.features[i + 1] = 0;
 						};
 					};
-				};
-				document.getElementById("obelisk-shop-button").style.display = "none";
-				for (let i = 0; i < level.featureEntities.length; i++) {
+					// feature entities
 					if (level.featureEntities[i]) {
-						if (level.featureEntities[i].type == "golem") {
-							let spawnOffset = 35;
-							if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 3 && onGround && level.featureEntities[i].riseSpeed == 0 && level.featureEntities[i + spawnOffset] == null) {
-								level.featureEntities[i].riseSpeed = -0.01;
-								placeFeatureEntity("golem", i + spawnOffset, true);
-							};
-							level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
-							if (level.featureEntities[i].yOffset > 0) {
-								level.featureEntities[i].riseSpeed = 0;
-								level.featureEntities[i].yOffset = 0;
-							} else if (level.featureEntities[i].yOffset <= -3) {
-								level.featureEntities[i] = null;
-								continue;
-							};
-						} else if (level.featureEntities[i].type == "russet golem") {
-							let spawnOffset = 100;
-							if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 6 && onGround && level.featureEntities[i].riseSpeed == 0 && level.featureEntities[i + spawnOffset] == null) {
-								level.featureEntities[i].riseSpeed = -0.01;
-								placeFeatureEntity("russet golem", i + spawnOffset, true);
-								if (level.featureEntities[i + Math.floor(spawnOffset / 2)] == null)  {
-									placeFeatureEntity("golem", i + Math.floor(spawnOffset / 2), true);
+						let spawnOffset;
+						switch (level.featureEntities[i].type) {
+							case "golem":
+								spawnOffset = 35;
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 3 && onGround && level.featureEntities[i].riseSpeed == 0 && level.featureEntities[i + spawnOffset] == null) {
+									level.featureEntities[i].riseSpeed = -0.01;
+									placeFeatureEntity("golem", i + spawnOffset, true);
 								};
-							};
-							level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
-							if (level.featureEntities[i].yOffset > 0) {
-								level.featureEntities[i].riseSpeed = 0;
-								level.featureEntities[i].yOffset = 0;
-							} else if (level.featureEntities[i].yOffset <= -6) {
-								level.featureEntities[i] = null;
-								continue;
-							};
-						} else if (level.featureEntities[i].type == "obelisk") {
-							level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
-							if (level.featureEntities[i].yOffset > 0) {
-								level.featureEntities[i].riseSpeed = 0;
-								level.featureEntities[i].yOffset = 0;
-							} else if (level.featureEntities[i].yOffset <= -4) {
-								level.featureEntities[i] = null;
-								continue;
-							};
-							if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY < level.rows[i] + 4 && level.featureEntities[i].riseSpeed == 0) {
-								document.getElementById("obelisk-shop-button").style.display = "block";
-							};
+								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
+								if (level.featureEntities[i].yOffset > 0) {
+									level.featureEntities[i].riseSpeed = 0;
+									level.featureEntities[i].yOffset = 0;
+								} else if (level.featureEntities[i].yOffset <= -3) {
+									level.featureEntities[i] = null;
+									continue;
+								};
+								break;
+							case "russet golem":
+								spawnOffset = 10.0;
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 6 && onGround && level.featureEntities[i].riseSpeed == 0 && level.featureEntities[i + spawnOffset] == null) {
+									level.featureEntities[i].riseSpeed = -0.01;
+									placeFeatureEntity("russet golem", i + spawnOffset, true);
+									if (level.featureEntities[i + Math.floor(spawnOffset / 2)] == null)  {
+										placeFeatureEntity("golem", i + Math.floor(spawnOffset / 2), true);
+									};
+								};
+								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
+								if (level.featureEntities[i].yOffset > 0) {
+									level.featureEntities[i].riseSpeed = 0;
+									level.featureEntities[i].yOffset = 0;
+								} else if (level.featureEntities[i].yOffset <= -6) {
+									level.featureEntities[i] = null;
+									continue;
+								};
+								break;
+							case "obelisk":
+								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
+								if (level.featureEntities[i].yOffset > 0) {
+									level.featureEntities[i].riseSpeed = 0;
+									level.featureEntities[i].yOffset = 0;
+								} else if (level.featureEntities[i].yOffset <= -4) {
+									level.featureEntities[i] = null;
+									continue;
+								};
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY < level.rows[i] + 4 && level.featureEntities[i].riseSpeed == 0) {
+									document.getElementById("obelisk-shop-button").style.display = "block";
+								};
+								break;
 						};
 					};
 				};
@@ -1090,7 +1108,7 @@
 								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
 									health -= 0.01;
 								};
-							} else if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1 && playerY + 2 > mob.y) {
+							} else if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1 && playerY + 2 > mob.y && dybbukTime <= 0) {
 								mob.mimicTimer = true;
 							};
 							if (mob.mimicTimer) {
@@ -1108,9 +1126,13 @@
 				pb = Math.max(pb, score);
 
 				health += potions["regeneration potion"].time > 0 ? 0.0008 : -0.00008;
-				health = clamp(health, 0, 1);
+				health = clamp(health, 0, maxHealth);
 				dead = health <= 0;
 				notificationTime = Math.max(0, notificationTime - 1);
+
+
+				// draw screen vv
+
 
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -1123,17 +1145,17 @@
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
 				};
 				
-				images.hills.draw(0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4, (200 - cameraY) / 4, canvas.width, canvas.height);
-				images.hills.draw(0, 200, images.hills.image.width, images.hills.image.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, canvas.height);
+				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4, (200 - cameraY) / 4, canvas.width, canvas.height);
+				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, canvas.height);
 
 				// grass
 				let rowBuffer = Object.keys(level.rows).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width);
 				for (let i = 0; i < rowBuffer.length; i++) {
 					let ice = getLayer(level.rows[rowBuffer[i]]) == 2 && level.rows[rowBuffer[i]] - 100 < (level.originalRows[rowBuffer[i]] - 100) * 0.9;
 					let groundImage = ice ? images.packedSnow : layers[clamp(getLayer(level.rows[rowBuffer[i]]), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][0];
-					let blockUVSize = groundImage.image.width / 25;
+					let blockUVSize = groundImage.width / 25;
 					let rowY = level.rows[rowBuffer[i]] * -50 - cameraY;
-					groundImage.draw((blockUVSize * rowBuffer[i]) % (Math.floor(groundImage.image.width / blockUVSize) * blockUVSize), 0, blockUVSize, groundImage.image.height, rowBuffer[i] * 50 - cameraX, rowY, 50, 50 * (groundImage.image.height / blockUVSize));
+					groundImage.draw((blockUVSize * rowBuffer[i]) % (Math.floor(groundImage.width / blockUVSize) * blockUVSize), 0, blockUVSize, groundImage.height, rowBuffer[i] * 50 - cameraX, rowY, 50, 50 * (groundImage.height / blockUVSize));
 					switch (level.features[rowBuffer[i]]) {
 						case 0:
 							break;
@@ -1194,7 +1216,7 @@
 					};
 				};
 			
-				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV >= 0 ? "guyFalling" : "guyJumping"))));
+				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV <= 0 ? "guyFalling" : "guyJumping"))));
 				images[document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"].draw(playerX * 50 - 25 - cameraX, playerY * -50 - 100 - cameraY, 50, 100);
 				if (dybbukTime > 0) {
 					ctx.globalAlpha = 0.5;
@@ -1202,40 +1224,42 @@
 					ctx.globalAlpha = 1;
 				};
 
-				for (mob of level.mobs) {
-					switch (mob.type) {
-						case "sentry":
-							if (mob.age >= 120) {
-								images.sentry.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
-							};
-							break;
-						case "mimic":
-							if (mob.mimicking) {
-								switch (mob.mimicTarget) {
-									case "coin":
-										images.coin.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
-										break;
-									case "gem":
-										images.gem.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
-										break;
-									default:
-										images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+				for (let mob of level.mobs) {
+					if (mob.x * 50 + 25 - cameraX > 0 && mob.x * 50 - 25 - cameraX < canvas.width) {
+						switch (mob.type) {
+							case "sentry":
+								if (mob.age >= 120) {
+									images.sentry.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
 								};
-							} else {
-								switch (Math.sign(Math.round(playerXV * 1000) / 1000)) {
-									case -1:
-										images.mimic.draw(307, 87, 84, 193, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
-										break;
-									case 0:
-										images.mimic.draw(217, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
-										break;
-									case 1:
-										images.mimic.draw(109, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+								break;
+							case "mimic":
+								if (mob.mimicking) {
+									switch (mob.mimicTarget) {
+										case "coin":
+											images.coin.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+											break;
+										case "gem":
+											images.gem.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+											break;
+										default:
+											images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+									};
+								} else {
+									switch (Math.sign(Math.round(playerXV * 1000) / 1000)) {
+										case -1:
+											images.mimic.draw(307, 87, 84, 193, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+											break;
+										case 0:
+											images.mimic.draw(217, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+											break;
+										case 1:
+											images.mimic.draw(109, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+									};
 								};
-							};
-							break;
-						default:
-							images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 100 - cameraY, 50, 100);
+								break;
+							default:
+								images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 100 - cameraY, 50, 100);
+						};
 					};
 				};
 				ctx.font = "30px arial";
@@ -1250,14 +1274,15 @@
 			let r = clamp(2 - healthPercent * 2, 0, 1) * 255;
 			let g = clamp(healthPercent * 2, 0, 1) * 255;
 			let b = (potions["regeneration potion"].time > 0) * 127;
-			document.getElementById("health-inner").style.width = (600 * (maxHealth / 1)) * healthPercent + "px";
+			document.getElementById("health").style.width = 600 * (maxHealth / 1) + "px";
+			document.getElementById("health-inner").style.width = 600 * health + "px";
 			document.getElementById("health-inner").style.backgroundColor = "rgb(" + r + ", " + g + ", " + b + ")";
 			if (dead) {
 				ctx.font = "100px arial";
 				ctx.fillStyle = "red";
 				ctx.fillText("you died", 200, 200);
 			};
-			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>frametime: " + Math.round(fps * 10000) / 10000 + "<br>sopx: " + playerXV + "<br>sopy: " + playerYV + "<br>camera x: " + cameraX + "<br>camera y: " + cameraY + "<br>onground: " + onGround;
+			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps;
 			document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 			for (let food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
@@ -1269,15 +1294,19 @@
 			document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
 		};
 		function loop() {
-			startFrameTime = performance.now();
-			//try {
+			try {
 				tick();
-			//} catch (e) {
-			//	alert(e.stack);
-			//	return;
-			//};
-			endFrameTime = performance.now();
-			fps = ((endFrameTime - startFrameTime) / 1000);
+			} catch (e) {
+				alert(e.stack);
+				return;
+			};
+			frameCount++;
+			let now = performance.now();
+			if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {
+				fpsUpdateTime = now;
+				fps = frameCount;
+				frameCount = 0;
+			};
 			requestAnimationFrame(loop);
 		};
 		loop();

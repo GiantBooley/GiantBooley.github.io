@@ -467,6 +467,7 @@
 			featureEntities: [],
 			terrainFeatures: [],
 			waterLevel: [],
+			golems: []
 		};
 		var coins = 0;
 		var gems = 0;
@@ -548,6 +549,32 @@
 		var maxHealth = 1;
 		var resizeGroundUV = true;
 		var inWater = false;
+		var golems = {
+			"golem": {
+				height: 3,
+				riseSpeed: 0.01,
+				sinkSpeed: -0.01,
+				image: images.golem
+			},
+			"russet golem": {
+				height: 3,
+				riseSpeed: 0.008,
+				sinkSpeed: -0.01,
+				image: images.russetGolem
+			},
+			"aqua golem": {
+				height: 3,
+				riseSpeed: 0.005,
+				sinkSpeed: -0.005,
+				image: images.aquaGolem
+			},
+			"mecha golem": {
+				height: 3,
+				riseSpeed: 0.01,
+				sinkSpeed: -0.01,
+				image: images.mechaGolem
+			}
+		};
 
 		for (let i = 0; i < 10; i++) {
 			level.octaves.push(perlinNoise1D());
@@ -561,6 +588,7 @@
 				};
 				level.rows[i] = level.originalRows[i] = (level.rows[i - 1] ?? 0) + perlinHeight;
 				level.featureEntities[i] = null;
+				level.golems[i] = null;
 			};
 
 			// round stuff and coins n gems
@@ -671,7 +699,7 @@
 			} else {
 				if (coins >= bootses[bootsreal].cost) {
 					bootses[bootsreal].bought = true;
-					coins -= bootses[bootsreal].cost
+					coins -= bootses[bootsreal].cost;
 				} else {
 					alert("bankrupt");
 				};
@@ -856,23 +884,19 @@
 			let featureEntity = {
 				"type": type
 			};
-			if (type == "golem") {
-				featureEntity.yOffset = arguments[2] ? -3 : 0;
-				featureEntity.riseSpeed = arguments[2] ? 0.01 : 0;
-			} else if (type == "russet golem") {
-				featureEntity.yOffset = arguments[2] ? -6 : 0;
-				featureEntity.riseSpeed = arguments[2] ? 0.008 : 0;
-			} else if (type == "aqua golem") {
-				featureEntity.yOffset = arguments[2] ? -9 : 0;
-				featureEntity.riseSpeed = arguments[2] ? 0.005 : 0;
-			} else if (type == "mecha golem") {
-				featureEntity.yOffset = arguments[2] ? -12 : 0;
-				featureEntity.riseSpeed = arguments[2] ? 0.01 : 0;
-			} else if (type == "obelisk") {
+			if (type === "obelisk") {
 				featureEntity.yOffset = arguments[2] ? -4 : 0;
 				featureEntity.riseSpeed = arguments[2] ? 0.005 : 0;
 			};
 			level.featureEntities[Math.floor(x)] = featureEntity;
+		};
+		function placeGolem(type, x, rising) {
+			let golem = {
+				"type": type,
+				"yOffset": rising ? -golems[type].height : 0,
+				"ySpeed": rising ? golems[type].riseSpeed : 0
+			};
+			level.golems[Math.floor(x)] = golem;
 		};
 		function obeliskShopUpgradeButton(item) {
 			if (totems >= 1) {
@@ -904,7 +928,6 @@
 				alert("bankrupt");
 			};
 		};
-
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
 			controls.up = 0 || isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5)) || (macroPlaying && parseInt(macro[macroTime][0]));
@@ -925,18 +948,18 @@
 
 				let bakedRows = [...level.rows];
 				for (let i = 0; i < bakedRows.length; i++) {
-					bakedRows[i] += (level.features[i] == 5) * 5;
-					if (level.featureEntities[i] && level.featureEntities[i].type === "golem") {
-						let height = level.featureEntities[i].yOffset + 3;
+					bakedRows[i] += (level.features[i] === 5) * 5;
+					if (level.golems[i] && level.golems[i].type === "golem") {
+						let height = level.golems[i].yOffset + 3;
 						bakedRows[i] = level.rows[i] + height;
-					} else if (level.featureEntities[i] && level.featureEntities[i].type === "russet golem") {
-						let height = level.featureEntities[i].yOffset + 6;
+					} else if (level.golems[i] && level.golems[i].type === "russet golem") {
+						let height = level.golems[i].yOffset + 6;
 						bakedRows[i] = level.rows[i]+ height;
-					} else if (level.featureEntities[i] && level.featureEntities[i].type === "aqua golem") {
-						let height = level.featureEntities[i].yOffset + 9;
+					} else if (level.golems[i] && level.golems[i].type === "aqua golem") {
+						let height = level.golems[i].yOffset + 9;
 						bakedRows[i] = level.rows[i] + height;
-					} else if (level.featureEntities[i] && level.featureEntities[i].type === "mecha golem") {
-						let height = level.featureEntities[i].yOffset + 12;
+					} else if (level.golems[i] && level.golems[i].type === "mecha golem") {
+						let height = level.golems[i].yOffset + 12;
 						bakedRows[i - 1] = level.rows[i] + height;
 						bakedRows[i] = level.rows[i] + height;
 						bakedRows[i + 1] = level.rows[i] + height;
@@ -960,9 +983,6 @@
 					let sign = controls.right - controls.left;
 					let maxXV = (inLadder ? sign * (boots == "magnet boots" ? 0 : 0.1) : (flying ? sign * 0.3 : (sign * playerSpeed)));
 					playerXV = lerp(maxXV, playerXV, onGround ?  1 - groundFriction : 0.3) + (sign * 0.04 * (controls.up && onGround && !inWater));
-					if (controls.up && onGround && !inWater) {
-						bobxv = playerXV
-					};
 				} else {
 					//friction
 					playerXV *= inLadder ? 0 : (onGround ? 1 - groundFriction : 0.99);
@@ -1186,86 +1206,7 @@
 					};
 					// feature entities
 					if (level.featureEntities[i]) {
-						let spawnOffset;
 						switch (level.featureEntities[i].type) {
-							case "golem":
-								spawnOffset = 35;
-								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 3 && onGround && level.featureEntities[i].riseSpeed === 0 && level.featureEntities[i + spawnOffset] === null && boots !== "tennis rackets") {
-									level.featureEntities[i].riseSpeed = -0.01;
-									placeFeatureEntity("golem", i + spawnOffset, true);
-								};
-								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
-								if (level.featureEntities[i].yOffset > 0) {
-									level.featureEntities[i].riseSpeed = 0;
-									level.featureEntities[i].yOffset = 0;
-								} else if (level.featureEntities[i].yOffset <= -3) {
-									level.featureEntities[i] = null;
-									continue;
-								};
-								break;
-							case "russet golem":
-								spawnOffset = 100;
-								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 6 && onGround && level.featureEntities[i].riseSpeed === 0 && level.featureEntities[i + spawnOffset] === null && boots !== "tennis rackets") {
-									level.featureEntities[i].riseSpeed = -0.01;
-									placeFeatureEntity("russet golem", i + spawnOffset, true);
-									if (level.featureEntities[i + Math.floor(spawnOffset / 2)] == null)  {
-										placeFeatureEntity("golem", i + Math.floor(spawnOffset / 2), true);
-									};
-								};
-								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
-								if (level.featureEntities[i].yOffset > 0) {
-									level.featureEntities[i].riseSpeed = 0;
-									level.featureEntities[i].yOffset = 0;
-								} else if (level.featureEntities[i].yOffset <= -6) {
-									level.featureEntities[i] = null;
-									continue;
-								};
-								break;
-							case "aqua golem":
-								spawnOffset = 10;
-								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 9 && onGround && level.featureEntities[i].riseSpeed === 0 && level.featureEntities[i + spawnOffset] === null && boots !== "tennis rackets") {
-									level.featureEntities[i].riseSpeed = -0.005;
-									placeFeatureEntity("aqua golem", i + spawnOffset, true);
-									if (level.featureEntities[i + Math.floor(spawnOffset * (1 / 3))] == null)  {
-										placeFeatureEntity("russet golem", i + Math.floor(spawnOffset * (1 / 3)), true);
-									};
-									if (level.featureEntities[i + Math.floor(spawnOffset * (2 / 3))] == null)  {
-										placeFeatureEntity("golem", i + Math.floor(spawnOffset * (2 / 3)), true);
-									};
-								};
-								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
-								if (level.featureEntities[i].yOffset > 0) {
-									level.featureEntities[i].riseSpeed = 0;
-									level.featureEntities[i].yOffset = 0;
-								} else if (level.featureEntities[i].yOffset <= -9) {
-									level.featureEntities[i] = null;
-									continue;
-								};
-								break;
-							case "mecha golem":
-								spawnOffset = 10;
-								if (i + 2 > playerX - 0.5 && i - 1 < playerX + 0.5 && playerY <= level.rows[i] + 12 && onGround && level.featureEntities[i].riseSpeed === 0 && level.featureEntities[i + spawnOffset] === null && boots !== "tennis rackets") {
-									level.featureEntities[i].riseSpeed = -0.01;
-									placeFeatureEntity("mecha golem", i + spawnOffset, true);
-									if (level.featureEntities[i + Math.floor(spawnOffset * (1 / 4))] === null)  {
-										placeFeatureEntity("aqua golem", i + Math.floor(spawnOffset * (1 / 4)), true);
-									};
-									if (level.featureEntities[i + Math.floor(spawnOffset * (2 / 4))] === null)  {
-										placeFeatureEntity("russet golem", i + Math.floor(spawnOffset * (2 / 4)), true);
-									};
-									if (level.featureEntities[i + Math.floor(spawnOffset * (3 / 4))] === null)  {
-										placeFeatureEntity("golem", i + Math.floor(spawnOffset * (3 / 4)), true);
-									};
-								};
-								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
-								if (level.featureEntities[i].yOffset > 0) {
-									level.featureEntities[i].riseSpeed = 0;
-									level.featureEntities[i].yOffset = 0;
-								} else if (level.featureEntities[i].yOffset <= -12) {
-									level.featureEntities[i] = null;
-									continue;
-								};
-								break;
 							case "obelisk":
 								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
 								if (level.featureEntities[i].yOffset > 0) {
@@ -1280,6 +1221,90 @@
 								};
 								break;
 						};
+					};
+					if (level.golems[i]) {
+						let spawnOffset;
+						let golemType = level.golems[i].type;
+						/*switch (level.golems[i].type) {
+							case "golem":*/
+								spawnOffset = 35;
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + golems[golemType].height && onGround && level.golems[i].ySpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
+									level.golems[i].ySpeed = golems[golemType].sinkSpeed;
+									placeGolem("golem", i + spawnOffset, true);
+								};
+								level.golems[i].yOffset += level.golems[i].ySpeed;
+								if (level.golems[i].yOffset > 0) {
+									level.golems[i].ySpeed = 0;
+									level.golems[i].yOffset = 0;
+								} else if (level.golems[i].yOffset <= -golems[golemType].height) {
+									level.golems[i] = null;
+									continue;
+								};/*
+								break;
+							case "russet golem":
+								spawnOffset = 100;
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 6 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
+									level.golems[i].riseSpeed = -0.01;
+									placeFeatureEntity("russet golem", i + spawnOffset, true);
+									if (level.golems[i + Math.floor(spawnOffset / 2)] == null)  {
+										placeFeatureEntity("golem", i + Math.floor(spawnOffset / 2), true);
+									};
+								};
+								level.golems[i].yOffset += level.golems[i].riseSpeed;
+								if (level.golems[i].yOffset > 0) {
+									level.golems[i].riseSpeed = 0;
+									level.golems[i].yOffset = 0;
+								} else if (level.golems[i].yOffset <= -6) {
+									level.golems[i] = null;
+									continue;
+								};
+								break;
+							case "aqua golem":
+								spawnOffset = 10;
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 9 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
+									level.golems[i].riseSpeed = -0.005;
+									placeFeatureEntity("aqua golem", i + spawnOffset, true);
+									if (level.golems[i + Math.floor(spawnOffset * (1 / 3))] == null)  {
+										placeFeatureEntity("russet golem", i + Math.floor(spawnOffset * (1 / 3)), true);
+									};
+									if (level.golems[i + Math.floor(spawnOffset * (2 / 3))] == null)  {
+										placeFeatureEntity("golem", i + Math.floor(spawnOffset * (2 / 3)), true);
+									};
+								};
+								level.golems[i].yOffset += level.golems[i].riseSpeed;
+								if (level.golems[i].yOffset > 0) {
+									level.golems[i].riseSpeed = 0;
+									level.golems[i].yOffset = 0;
+								} else if (level.golems[i].yOffset <= -9) {
+									level.golems[i] = null;
+									continue;
+								};
+								break;
+							case "mecha golem":
+								spawnOffset = 10;
+								if (i + 2 > playerX - 0.5 && i - 1 < playerX + 0.5 && playerY <= level.rows[i] + 12 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
+									level.golems[i].riseSpeed = -0.01;
+									placeFeatureEntity("mecha golem", i + spawnOffset, true);
+									if (level.golems[i + Math.floor(spawnOffset * (1 / 4))] === null)  {
+										placeFeatureEntity("aqua golem", i + Math.floor(spawnOffset * (1 / 4)), true);
+									};
+									if (level.golems[i + Math.floor(spawnOffset * (2 / 4))] === null)  {
+										placeFeatureEntity("russet golem", i + Math.floor(spawnOffset * (2 / 4)), true);
+									};
+									if (level.golems[i + Math.floor(spawnOffset * (3 / 4))] === null)  {
+										placeFeatureEntity("golem", i + Math.floor(spawnOffset * (3 / 4)), true);
+									};
+								};
+								level.golems[i].yOffset += level.golems[i].riseSpeed;
+								if (level.golems[i].yOffset > 0) {
+									level.golems[i].riseSpeed = 0;
+									level.golems[i].yOffset = 0;
+								} else if (level.golems[i].yOffset <= -12) {
+									level.golems[i] = null;
+									continue;
+								};
+								break;
+						};*/
 					};
 				};
 
@@ -1450,23 +1475,28 @@
 					let featureEntity = level.featureEntities[rowBuffer[i]];
 					if (featureEntity) {
 						switch (featureEntity.type) {
-							case "golem":
-								images.golem.draw(0, 0, 1670, 1837 - (featureEntity.yOffset * -blockSize * (1830 / (blockSize * 3))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 3 - featureEntity.yOffset * blockSize, blockSize, blockSize * 3 - featureEntity.yOffset * -blockSize);
-								break;
-							case "russet golem":
-								images.russetGolem.draw(0, 0, 570, 570 - (featureEntity.yOffset * -blockSize * (570 / (blockSize * 6))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 6 - featureEntity.yOffset * blockSize, blockSize, blockSize * 6 - featureEntity.yOffset * -blockSize);
-								break;
-							case "aqua golem":
-								images.aquaGolem.draw(200, 70, 450, 705 - (featureEntity.yOffset * -blockSize * (705 / (blockSize * 9))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 9 - featureEntity.yOffset * blockSize, blockSize, blockSize * 9 - featureEntity.yOffset * -blockSize);
-								break;
-							case "mecha golem":
-								images.mechaGolem.draw(300, 0, 350, 600 - (featureEntity.yOffset * -blockSize * (600 / (blockSize * 12))), (rowBuffer[i] - 1) * blockSize - cameraX, rowY - blockSize * 12 - featureEntity.yOffset * blockSize, blockSize * 3, blockSize * 12 - featureEntity.yOffset * -blockSize);
-								break;
 							case "obelisk":
 								images.obelisk.draw(875, 50, 200, 730 - (featureEntity.yOffset * -blockSize * (730 / (blockSize * 4))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 4 - featureEntity.yOffset * blockSize, blockSize, blockSize * 4 - featureEntity.yOffset * -blockSize);
 								break;
 							default:
 								images.error.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
+						};
+					};
+					let golem = level.golems[rowBuffer[i]];
+					if (golem) {
+						switch (golem.type) {
+							case "golem":
+								images.golem.draw(0, 0, 1670, 1837 - (golem.yOffset * -blockSize * (1830 / (blockSize * 3))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 3 - golem.yOffset * blockSize, blockSize, blockSize * 3 - golem.yOffset * -blockSize);
+								break;
+							case "russet golem":
+								images.russetGolem.draw(0, 0, 570, 570 - (golem.yOffset * -blockSize * (570 / (blockSize * 6))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 6 - golem.yOffset * blockSize, blockSize, blockSize * 6 - golem.yOffset * -blockSize);
+								break;
+							case "aqua golem":
+								images.aquaGolem.draw(200, 70, 450, 705 - (golem.yOffset * -blockSize * (705 / (blockSize * 9))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 9 - golem.yOffset * blockSize, blockSize, blockSize * 9 - golem.yOffset * -blockSize);
+								break;
+							case "mecha golem":
+								images.mechaGolem.draw(300, 0, 350, 600 - (golem.yOffset * -blockSize * (600 / (blockSize * 12))), (rowBuffer[i] - 1) * blockSize - cameraX, rowY - blockSize * 12 - golem.yOffset * blockSize, blockSize * 3, blockSize * 12 - golem.yOffset * -blockSize);
+								break;
 						};
 					};
 				};
@@ -1544,7 +1574,7 @@
 				ctx.fillStyle = "red";
 				ctx.fillText("you died", 200, 200);
 			};
-			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60) + "<br>xv: " + bobxv;
+			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
 			document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 			for (let food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
@@ -1557,12 +1587,12 @@
 		};
 		var bobxv = 0;
 		function loop() {
-			try {
+			//try {
 				tick();
-			} catch (e) {
-				alert(e.stack);
-				return;
-			};
+			//} catch (e) {
+			//	alert(e.stack);
+			//	return;
+			//};
 			frameCount++;
 			let now = performance.now();
 			if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

@@ -148,10 +148,24 @@
 				font-family: Arial, Helvetica, sans-serif;
 				font-size: 20px;
 			}
+			#hacker-console {
+				display: none;
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				transform: translate(-50%, -50%);
+				background-color: white;
+				border-radius: 10px;
+				border: 5px solid black;
+				padding: 5px;
+				width: 80%;
+				height: calc(100% - 100px);
+				overflow: auto;
+			}
 		</style>
 	</head>
 	<body>
-		<div id="thing" tabindex="0" onkeydown="if (event.key == 'Escape') shopButton();">
+		<div id="thing" tabindex="0" onkeydown="if (event.key === 'Escape') {shopButton()} else if (event.key === 'h' && developerMode) {openHackerConsole()}">
 			<div id="game" tabindex="0" onmouseup="joystick.mouseUp(event);" ontouchend="joystick.mouseUp(event);" onmousemove="joystick.mouseMove(event);" ontouchmove="joystick.mouseMove(event);" oncontextmenu="return false;">
 				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);" onkeyup="keysDown[event.key] = false;">
 					<canvas id="canvas"></canvas>
@@ -236,6 +250,16 @@
 				<label>health</label><button onclick="obeliskShopUpgradeButton('health');">upgrade (1 totem)</button><br>
 				<label>speed</label><button onclick="obeliskShopUpgradeButton('speed');">upgrade (1 totem)</button><br>
 				<label>jump</label><button onclick="obeliskShopUpgradeButton('jump');">upgrade (1 totem)</button>
+			</div>
+			<div id="hacker-console">
+				<h1>hacker console</h1>
+				<hr>
+				<label for="spawn-golem-type">spawn golem</label><select id="spawn-golem-type">
+					<option value="golem" selected>golem</option>
+					<option value="russet golem">russet golem</option>
+					<option value="aqua golem">aqua golem</option>
+					<option value="mecha golem">mecha golem</option>
+				</select><button onclick="placeGolem(document.getElementById('spawn-golem-type').value, playerX);">spawn</button><br>
 			</div>
 			<div id="notification">
 
@@ -427,36 +451,43 @@
 			saturn: new CanvasImage("rgb(90, 200, 50)", "https://www.solarsystemscope.com/textures/download/2k_saturn.jpg"),
 			uranus: new CanvasImage("rgb(0, 255, 255)", "https://planet-texture-maps.fandom.com/wiki/Special:FilePath/Dh_uranus_texture.png"),
 			neptune: new CanvasImage("rgb(0, 0, 255)", "https://www.solarsystemscope.com/textures/download/2k_neptune.jpg"),
-			water: new CanvasImage("rgb(0, 0, 255)", "https://images.unsplash.com/photo-1476897017502-219c9169bd6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8d2F0ZXIlMjB0ZXh0dXJlfGVufDB8fDB8fA%3D%3D&w=1000&q=80")
+			water: new CanvasImage("rgb(0, 0, 255)", "https://images.unsplash.com/photo-1476897017502-219c9169bd6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8d2F0ZXIlMjB0ZXh0dXJlfGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
+			venus: new CanvasImage("rgb(255, 220, 0)", "https://www.solarsystemscope.com/textures/download/2k_venus_surface.jpg"),
+			mercury: new CanvasImage("rgb(200, 200, 200)", "https://www.solarsystemscope.com/textures/download/2k_mercury.jpg"),
+			sun: new CanvasImage("rgb(255, 200, 150)", "https://www.solarsystemscope.com/textures/download/2k_sun.jpg")
+
 		};
 		var layers = {
-			"-17": [images.ice, 0.03],
-			"-16": [images.snow, 0.1],
-			"-15": [images.stone, 0.35],
-			"-14": [images.grass, 0.35],
-			"-13": [images.dirt, 0.2],
-			"-12": [images.stones, 0.25],
-			"-11": [images.stone, 0.3],
-			"-10": [images.darkStone, 0.35],
-			"-9": [images.magma, 0.23],
-			"-8": [images.lava, 0.1],
-			"-7": [images.ironNickelAlloy, 0.14],
-			"-6": [images.lava, 0.1],
-			"-5": [images.magma, 0.23],
-			"-4": [images.darkStone, 0.35],
-			"-3": [images.stone, 0.3],
-			"-2": [images.stones, 0.25],
-			"-1": [images.dirt, 0.2],
-			"0": [images.grass, 0.35],
-			"1": [images.stone, 0.35],
-			"2": [images.snow, 0.1],
-			"3": [images.ice, 0.03],
-			"4": [images.moon, 0.3],
-			"5": [images.mars, 0.25],
-			"6": [images.jupiter, 0.07],
-			"7": [images.saturn, 0.07],
-			"8": [images.uranus, 0.07],
-			"9": [images.neptune, 0.07]
+			"-13": [images.sun, 0.07],
+			"-12": [images.mercury, 0.35],
+			"-11": [images.venus, 0.3],
+			"-10": [images.ice, 0.03],
+			"-9": [images.snow, 0.1],
+			"-8": [images.stone, 0.35],
+			"-7": [images.grass, 0.35],
+			"-6": [images.dirt, 0.2],
+			"-5": [images.stones, 0.25],
+			"-4": [images.stone, 0.3],
+			"-3": [images.darkStone, 0.35],
+			"-2": [images.magma, 0.23],
+			"-1": [images.lava, 0.1],
+			"0": [images.ironNickelAlloy, 0.14],
+			"1": [images.lava, 0.1],
+			"2": [images.magma, 0.23],
+			"3": [images.darkStone, 0.35],
+			"4": [images.stone, 0.3],
+			"5": [images.stones, 0.25],
+			"6": [images.dirt, 0.2],
+			"7": [images.grass, 0.35],
+			"8": [images.stone, 0.35],
+			"9": [images.snow, 0.1],
+			"10": [images.ice, 0.03],
+			"11": [images.moon, 0.3],
+			"12": [images.mars, 0.25],
+			"13": [images.jupiter, 0.07],
+			"14": [images.saturn, 0.07],
+			"15": [images.uranus, 0.07],
+			"16": [images.neptune, 0.07]
 		};
 		var level = {
 			rows: [],
@@ -551,32 +582,41 @@
 		var inWater = false;
 		var golems = {
 			"golem": {
+				width: 1,
 				height: 3,
 				riseSpeed: 0.01,
 				sinkSpeed: -0.01,
-				image: images.golem
+				image: images.golem,
+				spawnOffset: 35
 			},
 			"russet golem": {
+				width: 1,
 				height: 3,
 				riseSpeed: 0.008,
 				sinkSpeed: -0.01,
-				image: images.russetGolem
+				image: images.russetGolem,
+				spawnOffset: 35
 			},
 			"aqua golem": {
+				width: 1,
 				height: 3,
 				riseSpeed: 0.005,
 				sinkSpeed: -0.005,
-				image: images.aquaGolem
+				image: images.aquaGolem,
+				spawnOffset: 35
 			},
 			"mecha golem": {
+				width: 1,
 				height: 3,
 				riseSpeed: 0.01,
 				sinkSpeed: -0.01,
-				image: images.mechaGolem
+				image: images.mechaGolem,
+				spawnOffset: 35
 			}
 		};
+		var hackerConsole = false;
 
-		for (let i = 0; i < 10; i++) {
+		for (let i = 0; i < 15; i++) {
 			level.octaves.push(perlinNoise1D());
 		};
 		function generateLevel() {
@@ -584,9 +624,11 @@
 			for (let i = oldLength; i < oldLength + 1000; i++) {
 				let perlinHeight = 0;
 				for (let j = 0; j < level.octaves.length; j++) {
-					perlinHeight += ((perlinGetVal(level.octaves[j], i / (10 / (2 ** j))) - 0.5) * 4) / (2 ** j);
+					let amplitude = 700;
+					let wavelength = 2000;
+					perlinHeight += ((perlinGetVal(level.octaves[j], i / (wavelength / (2 ** j))) - 0.5) * 2 * amplitude) / (2 ** j);
 				};
-				level.rows[i] = level.originalRows[i] = (level.rows[i - 1] ?? 0) + perlinHeight;
+				level.rows[i] = level.originalRows[i] = perlinHeight// + (level.rows[i - 1] ?? 0);
 				level.featureEntities[i] = null;
 				level.golems[i] = null;
 			};
@@ -594,7 +636,11 @@
 			// round stuff and coins n gems
 			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk
 				level.rows[i] = level.originalRows[i] = Math.round(level.rows[i]);
-				level.waterLevel[i] = Math.max(-5 - level.rows[i], 0);
+				if (Math.random() < 1 / 20.0) {
+					//level.waterLevel[i] = Math.floor(Math.random() * 8);
+				} else {
+					level.waterLevel[i] = 0;
+				};
 				let pool = [];
 				if (Math.random() < 1 / 20) pool.push(1);
 				if (Math.random() < 1 / 200) pool.push(2);
@@ -610,16 +656,16 @@
 				level.features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 
 				if (Math.random() < 1 / 3000) {
-					placeFeatureEntity("golem", i, false);
+					placeGolem("golem", i, false);
 				};
 				if (Math.random() < 1 / 8000) {
-					placeFeatureEntity("russet golem", i, false);
+					placeGolem("russet golem", i, false);
 				};
 				if (Math.random() < 1 / 10000) {
-					placeFeatureEntity("aqua golem", i, false);
+					placeGolem("aqua golem", i, false);
 				};
 				if (Math.random() < 1 / 15000) {
-					placeFeatureEntity("mecha golem", i, false);
+					placeGolem("mecha golem", i, false);
 				};
 
 				if (Math.random() < 1 / 5000) {
@@ -644,7 +690,7 @@
 			return hittableRows;
 		};
 		function getLayer(y) {
-			return Math.floor(y / 100);
+			return clamp(Math.floor(y / 100), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)));
 		};
 		function clamp(number, min, max) {
 			return Math.min(Math.max(number, min), max);
@@ -928,6 +974,14 @@
 				alert("bankrupt");
 			};
 		};
+		function openHackerConsole() {
+			hackerConsole = !hackerConsole;
+			document.getElementById("hacker-console").style.display = hackerConsole ? "block" : "none";
+			if (!hackerConsole) {
+				document.getElementById("canvas-wrapper").focus();
+			};
+		};
+
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
 			controls.up = 0 || isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5)) || (macroPlaying && parseInt(macro[macroTime][0]));
@@ -977,7 +1031,7 @@
 				// X MOVEMENT //
 				
 				let playerSpeed = basePlayerSpeed + (boots === "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
-				let groundFriction = (boots === "spike boots") ? 0.9 : layers[clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1];
+				let groundFriction = (boots === "spike boots") ? 0.9 : layers[getLayer(playerY)][1];
 				if (controls.right != controls.left) {
 					//move
 					let sign = controls.right - controls.left;
@@ -1022,7 +1076,7 @@
 				};
 
 				//gravity
-				let layer = clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)));
+				let layer = getLayer(playerY);
 				let gravity = 0;
 				switch (layer) {
 					case -7:
@@ -1072,7 +1126,7 @@
 					health -= playerYV * -0.05;
 				};
 				if (onGround) {
-					if (getLayer(level.rows[max]) == 2 && level.rows[max] - 200 > (level.originalRows[max] - 200) * 0.9 && boots != "tennis rackets") {
+					if (getLayer(level.rows[max]) === 2 && level.rows[max] - 200 > (level.originalRows[max] - 200) * 0.9 && boots != "tennis rackets") {
 						level.rows[max] -= 0.005;
 						if (level.rows[max] - 200 < (level.originalRows[max] - 200) * 0.9) {
 							level.rows[max] = (level.originalRows[max] - 200) * 0.9 + 200;
@@ -1090,6 +1144,13 @@
 				dybbukTime = Math.max(0, dybbukTime - 1);
 				document.getElementById("obelisk-shop-button").style.display = "none";
 				for (let i = 0; i < level.rows.length; i++) {
+					// water flow
+					if (level.waterLevel[i - 1] + level.rows[i - 1] > level.waterLevel[i] + level.rows[i] && level.waterLevel[i - 1] > 0) {
+						level.waterLevel[i] = (level.waterLevel[i - 1] + level.rows[i - 1]) - level.rows[i];
+					};
+					if (level.waterLevel[i + 1] + level.rows[i + 1] > level.waterLevel[i] + level.rows[i] && level.waterLevel[i + 1] > 0) {
+						level.waterLevel[i] = (level.waterLevel[i + 1] + level.rows[i + 1]) - level.rows[i];
+					};
 					// features
 					if (playerX + 0.5 > i && playerX - 0.5 < i + 1) {
 						if (playerY < level.rows[i] + 1) {
@@ -1408,7 +1469,7 @@
 				let rowBuffer = Object.keys(level.rows).filter(it => it * blockSize + blockSize > cameraX && it * blockSize < cameraX + canvas.width);
 				for (let i = 0; i < rowBuffer.length; i++) {
 					let ice = getLayer(level.rows[rowBuffer[i]]) === 2 && Math.round((level.rows[rowBuffer[i]] - 200) * 1000) / 1000 <= Math.round((level.originalRows[rowBuffer[i]] - 200) * 0.9 * 1000) / 1000;
-					let groundImage = ice ? images.packedSnow : layers[clamp(getLayer(level.rows[rowBuffer[i]]), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][0];
+					let groundImage = ice ? images.packedSnow : layers[getLayer(level.rows[rowBuffer[i]])][0];
 					let blockUVSize = groundImage.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
 					let waterUVSize = images.water.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
 					let rowY = level.rows[rowBuffer[i]] * -blockSize - cameraY;
@@ -1416,7 +1477,7 @@
 					if (level.waterLevel[rowBuffer[i]] > 0) {
 						ctx.globalAlpha = 0.5;
 						images.water.draw((waterUVSize * rowBuffer[i]) % (Math.floor(images.water.width / waterUVSize) * waterUVSize), 0, waterUVSize, images.water.height, rowBuffer[i] * blockSize - cameraX, (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]]) * -blockSize - cameraY, blockSize, level.waterLevel[rowBuffer[i]] * blockSize);
-						ctx.globalAlpha = 1
+						ctx.globalAlpha = 1;
 					};
 					switch (level.features[rowBuffer[i]]) {
 						case 0:
@@ -1585,14 +1646,13 @@
 			document.getElementById("ladder-howmany").innerHTML = "(" + ladders + ")";
 			document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
 		};
-		var bobxv = 0;
 		function loop() {
-			//try {
+			try {
 				tick();
-			//} catch (e) {
-			//	alert(e.stack);
-			//	return;
-			//};
+			} catch (e) {
+				alert(e.stack);
+				return;
+			};
 			frameCount++;
 			let now = performance.now();
 			if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

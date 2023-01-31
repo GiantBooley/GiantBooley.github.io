@@ -305,19 +305,19 @@
 					this.image.src = this.url;
 				};
 				ctx.fillStyle = this.color ?? "rgb(255, 0, 255)";
-				if (arguments.length == 2) {
+				if (arguments.length === 2) {
 					if (this.loaded) {
 						ctx.drawImage(this.image, arguments[0], arguments[1]);
 					} else {
 						ctx.fillRect(arguments[0], arguments[1], blockSize, blockSize);
 					};
-				} else if (arguments.length == 4) {
+				} else if (arguments.length === 4) {
 					if (this.loaded) {
 						ctx.drawImage(this.image, arguments[0], arguments[1], arguments[2], arguments[3]);
 					} else {
 						ctx.fillRect(arguments[0], arguments[1], arguments[2], arguments[3]);
 					};
-				} else if (arguments.length == 8) {
+				} else if (arguments.length === 8) {
 					if (this.loaded) {
 						ctx.drawImage(this.image, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments[7]);
 					} else {
@@ -454,40 +454,41 @@
 			water: new CanvasImage("rgb(0, 0, 255)", "https://images.unsplash.com/photo-1476897017502-219c9169bd6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8d2F0ZXIlMjB0ZXh0dXJlfGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
 			venus: new CanvasImage("rgb(255, 220, 0)", "https://www.solarsystemscope.com/textures/download/2k_venus_surface.jpg"),
 			mercury: new CanvasImage("rgb(200, 200, 200)", "https://www.solarsystemscope.com/textures/download/2k_mercury.jpg"),
-			sun: new CanvasImage("rgb(255, 200, 150)", "https://www.solarsystemscope.com/textures/download/2k_sun.jpg")
+			sun: new CanvasImage("rgb(255, 200, 150)", "https://www.solarsystemscope.com/textures/download/2k_sun.jpg"),
+			mountain: new CanvasImage("rgb(200, 200, 200)", "https://upload.wikimedia.org/wikipedia/commons/e/e7/Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg")
 
 		};
 		var layers = {
-			"-13": [images.sun, 0.07],
-			"-12": [images.mercury, 0.35],
-			"-11": [images.venus, 0.3],
-			"-10": [images.ice, 0.03],
-			"-9": [images.snow, 0.1],
-			"-8": [images.stone, 0.35],
-			"-7": [images.grass, 0.35],
-			"-6": [images.dirt, 0.2],
-			"-5": [images.stones, 0.25],
-			"-4": [images.stone, 0.3],
-			"-3": [images.darkStone, 0.35],
-			"-2": [images.magma, 0.23],
-			"-1": [images.lava, 0.1],
-			"0": [images.ironNickelAlloy, 0.14],
-			"1": [images.lava, 0.1],
-			"2": [images.magma, 0.23],
-			"3": [images.darkStone, 0.35],
-			"4": [images.stone, 0.3],
-			"5": [images.stones, 0.25],
-			"6": [images.dirt, 0.2],
-			"7": [images.grass, 0.35],
-			"8": [images.stone, 0.35],
-			"9": [images.snow, 0.1],
-			"10": [images.ice, 0.03],
-			"11": [images.moon, 0.3],
-			"12": [images.mars, 0.25],
-			"13": [images.jupiter, 0.07],
-			"14": [images.saturn, 0.07],
-			"15": [images.uranus, 0.07],
-			"16": [images.neptune, 0.07]
+			"-13": [images.sun, 0.07, -0.03],
+			"-12": [images.mercury, 0.35, -0.012],
+			"-11": [images.venus, 0.3, -0.01],
+			"-10": [images.ice, 0.03, -0.012],
+			"-9": [images.mountain, 0.1, -0.012],
+			"-8": [images.stone, 0.35, -0.012],
+			"-7": [images.grass, 0.35, -0.012],
+			"-6": [images.dirt, 0.2, -0.012],
+			"-5": [images.stones, 0.25, -0.012],
+			"-4": [images.stone, 0.3, -0.012],
+			"-3": [images.darkStone, 0.35, -0.012],
+			"-2": [images.magma, 0.23, -0.012],
+			"-1": [images.lava, 0.1, -0.012],
+			"0": [images.ironNickelAlloy, 0.14, -0.012],
+			"1": [images.lava, 0.1, -0.012],
+			"2": [images.magma, 0.23, -0.012],
+			"3": [images.darkStone, 0.35, -0.012],
+			"4": [images.stone, 0.3, -0.012],
+			"5": [images.stones, 0.25, -0.012],
+			"6": [images.dirt, 0.2, -0.012],
+			"7": [images.grass, 0.35, -0.012],
+			"8": [images.stone, 0.35, -0.012],
+			"9": [images.snow, 0.12, -0.012],
+			"10": [images.ice, 0.03, -0.012],
+			"11": [images.moon, 0.3, -0.007],
+			"12": [images.mars, 0.25, -0.009],
+			"13": [images.jupiter, 0.07, -0.0175],
+			"14": [images.saturn, 0.07, -0.016],
+			"15": [images.uranus, 0.07, -0.013],
+			"16": [images.neptune, 0.07, -0.014]
 		};
 		var level = {
 			rows: [],
@@ -498,7 +499,8 @@
 			featureEntities: [],
 			terrainFeatures: [],
 			waterLevel: [],
-			golems: []
+			golems: [],
+			perlinOffset: 0
 		};
 		var coins = 0;
 		var gems = 0;
@@ -616,16 +618,17 @@
 		};
 		var hackerConsole = false;
 
-		for (let i = 0; i < 15; i++) {
+		for (let i = 0; i < 25; i++) {
 			level.octaves.push(perlinNoise1D());
 		};
 		function generateLevel() {
-			let oldLength = level.rows.length;//rows.length == 0 ? -1 : rows.length;
-			for (let i = oldLength; i < oldLength + 1000; i++) {
+			let oldLength = level.rows.length;//rows.length === 0 ? -1 : rows.length;
+			for (let i = oldLength; i < oldLength + 5000; i++) {
 				let perlinHeight = 0;
+				level.perlinOffset = -Object.keys(level.originalRows).sort((a, b) => Math.abs(level.originalRows[a] - 750) - Math.abs(level.originalRows[b] - 750))[0];
 				for (let j = 0; j < level.octaves.length; j++) {
-					let amplitude = 700;
-					let wavelength = 2000;
+					let amplitude = 1600;
+					let wavelength = 4500;
 					perlinHeight += ((perlinGetVal(level.octaves[j], i / (wavelength / (2 ** j))) - 0.5) * 2 * amplitude) / (2 ** j);
 				};
 				level.rows[i] = level.originalRows[i] = perlinHeight// + (level.rows[i - 1] ?? 0);
@@ -634,8 +637,8 @@
 			};
 
 			// round stuff and coins n gems
-			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk
-				level.rows[i] = level.originalRows[i] = Math.round(level.rows[i]);
+			for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk
+				level.rows[i] = Math.round(level.rows[i]);
 				if (Math.random() < 1 / 20.0) {
 					//level.waterLevel[i] = Math.floor(Math.random() * 8);
 				} else {
@@ -649,11 +652,11 @@
 				if (Math.random() < 1 / 4000) pool.push(7);
 				if (Math.random() < 1 / 2000) pool.push(10);
 				if (Math.random() < 1 / 8000) pool.push(12);
-				if (Math.random() < 1 / 8000) pool.push(13);
+				if (Math.random() < 1 / 15000) pool.push(13);
 				if (Math.random() < 1 / 1500) pool.push(15);
 				if (Math.random() < 1 / 20000) pool.push(16);
-				if (Math.random() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size == 1) pool.push(9);
-				level.features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
+				if (Math.random() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
+				level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 
 				if (Math.random() < 1 / 3000) {
 					placeGolem("golem", i, false);
@@ -675,6 +678,7 @@
 					level.terrainFeatures[i] = "rainbow";
 				};
 			};
+			level.originalRows = [...level.rows];
 		};
 		generateLevel();
 		playerY = level.rows[1];
@@ -689,11 +693,11 @@
 			};
 			return hittableRows;
 		};
-		function getLayer(y) {
-			return clamp(Math.floor(y / 100), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)));
-		};
 		function clamp(number, min, max) {
 			return Math.min(Math.max(number, min), max);
+		};
+		function getLayer(y) {
+			return clamp(Math.floor(y / 100), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)));
 		};
 		function lerp(a, b, c) {
 			return a * (1 - c) + b * c;
@@ -703,7 +707,7 @@
 		};
 
 		function perlinNoise1D() {
-			let MAX_VERTICES = 1024;
+			let MAX_VERTICES = 32;
 			let r = [];
 			for (let i = 0; i < MAX_VERTICES; ++i) {
 				r.push(Math.random()); // mulberry32(i + 100));
@@ -769,7 +773,7 @@
 		function keyDownFunction(e) {
 			if (e.repeat) return;
 			keysDown[e.key] = true;
-			if (e.key == "t") {
+			if (e.key === "t") {
 				facasd = true;
 				setTimeout(() => {
 					facasd = false;
@@ -810,7 +814,7 @@
 			};
 		};
 		function placeLadder() {
-			if (ladders >= 1 && level.features[Math.floor(playerX)] == 0) {
+			if (ladders >= 1 && level.features[Math.floor(playerX)] === 0) {
 				level.features[Math.floor(playerX)] = 3;
 				ladders--;
 			};
@@ -824,7 +828,7 @@
 			};
 		};
 		function placeTallLadder() {
-			if (tallLadders >= 1 && level.features[Math.floor(playerX)] == 0) {
+			if (tallLadders >= 1 && level.features[Math.floor(playerX)] === 0) {
 				level.features[Math.floor(playerX)] = 4;
 				tallLadders--;
 			};
@@ -1035,7 +1039,7 @@
 				if (controls.right != controls.left) {
 					//move
 					let sign = controls.right - controls.left;
-					let maxXV = (inLadder ? sign * (boots == "magnet boots" ? 0 : 0.1) : (flying ? sign * 0.3 : (sign * playerSpeed)));
+					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : 0.1) : (flying ? sign * 0.3 : (sign * playerSpeed)));
 					playerXV = lerp(maxXV, playerXV, onGround ?  1 - groundFriction : 0.3) + (sign * 0.04 * (controls.up && onGround && !inWater));
 				} else {
 					//friction
@@ -1049,7 +1053,7 @@
 				let hittableRows = getHittableRows(playerX + playerXV);
 				if ((hittableRows[0] != undefined && bakedRows[hittableRows[0]] > playerY) || (hittableRows[1] != undefined && bakedRows[hittableRows[1]] > playerY)) {
 					let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
-					if (onGround && playerY >= bakedRows[max] - (boots == "stepping boots" ? 1 : 0.5) && potions["spider potion"].time <= 0) {
+					if (onGround && playerY >= bakedRows[max] - (boots === "stepping boots" ? 1 : 0.5) && potions["spider potion"].time <= 0) {
 						playerY = bakedRows[max];
 					} else {
 						playerXV = Math.ceil(playerX + (playerXV / 2)) - 0.5 - playerX;
@@ -1064,39 +1068,22 @@
 				// Y MOVEMENT //
 
 				if (inLadder) {
-					playerYV = (controls.up - controls.down) * (boots == "magnet boots" ? 0 : 0.1);
+					playerYV = (controls.up - controls.down) * (boots === "magnet boots" ? 0 : 0.1);
 				} else if (flying) {
 					if (controls.up != controls.down) {
 						playerYV = (controls.up - controls.down) * 0.3;
 					};
 					playerYV *= 0.99;
 				} else {
-					let jumpHeight = baseJumpHeight + (boots == "spring boots") * 0.06 + (potions["jumping potion"].time > 0) * 0.08;
+					let jumpHeight = baseJumpHeight + (boots === "spring boots") * 0.06 + (potions["jumping potion"].time > 0) * 0.08;
 					playerYV += controls.up * onGround * !inWater * (jumpHeight + Math.abs(playerXV) * 0.15);
 				};
 
 				//gravity
 				let layer = getLayer(playerY);
-				let gravity = 0;
-				switch (layer) {
-					case -7:
-						if (boots === "magnet boots") {
-							gravity = -0.024;
-						} else {
-							gravity = -0.012;
-						};
-						break;
-					case 4:
-						gravity = -0.007;
-						break;
-					case 5:
-						gravity = -0.009;
-						break;
-					case 6:
-						gravity = -0.015;
-						break; 
-					default:
-						gravity = -0.012;
+				let gravity = layers[layer][2];
+				if (layer === 0 && boots === "magnet boots") {
+					gravity -= 0.012;
 				};
 				if (inWater) {
 					if (controls.up === controls.down) {
@@ -1126,7 +1113,7 @@
 					health -= playerYV * -0.05;
 				};
 				if (onGround) {
-					if (getLayer(level.rows[max]) === 2 && level.rows[max] - 200 > (level.originalRows[max] - 200) * 0.9 && boots != "tennis rackets") {
+					if (getLayer(level.rows[max]) === 9 && level.rows[max] - 900 > (level.originalRows[max] - 900) * 0.9 && boots != "tennis rackets") {
 						level.rows[max] -= 0.005;
 						if (level.rows[max] - 200 < (level.originalRows[max] - 200) * 0.9) {
 							level.rows[max] = (level.originalRows[max] - 200) * 0.9 + 200;
@@ -1236,13 +1223,13 @@
 									break;
 							};
 						};
-						if (level.features[i] == 1 && (boots == "magnet boots" || playerY < level.rows[i] + 1)) {
+						if (level.features[i] === 1 && (boots === "magnet boots" || playerY < level.rows[i] + 1)) {
 							if (dybbukTime <= 0) {
 								coins++;
 							};
 							level.features[i] = 0;
 						};
-						if ((playerY < level.rows[i] + 4 && level.features[i] == 3) || (playerY < bakedRows[i] + 6 && level.features[i] === 4)) {
+						if ((playerY < level.rows[i] + 4 && level.features[i] === 3) || (playerY < bakedRows[i] + 6 && level.features[i] === 4)) {
 							inLadder = true;
 						};
 						if (inLadder != oldInLadder) {
@@ -1255,7 +1242,7 @@
 							};
 							level.features[i] = 8;
 						};
-						if (onGround && playerY == level.rows[i] && boots !== "tennis rackets" && level.features[i] == 9) {
+						if (onGround && playerY === level.rows[i] && boots !== "tennis rackets" && level.features[i] === 9) {
 							level.rows[i - 1] = level.rows[i] = level.rows[i + 1] = level.rows[i] - 4;
 							level.features[i - 1] = 0;
 							level.features[i] = 0;
@@ -1307,7 +1294,7 @@
 								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 6 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
 									level.golems[i].riseSpeed = -0.01;
 									placeFeatureEntity("russet golem", i + spawnOffset, true);
-									if (level.golems[i + Math.floor(spawnOffset / 2)] == null)  {
+									if (level.golems[i + Math.floor(spawnOffset / 2)] === null)  {
 										placeFeatureEntity("golem", i + Math.floor(spawnOffset / 2), true);
 									};
 								};
@@ -1325,10 +1312,10 @@
 								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 9 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
 									level.golems[i].riseSpeed = -0.005;
 									placeFeatureEntity("aqua golem", i + spawnOffset, true);
-									if (level.golems[i + Math.floor(spawnOffset * (1 / 3))] == null)  {
+									if (level.golems[i + Math.floor(spawnOffset * (1 / 3))] === null)  {
 										placeFeatureEntity("russet golem", i + Math.floor(spawnOffset * (1 / 3)), true);
 									};
-									if (level.golems[i + Math.floor(spawnOffset * (2 / 3))] == null)  {
+									if (level.golems[i + Math.floor(spawnOffset * (2 / 3))] === null)  {
 										placeFeatureEntity("golem", i + Math.floor(spawnOffset * (2 / 3)), true);
 									};
 								};
@@ -1468,7 +1455,8 @@
 				// grass
 				let rowBuffer = Object.keys(level.rows).filter(it => it * blockSize + blockSize > cameraX && it * blockSize < cameraX + canvas.width);
 				for (let i = 0; i < rowBuffer.length; i++) {
-					let ice = getLayer(level.rows[rowBuffer[i]]) === 2 && Math.round((level.rows[rowBuffer[i]] - 200) * 1000) / 1000 <= Math.round((level.originalRows[rowBuffer[i]] - 200) * 0.9 * 1000) / 1000;
+					let layer = getLayer(level.rows[rowBuffer[i]]);
+					let ice = (layer === 9) && Math.round((level.rows[rowBuffer[i]] - 900) * 1000) / 1000 <= Math.round((level.originalRows[rowBuffer[i]] - 900) * 0.9 * 1000) / 1000;
 					let groundImage = ice ? images.packedSnow : layers[getLayer(level.rows[rowBuffer[i]])][0];
 					let blockUVSize = groundImage.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
 					let waterUVSize = images.water.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
@@ -1647,12 +1635,12 @@
 			document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
 		};
 		function loop() {
-			try {
+			//try {
 				tick();
-			} catch (e) {
-				alert(e.stack);
-				return;
-			};
+			//} catch (e) {
+			//	alert(e.stack);
+			//	return;
+			//};
 			frameCount++;
 			let now = performance.now();
 			if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

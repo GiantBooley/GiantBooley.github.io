@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -81,6 +82,19 @@
 				height: 50px;
 				background-color: rgb(0, 255, 0);
 			}
+			#oxygen {
+				position: absolute;
+				bottom: 50px;
+				left: 0px;
+				width: 600px;
+				height: 50px;
+				background-color: black;
+			}
+			#oxygen-inner {
+				width: 600px;
+				height: 50px;
+				background-color: rgb(0, 0, 255);
+			}
 			#joystick {
 				position: absolute;
 				display: flex;
@@ -147,10 +161,24 @@
 				font-family: Arial, Helvetica, sans-serif;
 				font-size: 20px;
 			}
+			#hacker-console {
+				display: none;
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				transform: translate(-50%, -50%);
+				background-color: white;
+				border-radius: 10px;
+				border: 5px solid black;
+				padding: 5px;
+				width: 80%;
+				height: calc(100% - 100px);
+				overflow: auto;
+			}
 		</style>
 	</head>
 	<body>
-		<div id="thing" tabindex="0" onkeydown="if (event.key == 'Escape') shopButton();">
+		<div id="thing" tabindex="0" onkeydown="if (event.key === 'Escape') {shopButton()} else if (event.key === 'h' && developerMode) {openHackerConsole()}">
 			<div id="game" tabindex="0" onmouseup="joystick.mouseUp(event);" ontouchend="joystick.mouseUp(event);" onmousemove="joystick.mouseMove(event);" ontouchmove="joystick.mouseMove(event);" oncontextmenu="return false;">
 				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);" onkeyup="keysDown[event.key] = false;">
 					<canvas id="canvas"></canvas>
@@ -158,6 +186,9 @@
 				<div id="stats">score: -<br>coins: -</div>
 				<button id="shop-button" onclick="shopButton();">SHOP</button>
 				<button id="obelisk-shop-button" onclick="obeliskShopButton();">OBELISK</button>
+				<div id="oxygen">
+					<div id="oxygen-inner"></div>
+				</div>
 				<div id="health">
 					<div id="health-inner"></div>
 				</div>
@@ -191,6 +222,8 @@
 					</div><br>
 					<div id="food">
 						<h3>food</h3><br>
+						<label>government meal</label><label id="government-meal-howmany">(0)</label><button onclick="devourFood('government meal');">devour</button><button onclick="purchaseFood('government meal');">purchase (1 coin)</button><br>
+						<br>
 						<label>apple</label><label id="apple-howmany">(0)</label><button onclick="devourFood('apple');">devour</button><button onclick="purchaseFood('apple');">purchase (5 coins)</button><br>
 						<label>bread</label><label id="bread-howmany">(0)</label><button onclick="devourFood('bread');">devour</button><button onclick="purchaseFood('bread');">purchase (10 coins)</button><br>
 						<label>burger</label><label id="burger-howmany">(0)</label><button onclick="devourFood('burger');">devour</button><button onclick="purchaseFood('burger');">purchase (14 coins)</button><br>
@@ -200,17 +233,25 @@
 						<label>hot meal</label><label id="hot-meal-howmany">(0)</label><button onclick="devourFood('hot meal');">devour</button><button onclick="purchaseFood('hot meal');">purchase (31 coins)</button><br>
 						<label>crispy gooey homemade mac and cheese</label><label id="crispy-gooey-homemade-mac-and-cheese-howmany">(0)</label><button onclick="devourFood('crispy gooey homemade mac and cheese');">devour</button><button onclick="purchaseFood('crispy gooey homemade mac and cheese');">purchase (34 coins)</button><br>
 						<label>cow brain</label><label id="cow-brain-howmany">(0)</label><button onclick="devourFood('cow brain');">devour</button><button onclick="purchaseFood('cow brain');">purchase (38 coins)</button><br>
-						<label>filling warm meal</label><label id="filling-warm-meal-howmany">(0)</label><button onclick="devourFood('filling warm meal');">devour</button><button onclick="purchaseFood('filling warm meal');">purchase (41 coins)</button>
+						<label>filling warm meal</label><label id="filling-warm-meal-howmany">(0)</label><button onclick="devourFood('filling warm meal');">devour</button><button onclick="purchaseFood('filling warm meal');">purchase (41 coins)</button><br>
+						<br>
+						<label>buckwheat pancake</label><label id="buckwheat-pancake-howmany">(0)</label><button onclick="devourFood('buckwheat pancake');">devour</button><button onclick="purchaseFood('buckwheat pancake');">purchase (47 coins)</button><br>
+						<label>sopping meal</label><label id="sopping-meal-howmany">(0)</label><button onclick="devourFood('sopping meal');">devour</button><button onclick="purchaseFood('sopping meal');">purchase (52 coins)</button><br>
+						<label>emptying cold meal</label><label id="emptying-cold-meal-howmany">(0)</label><button onclick="devourFood('emptying cold meal');">devour</button><button onclick="purchaseFood('emptying cold meal');">purchase (56 coins)</button><br>
+						<label>piping hot meal</label><label id="piping-hot-meal-howmany">(0)</label><button onclick="devourFood('piping hot meal');">devour</button><button onclick="purchaseFood('piping hot meal');">purchase (59 coins)</button><br>
+						<label>styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion</label><label id="styrofoam-tupperware-baggy-full-of-a-reheated-rehydrated-piping-hot-filling-sloppy-sopping-warm-meal-portion-howmany">(0)</label><button onclick="devourFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">devour</button><button onclick="purchaseFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">purchase (62 coins)</button>
 					</div><br>
 					<div id="stuff">
 						<h3>stuff</h3><br>
 						<label>ladder</label><label id="ladder-howmany">(0)</label><button onclick="placeLadder();">place</button><button onclick="purchaseLadder();">purchase (10 coins)</button><br>
-						<label>tall ladder</label><label id="tall-ladder-howmany">(0)</label><button onclick="placeTallLadder();">place</button><button onclick="purchaseTallLadder();">purchase (25 coins)</button>
+						<label>tall ladder</label><label id="tall-ladder-howmany">(0)</label><button onclick="placeTallLadder();">place</button><button onclick="purchaseTallLadder();">purchase (25 coins)</button><br>
+						<label>scaffolding</label><button onclick="purchaseScaffolding();">place (1 coin/block)</button>
 					</div>
 				</div>
 				<div id="shop-gems">
 					<div id="potions">
 						<h3>alchemy (potions)</h3>
+						<label>night vision potion (30 seconds)</label><label id="night-vision-potion-howmany">(0)</label><button onclick="chugPotion('night vision potion');">chug</button><button onclick="brewPotion('night vision potion');">brew (1 gem)</button><br>
 						<label>speed potion (10 seconds)</label><label id="speed-potion-howmany">(0)</label><button onclick="chugPotion('speed potion');">chug</button><button onclick="brewPotion('speed potion');">brew (2 gems)</button><br>
 						<label>jumping potion (10 seconds)</label><label id="jumping-potion-howmany">(0)</label><button onclick="chugPotion('jumping potion');">chug</button><button onclick="brewPotion('jumping potion');">brew (3 gems)</button><br>
 						<label>regeneration potion (10 seconds)</label><label id="regeneration-potion-howmany">(0)</label><button onclick="chugPotion('regeneration potion');">chug</button><button onclick="brewPotion('regeneration potion');">brew (5 gems)</button><br>
@@ -226,7 +267,18 @@
 				<hr>
 				<label>health</label><button onclick="obeliskShopUpgradeButton('health');">upgrade (1 totem)</button><br>
 				<label>speed</label><button onclick="obeliskShopUpgradeButton('speed');">upgrade (1 totem)</button><br>
-				<label>jump</label><button onclick="obeliskShopUpgradeButton('jump');">upgrade (1 totem)</button>
+				<label>jump</label><button onclick="obeliskShopUpgradeButton('jump');">upgrade (1 totem)</button><br>
+				<label>step</label><button onclick="obeliskShopUpgradeButton('step');">upgrade (1 totem)</button><br>
+			</div>
+			<div id="hacker-console">
+				<h1>hacker console</h1>
+				<hr>
+				<label for="spawn-golem-type">spawn golem</label><select id="spawn-golem-type">
+					<option value="golem" selected>golem</option>
+					<option value="russet golem">russet golem</option>
+					<option value="aqua golem">aqua golem</option>
+					<option value="mecha golem">mecha golem</option>
+				</select><button onclick="placeGolem(document.getElementById('spawn-golem-type').value, playerX);">spawn</button><br>
 			</div>
 			<div id="notification">
 
@@ -272,19 +324,19 @@
 					this.image.src = this.url;
 				};
 				ctx.fillStyle = this.color ?? "rgb(255, 0, 255)";
-				if (arguments.length == 2) {
+				if (arguments.length === 2) {
 					if (this.loaded) {
 						ctx.drawImage(this.image, arguments[0], arguments[1]);
 					} else {
-						ctx.fillRect(arguments[0], arguments[1], 50, 50);
+						ctx.fillRect(arguments[0], arguments[1], blockSize, blockSize);
 					};
-				} else if (arguments.length == 4) {
+				} else if (arguments.length === 4) {
 					if (this.loaded) {
 						ctx.drawImage(this.image, arguments[0], arguments[1], arguments[2], arguments[3]);
 					} else {
 						ctx.fillRect(arguments[0], arguments[1], arguments[2], arguments[3]);
 					};
-				} else if (arguments.length == 8) {
+				} else if (arguments.length === 8) {
 					if (this.loaded) {
 						ctx.drawImage(this.image, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments[7]);
 					} else {
@@ -352,12 +404,13 @@
 			return this[Math.floor(Math.random() * this.length)];
 		};
 
+		var blockSize = 50;
 		var playerX = 1.5;
 		var playerY = 0;
 		var playerXV = 0;
 		var playerYV = 0;
-		var cameraX = playerX * 50 - (canvas.width / 2);
-		var cameraY = (playerY + 1) * -50 - (canvas.height / 2);
+		var cameraX = playerX * blockSize - (canvas.width / 2);
+		var cameraY = (playerY + 1) * -blockSize - (canvas.height / 2);
 		var onGround = false;
 		var seeds = [];
 		var imagesLoaded = 0;
@@ -400,21 +453,62 @@
 			golem: new CanvasImage("rgb(150, 150, 10)", "https://upload.wikimedia.org/wikipedia/commons/9/9f/Prague-golem-reproduction.jpg"),
 			russetGolem: new CanvasImage("rgb(200, 150, 10)", "https://i.etsystatic.com/25674007/r/il/edaabf/2662111538/il_570xN.2662111538_kdmy.jpg"),
 			totem: new CanvasImage("rgb(180, 180, 20)", "https://m.media-amazon.com/images/I/41yYu0ji5GL._AC_SX466_.jpg"),
-			obelisk: new CanvasImage("rgb(30, 30, 120)", "https://cdnb.artstation.com/p/assets/images/images/029/560/119/large/julia-eriksson-rezle-juliaerikssonpillar.jpg?1597936831")
+			obelisk: new CanvasImage("rgb(30, 30, 120)", "https://cdnb.artstation.com/p/assets/images/images/029/560/119/large/julia-eriksson-rezle-juliaerikssonpillar.jpg?1597936831"),
+			mars: new CanvasImage("rgb(190, 50, 50)", "https://assets.newatlas.com/dims4/default/a1ac999/2147483647/strip/true/crop/1920x1080+0+0/resize/1920x1080!/quality/90/?url=http%3A%2F%2Fnewatlas-brightspot.s3.amazonaws.com%2Farchive%2Fmars-rivers-2.jpg"),
+			jupiter: new CanvasImage("rgb(200, 270, 20)", "https://thumbs.dreamstime.com/b/texture-surface-jupiter-elements-image-furnished-nasa-152406745.jpg"),
+			saturn: new CanvasImage("rgb(200, 200, 150)", "https://www.solarsystemscope.com/textures/download/8k_saturn.jpg"),
+			fourLeafClover: new CanvasImage("rgb(0, 210, 0)", "https://iadsb.tmgrup.com.tr/1b9d78/1200/627/0/133/1800/1074?u=https://idsb.tmgrup.com.tr/2019/06/30/superstitions-busted-four-leaf-clover-1561926823637.jpg"),
+			leprechaun: new CanvasImage("rgb(100, 255, 100)", "https://upload.wikimedia.org/wikipedia/commons/0/0b/Leprechaun_ill_artlibre_jnl.png"),
+			rainbow: new CanvasImage("rgb(100, 100, 100)", "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Rainbow_Circle.svg/2040px-Rainbow_Circle.svg.png"),
+			potOfGold: new CanvasImage("rgb(200, 200, 0)", "https://cdn5.vectorstock.com/i/1000x1000/74/44/green-full-pot-with-gold-coins-pot-with-four-leaf-vector-19727444.jpg"),
+			aquaGolem: new CanvasImage("rgb(100, 100, 255)", "https://m.media-amazon.com/images/I/51o2o3s46sL._AC_UF894,1000_QL80_.jpg"),
+			grimReaper: new CanvasImage("rgb(15, 15, 15)", "https://m.media-amazon.com/images/I/617-+DaGNBL._AC_SL1500_.jpg"),
+			blood: new CanvasImage("rgb(255, 0, 0)", "https://cdn140.picsart.com/301576808315211.png"),
+			burlapSack: new CanvasImage("rgb(160, 170, 20)", "https://m.media-amazon.com/images/I/510LO2c-5gL._AC_.jpg"),
+			mechaGolem: new CanvasImage("rgb(210, 210, 210)", "https://www.guinnessworldrecords.com/Images/largest-humanoid-vehicle_tcm25-589034.jpg"),
+			ruinedObelisk: new CanvasImage("rgb(50, 200, 50)", "https://c8.alamy.com/comp/EAXY7G/a-viking-rune-stone-is-seen-in-the-swedish-countryside-outside-of-EAXY7G.jpg"),
+			saturn: new CanvasImage("rgb(90, 200, 50)", "https://www.solarsystemscope.com/textures/download/2k_saturn.jpg"),
+			uranus: new CanvasImage("rgb(0, 255, 255)", "https://planet-texture-maps.fandom.com/wiki/Special:FilePath/Dh_uranus_texture.png"),
+			neptune: new CanvasImage("rgb(0, 0, 255)", "https://www.solarsystemscope.com/textures/download/2k_neptune.jpg"),
+			water: new CanvasImage("rgb(0, 0, 255)", "https://images.unsplash.com/photo-1476897017502-219c9169bd6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8d2F0ZXIlMjB0ZXh0dXJlfGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
+			venus: new CanvasImage("rgb(255, 220, 0)", "https://www.solarsystemscope.com/textures/download/2k_venus_surface.jpg"),
+			mercury: new CanvasImage("rgb(200, 200, 200)", "https://www.solarsystemscope.com/textures/download/2k_mercury.jpg"),
+			sun: new CanvasImage("rgb(255, 200, 150)", "https://www.solarsystemscope.com/textures/download/2k_sun.jpg"),
+			mountain: new CanvasImage("rgb(200, 200, 200)", "https://upload.wikimedia.org/wikipedia/commons/e/e7/Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg"),
+			scaffolding: new CanvasImage("rgb(50, 50, 50)", "https://m.media-amazon.com/images/I/61+Fb8M51bL.jpg"),
+			celestialGolem: new CanvasImage("rgb(0, 0, 0)", "https://storage.googleapis.com/dream-machines-output/9d39f43b-4c34-4b78-b2d1-a86da1519af1/0_0.png")
 		};
 		var layers = {
-			"-7": [images.ironNickelAlloy, 0.14],
-			"-6": [images.lava, 0.1],
-			"-5": [images.magma, 0.23],
-			"-4": [images.darkStone, 0.35],
-			"-3": [images.stone, 0.3],
-			"-2": [images.stones, 0.25],
-			"-1": [images.dirt, 0.2],
-			"0": [images.grass, 0.35],
-			"1": [images.stone, 0.35],
-			"2": [images.snow, 0.1],
-			"3": [images.ice, 0.03],
-			"4": [images.moon, 0.3]
+			"-13": [images.sun, 0.07, -0.03],
+			"-12": [images.mercury, 0.35, -0.012],
+			"-11": [images.venus, 0.3, -0.01],
+			"-10": [images.ice, 0.03, -0.012],
+			"-9": [images.mountain, 0.1, -0.012],
+			"-8": [images.stone, 0.35, -0.012],
+			"-7": [images.grass, 0.35, -0.012],
+			"-6": [images.dirt, 0.2, -0.012],
+			"-5": [images.stones, 0.25, -0.012],
+			"-4": [images.stone, 0.3, -0.012],
+			"-3": [images.darkStone, 0.35, -0.012],
+			"-2": [images.magma, 0.23, -0.012],
+			"-1": [images.lava, 0.1, -0.012],
+			"0": [images.ironNickelAlloy, 0.14, -0.012],
+			"1": [images.lava, 0.1, -0.012],
+			"2": [images.magma, 0.23, -0.012],
+			"3": [images.darkStone, 0.35, -0.012],
+			"4": [images.stone, 0.3, -0.012],
+			"5": [images.stones, 0.25, -0.012],
+			"6": [images.dirt, 0.2, -0.012],
+			"7": [images.grass, 0.35, -0.012],
+			"8": [images.stone, 0.35, -0.012],
+			"9": [images.snow, 0.12, -0.012],
+			"10": [images.ice, 0.03, -0.012],
+			"11": [images.moon, 0.3, -0.007],
+			"12": [images.mars, 0.25, -0.009],
+			"13": [images.jupiter, 0.07, -0.0175],
+			"14": [images.saturn, 0.07, -0.016],
+			"15": [images.uranus, 0.07, -0.013],
+			"16": [images.neptune, 0.07, -0.014]
 		};
 		var level = {
 			rows: [],
@@ -422,7 +516,11 @@
 			features: [],
 			octaves: [],
 			mobs: [],
-			featureEntities: []
+			featureEntities: [],
+			terrainFeatures: [],
+			waterLevel: [],
+			golems: [],
+			perlinOffset: 0
 		};
 		var coins = 0;
 		var gems = 0;
@@ -443,6 +541,7 @@
 			"magnet boots": {bought: false, cost: 170}
 		};
 		var foods = {
+			"government meal": {cost: 1, hunger: 0.03, howmany: 0},
 			"apple": {cost: 5, hunger: 0.1, howmany: 0},
 			"bread": {cost: 10, hunger: 0.2, howmany: 0},
 			"burger": {cost: 14, hunger: 0.3, howmany: 0},
@@ -452,9 +551,16 @@
 			"hot meal": {cost: 31, hunger: 0.7, howmany: 0},
 			"crispy gooey homemade mac and cheese": {cost: 34, hunger: 0.8, howmany: 0},
 			"cow brain": {cost: 38, hunger: 0.9, howmany: 0},
-			"filling warm meal": {cost: 41, hunger: 1, howmany: 0}
+			"filling warm meal": {cost: 41, hunger: 1, howmany: 0},
+
+			"buckwheat pancake": {cost: 47, hunger: 1.2, howmany: 0},
+			"sopping meal": {cost: 52, hunger: 1.4, howmany: 0},
+			"emptying cold meal": {cost: 56, hunger: -0.8, howmany: 0},
+			"piping hot meal": {cost: 59, hunger: 1.8, howmany: 0},
+			"styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion": {cost: 62, hunger: 2, howmany: 0}
 		};
 		var potions = {
+			"night vision potion": {cost: 1, time: 0, duration: 30, howmany: 0},
 			"speed potion": {cost: 2, time: 0, duration: 10, howmany: 0},
 			"jumping potion": {cost: 3, time: 0, duration: 10, howmany: 0},
 			"regeneration potion": {cost: 5, time: 0, duration: 10, howmany: 0},
@@ -468,6 +574,7 @@
 		var dead = false;
 		var ladders = 0;
 		var inLadder = false;
+		var inLadderSpeed = 0.1;
 		var joystick = new Joystick(document.getElementById("joystick"));
 		var controls = {
 			up: false,
@@ -485,8 +592,7 @@
 		var notification = "";
 		var notificationTime = 0;
 		var gameTime = 0;
-		var blockSize = 50;
-		var developerMode = true;
+		var developerMode = false;
 		var macro = [];
 		var macroTime = 0;
 		var macroPlaying = false;
@@ -496,46 +602,125 @@
 		var basePlayerSpeed = 0.2;
 		var baseJumpHeight = 0.24;
 		var maxHealth = 1;
+		var resizeGroundUV = true;
+		var inWater = false;
+		var golems = {
+			"golem": {
+				width: 1,
+				height: 3,
+				riseSpeed: 0.01,
+				sinkSpeed: -0.01,
+				image: images.golem,
+				spawnOffset: 35
+			},
+			"russet golem": {
+				width: 1,
+				height: 6,
+				riseSpeed: 0.008,
+				sinkSpeed: -0.01,
+				image: images.russetGolem,
+				spawnOffset: 35
+			},
+			"aqua golem": {
+				width: 1,
+				height: 9,
+				riseSpeed: 0.005,
+				sinkSpeed: -0.005,
+				image: images.aquaGolem,
+				spawnOffset: 35
+			},
+			"mecha golem": {
+				width: 1,
+				height: 12,
+				riseSpeed: 0.01,
+				sinkSpeed: -0.01,
+				image: images.mechaGolem,
+				spawnOffset: 35
+			},
+			"celestial golem": {
+				width: 1,
+				height: 100,
+				riseSpeed: 1,
+				sinkSpeed: -1,
+				image: images.celestialGolem,
+				spawnOffset: 35
+			}
+		};
+		var hackerConsole = false;
+		var baseStepHeight = 0.5;
+		var oxygen = 1;
 
-		for (let i = 0; i < 5; i++) {
+		for (let i = 0; i < 25; i++) {
 			level.octaves.push(perlinNoise1D());
 		};
+		function getPerlinHeight(x) {
+			let perlinHeight = 0;
+			for (let j = 0; j < level.octaves.length; j++) {
+				let amplitude = 1400;
+				let wavelength = 4700;
+				perlinHeight += ((perlinGetVal(level.octaves[j], (x + level.perlinOffset) / (wavelength / (2 ** j))) - 0.5) * 2 * amplitude) / (2 ** j);
+			};
+			return perlinHeight;
+		};
+		var tempRows = [];
+		for (let i = 0; i < 50000; i++) {
+			tempRows[i] = getPerlinHeight(i);
+		};
+		level.perlinOffset = parseInt(Object.keys(tempRows).sort((a, b) => Math.abs(tempRows[a] - 750) - Math.abs(tempRows[b] - 750))[0]);
 		function generateLevel() {
-			let oldLength = level.rows.length;//rows.length == 0 ? -1 : rows.length;
-			for (let i = oldLength; i < oldLength + 1000; i++) {
-				let perlinHeight = 0;
-				for (let j = 0; j < level.octaves.length; j++) {
-					perlinHeight += ((perlinGetVal(level.octaves[j], i / 10) - 0.5) * 4) / (2 ** j);
-				};
-				level.rows[i] = level.originalRows[i] = (level.rows[i - 1] ?? 0) + perlinHeight;
+			let oldLength = level.rows.length;//rows.length === 0 ? -1 : rows.length;
+			for (let i = oldLength; i < oldLength + 5000; i++) {
+				level.rows[i] = level.originalRows[i] = getPerlinHeight(i);// + (level.rows[i - 1] ?? 0);
 				level.featureEntities[i] = null;
+				level.golems[i] = null;
 			};
 
 			// round stuff and coins n gems
-			for (let i = oldLength; i < oldLength + 1000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem
-				level.rows[i] = level.originalRows[i] = Math.round(level.rows[i]);
+			for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk
+				level.rows[i] = Math.round(level.rows[i]);
+				if (Math.random() < 1 / 5 && level.rows[i - 25] >= level.rows[i] && level.rows[i + 25] >= level.rows[i] && level.rows[i - 26] > level.rows[i - 25] && level.rows[i + 26] > level.rows[i + 25]) {
+					level.waterLevel[i] = Math.floor(Math.random() * (Math.min(level.rows[i - 25], level.rows[i + 25]) - level.rows[i]));
+				} else {
+					level.waterLevel[i] = 0;
+				};
 				let pool = [];
 				if (Math.random() < 1 / 20) pool.push(1);
 				if (Math.random() < 1 / 200) pool.push(2);
-				if (Math.random() < 1 / 1000) pool.push(6);
 				if (Math.random() < 1 / 5000) pool.push(5);
+				if (Math.random() < 1 / 1000) pool.push(6);
 				if (Math.random() < 1 / 4000) pool.push(7);
 				if (Math.random() < 1 / 2000) pool.push(10);
 				if (Math.random() < 1 / 8000) pool.push(12);
-				if (Math.random() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size == 1) pool.push(9);
-				level.features[i] = pool.length == 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
+				if (Math.random() < 1 / 25000) pool.push(13);
+				if (Math.random() < 1 / 1500) pool.push(15);
+				if (Math.random() < 1 / 20000) pool.push(16);
+				if (Math.random() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
+				level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 
 				if (Math.random() < 1 / 3000) {
-					placeFeatureEntity("golem", i, false);
+					placeGolem("golem", i, false);
 				};
 				if (Math.random() < 1 / 8000) {
-					placeFeatureEntity("russet golem", i, false);
+					placeGolem("russet golem", i, false);
+				};
+				if (Math.random() < 1 / 10000) {
+					placeGolem("aqua golem", i, false);
+				};
+				if (Math.random() < 1 / 15000) {
+					placeGolem("mecha golem", i, false);
+				};
+				if (Math.random() < 1 / 40000) {
+					placeGolem("celestial golem", i, false);
 				};
 
 				if (Math.random() < 1 / 5000) {
 					spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
 				};
+				if (Math.random() < 1 / 4212133121320.00) {
+					level.terrainFeatures[i] = "rainbow";
+				};
 			};
+			level.originalRows = [...level.rows];
 		};
 		generateLevel();
 		playerY = level.rows[1];
@@ -550,18 +735,21 @@
 			};
 			return hittableRows;
 		};
-		function getLayer(y) {
-			return Math.floor(y / 100);
-		};
 		function clamp(number, min, max) {
 			return Math.min(Math.max(number, min), max);
+		};
+		function getLayer(y) {
+			return clamp(Math.floor(y / 100), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)));
 		};
 		function lerp(a, b, c) {
 			return a * (1 - c) + b * c;
 		};
+		function inverseLerp(a, b, c) {
+			return c / (b - a) + a;
+		};
 
 		function perlinNoise1D() {
-			let MAX_VERTICES = 512;
+			let MAX_VERTICES = 32;
 			let r = [];
 			for (let i = 0; i < MAX_VERTICES; ++i) {
 				r.push(Math.random()); // mulberry32(i + 100));
@@ -603,7 +791,7 @@
 			} else {
 				if (coins >= bootses[bootsreal].cost) {
 					bootses[bootsreal].bought = true;
-					coins -= bootses[bootsreal].cost
+					coins -= bootses[bootsreal].cost;
 				} else {
 					alert("bankrupt");
 				};
@@ -627,24 +815,36 @@
 		function keyDownFunction(e) {
 			if (e.repeat) return;
 			keysDown[e.key] = true;
-			if (e.key == "t") {
+			if (e.key === "t") {
 				facasd = true;
 				setTimeout(() => {
 					facasd = false;
 				}, 3000);
-			} else if (e.key == "l" && developerMode) {
+			} else if (e.key === "l" && developerMode) {
 				level.rows = JSON.parse(prompt("what level rows"));
-			} else if (e.key == "r") {
+			} else if (e.key === "r" && developerMode) {
 				playerXV = 0;
 				playerYV = 0;
 				playerX = 1.5;
 				playerY = level.rows[1] ?? 0;
-			} else if (e.key == "m" && developerMode) {
+				gameTime = 0;
+			} else if (e.key === "m" && developerMode) {
 				macro = prompt("what macro").split(",");
 				macroTime = 0;
 				macroPlaying = true;
-			} else if (e.key == "p" && developerMode) {
+			} else if (e.key === "p" && developerMode) {
 				spawnMob(prompt("what mob"), playerX - 3, level.rows[Math.floor(playerX - 3)] ?? 0);
+			} else if (e.key === "e") {
+				let ruinedObeliskRows = getHittableRows(playerX).filter(it => level.features[it] === 16);
+				if (ruinedObeliskRows.length > 0) {
+					if (totems >= 1) {
+						totems--;
+						level.features[ruinedObeliskRows[0]] = 0;
+						placeFeatureEntity("obelisk", ruinedObeliskRows[0], false);
+					} else {
+						alert("bankrupt");
+					};
+				};
 			};
 		};
 		function purchaseLadder() {
@@ -656,7 +856,7 @@
 			};
 		};
 		function placeLadder() {
-			if (ladders >= 1 && level.features[Math.floor(playerX)] == 0) {
+			if (ladders >= 1 && level.features[Math.floor(playerX)] === 0) {
 				level.features[Math.floor(playerX)] = 3;
 				ladders--;
 			};
@@ -670,7 +870,7 @@
 			};
 		};
 		function placeTallLadder() {
-			if (tallLadders >= 1 && level.features[Math.floor(playerX)] == 0) {
+			if (tallLadders >= 1 && level.features[Math.floor(playerX)] === 0) {
 				level.features[Math.floor(playerX)] = 4;
 				tallLadders--;
 			};
@@ -713,7 +913,10 @@
 				dybbukTime,
 				basePlayerSpeed,
 				baseJumpHeight,
-				maxHealth
+				maxHealth,
+				score,
+				baseStepHeight,
+				oxygen
 			});
 			localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 		} catch(e) {alert(e.stack)}
@@ -745,6 +948,9 @@
 				basePlayerSpeed = saveCode.basePlayerSpeed ?? basePlayerSpeed;
 				baseJumpHeight = saveCode.baseJumpHeight ?? baseJumpHeight;
 				maxHealth = saveCode.maxHealth ?? maxHealth;
+				score = saveCode.score ?? score;
+				baseStepHeight = saveCode.baseStepHeight ?? baseStepHeight;
+				oxygen = saveCode.oxygen ?? oxygen;
 			};
 		};
 		function clearSlot(slot) {
@@ -760,7 +966,7 @@
 				y: y,
 				age: 0
 			};
-			if (type == "mimic") {
+			if (type === "mimic") {
 				mob.mimicTarget = ["coin", "gem"].random();
 				mob.mimicTimer = false;
 				mob.mimicking = true;
@@ -776,17 +982,21 @@
 			let featureEntity = {
 				"type": type
 			};
-			if (type == "golem"){
-				featureEntity.yOffset = arguments[2] ? -3 : 0;
-				featureEntity.riseSpeed = arguments[2] ? 0.01 : 0;
-			} else if (type == "russet golem"){
-				featureEntity.yOffset = arguments[2] ? -6 : 0;
-				featureEntity.riseSpeed = arguments[2] ? 0.008 : 0;
-			} else if (type == "obelisk"){
+			if (type === "obelisk") {
 				featureEntity.yOffset = arguments[2] ? -4 : 0;
 				featureEntity.riseSpeed = arguments[2] ? 0.005 : 0;
+			} else if (type === "scaffolding") {
+				featureEntity.height = arguments[2];
 			};
 			level.featureEntities[Math.floor(x)] = featureEntity;
+		};
+		function placeGolem(type, x, rising) {
+			let golem = {
+				"type": type,
+				"yOffset": rising ? -golems[type].height : 0,
+				"ySpeed": rising ? golems[type].riseSpeed : 0
+			};
+			level.golems[Math.floor(x)] = golem;
 		};
 		function obeliskShopUpgradeButton(item) {
 			if (totems >= 1) {
@@ -812,19 +1022,43 @@
 							alert("upgrade maxed");
 						};
 						break;
+					case "step":
+						if (baseStepHeight < 1.1) {
+							baseStepHeight = Math.min(baseStepHeight + 0.1, 1.1);
+						} else {
+							alert("upgrade maxed");
+						};
 				};
 				totems--;
 			} else {
 				alert("bankrupt");
 			};
 		};
+		function openHackerConsole() {
+			hackerConsole = !hackerConsole;
+			document.getElementById("hacker-console").style.display = hackerConsole ? "block" : "none";
+			if (!hackerConsole) {
+				document.getElementById("canvas-wrapper").focus();
+			};
+		};
+		function purchaseScaffolding() {
+			let height = Math.round(parseInt(prompt("what height (1 coin/block)")));
+			if (height > 0) {
+				if (coins >= height) {
+					placeFeatureEntity("scaffolding", playerX, height);
+					coins -= height;
+				} else {
+					alert("bankrupt");
+				};
+			};
+		};
 
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
-			controls.up = isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5)) || (macroPlaying && parseInt(macro[macroTime][0]));
+			controls.up = 0 || isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5)) || (macroPlaying && parseInt(macro[macroTime][0]));
 			controls.down = isDown("ArrowDown") || isDown("s") || (joystick.strength > 0.5 && (joystick.angle > -67.5 && joystick.angle < 67.5)) || (macroPlaying && parseInt(macro[macroTime][1]));
 			controls.left = isDown("ArrowLeft") || isDown("a") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5)) || (macroPlaying && parseInt(macro[macroTime][2]));
-			controls.right = isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5)) || (macroPlaying && parseInt(macro[macroTime][3]));
+			controls.right = 0 || isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5)) || (macroPlaying && parseInt(macro[macroTime][3]));
 			if (macroPlaying) {
 				macroTime++;
 			};
@@ -833,45 +1067,63 @@
 				macroTime = 0;
 			};
 			if (!shop && !dead && !obeliskShop) {
-				if (playerX >= level.rows.length) {
+				if ((cameraX + canvas.width) / blockSize >= level.rows.length) { // playerx >=
 					generateLevel();
 				};
 
 				let bakedRows = [...level.rows];
 				for (let i = 0; i < bakedRows.length; i++) {
-					bakedRows[i] += (level.features[i] == 5) * 5;
-					if (level.featureEntities[i] && level.featureEntities[i].type == "golem") {
-						bakedRows[i] += level.featureEntities[i].yOffset + 3;
-					} else if (level.featureEntities[i] && level.featureEntities[i].type == "russet golem") {
-						bakedRows[i] += level.featureEntities[i].yOffset + 6;
+					bakedRows[i] += (level.features[i] === 5) * 5;
+					if (level.golems[i] && level.golems[i].type === "golem") {
+						let height = level.golems[i].yOffset + 3;
+						bakedRows[i] = level.rows[i] + height;
+					} else if (level.golems[i] && level.golems[i].type === "russet golem") {
+						let height = level.golems[i].yOffset + 6;
+						bakedRows[i] = level.rows[i]+ height;
+					} else if (level.golems[i] && level.golems[i].type === "aqua golem") {
+						let height = level.golems[i].yOffset + 9;
+						bakedRows[i] = level.rows[i] + height;
+					} else if (level.golems[i] && level.golems[i].type === "mecha golem") {
+						let height = level.golems[i].yOffset + 12;
+						bakedRows[i - 1] = level.rows[i] + height;
+						bakedRows[i] = level.rows[i] + height;
+						bakedRows[i + 1] = level.rows[i] + height;
+					} else if (level.golems[i] && level.golems[i].type === "celestial golem") {
+						let height = level.golems[i].yOffset + 100;
+						bakedRows[i] = level.rows[i] + height;
 					};
 				};
 
-				gameTime += 1/60;
+				gameTime += 1 / 60;
 
 				for (let potion in potions) {
 					potions[potion].time = Math.max(potions[potion].time - (1 / 60), 0);
 				};
 				flying = potions["bird potion"].time > 0;
+				inWater = playerY < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)];
 
 				// X MOVEMENT //
 				
 				let playerSpeed = basePlayerSpeed + (boots === "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
-				let groundFriction = (boots === "spike boots") ? 0.9 : layers[clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][1];
-				if (controls.right != controls.left) {
+				let groundFriction = (boots === "spike boots") ? 0.9 : layers[getLayer(playerY)][1];
+				if (controls.right !== controls.left) {
 					//move
 					let sign = controls.right - controls.left;
-					let maxXV = (inLadder ? sign * (boots == "magnet boots" ? 0 : 0.1) : (flying ? sign * 0.3 : (sign * playerSpeed)));
-					playerXV = lerp(maxXV, playerXV, onGround ?  1 - groundFriction : 0.3) + (sign * 0.04 * (controls.up && onGround));
+					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : inLadderSpeed) : (flying ? sign * 0.3 : (sign * playerSpeed)));
+					playerXV = lerp(maxXV, playerXV, onGround ? 1 - groundFriction : 0.15) + (sign * 0.04 * (controls.up && onGround && !inWater));
 				} else {
 					//friction
 					playerXV *= inLadder ? 0 : (onGround ? 1 - groundFriction : 0.99);
 				};
 
+				if (inWater) {
+					playerXV *= 0.9;
+					playerXV = clamp(playerXV, -0.3, 0.3);
+				};
 				let hittableRows = getHittableRows(playerX + playerXV);
-				if ((hittableRows[0] != undefined && bakedRows[hittableRows[0]] > playerY) || (hittableRows[1] != undefined && bakedRows[hittableRows[1]] > playerY)) {
+				if ((hittableRows[0] !== undefined && bakedRows[hittableRows[0]] > playerY) || (hittableRows[1] !== undefined && bakedRows[hittableRows[1]] > playerY)) {
 					let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
-					if (onGround && playerY >= bakedRows[max] - (boots == "stepping boots" ? 1 : 0.5) && potions["spider potion"].time <= 0) {
+					if (onGround && playerY >= bakedRows[max] - ((boots === "stepping boots") ? baseStepHeight * 2 : baseStepHeight) && potions["spider potion"].time <= 0) {
 						playerY = bakedRows[max];
 					} else {
 						playerXV = Math.ceil(playerX + (playerXV / 2)) - 0.5 - playerX;
@@ -886,23 +1138,42 @@
 				// Y MOVEMENT //
 
 				if (inLadder) {
-					playerYV = (controls.up - controls.down) * (boots == "magnet boots" ? 0 : 0.1);
+					playerYV = (controls.up - controls.down) * (boots === "magnet boots" ? 0 : inLadderSpeed);
 				} else if (flying) {
-					if (controls.up != controls.down) {
+					if (controls.up !== controls.down) {
 						playerYV = (controls.up - controls.down) * 0.3;
 					};
 					playerYV *= 0.99;
 				} else {
-					let jumpHeight = baseJumpHeight + (boots == "spring boots") * 0.06 + (potions["jumping potion"].time > 0) * 0.08;
-					playerYV += controls.up * onGround * (jumpHeight + Math.abs(playerXV) * 0.15);
+					let jumpHeight = baseJumpHeight + (boots === "spring boots") * 0.06 + (potions["jumping potion"].time > 0) * 0.08;
+					playerYV += controls.up * onGround * !inWater * (jumpHeight + Math.abs(playerXV) * 0.15);
 				};
 
 				//gravity
-				let layer = clamp(getLayer(playerY), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)));
-				playerYV = potions["levitation potion"].time > 0 ? 0.1 : (playerYV + ((inLadder || flying) ? 0 : (-0.012 + (boots === "magnet boots" && layer === -7) * -0.012 + (layer === 4) * 0.005 + (potions["anti gravity potion"].time > 0) * 0.005)));
+				let layer = getLayer(playerY);
+				let gravity = layers[layer][2];
+				if (layer === 0 && boots === "magnet boots") {
+					gravity -= 0.012;
+				};
+				if (inWater) {
+					if (controls.up === controls.down) {
+						gravity = -0.001;
+					} else {
+						if (controls.up) {
+							gravity = 0.01;
+						} else if (controls.down) {
+							gravity = -0.01;
+						};
+					};
+				};
+				playerYV = potions["levitation potion"].time > 0 ? 0.1 : (playerYV + ((inLadder || flying) ? 0 : gravity * ((potions["anti gravity potion"].time > 0) ? 0.5 : 1)));
 
-				if (boots == "feather boots") {
+				if (boots === "feather boots") {
 					playerYV = Math.max(playerYV, -0.3);
+				};
+				if (inWater) {
+					playerYV *= 0.98;
+					playerYV = clamp(playerYV, -0.3, 0.3);
 				};
 				hittableRows = getHittableRows(playerX);
 				let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
@@ -912,7 +1183,7 @@
 					health -= playerYV * -0.05;
 				};
 				if (onGround) {
-					if (getLayer(level.rows[max]) == 2 && level.rows[max] - 200 > (level.originalRows[max] - 200) * 0.9 && boots != "tennis rackets") {
+					if (getLayer(level.rows[max]) === 9 && level.rows[max] - 900 > (level.originalRows[max] - 900) * 0.9 && boots !== "tennis rackets") {
 						level.rows[max] -= 0.005;
 						if (level.rows[max] - 200 < (level.originalRows[max] - 200) * 0.9) {
 							level.rows[max] = (level.originalRows[max] - 200) * 0.9 + 200;
@@ -930,9 +1201,16 @@
 				dybbukTime = Math.max(0, dybbukTime - 1);
 				document.getElementById("obelisk-shop-button").style.display = "none";
 				for (let i = 0; i < level.rows.length; i++) {
+					// water flow
+					if (level.waterLevel[i - 1] + level.rows[i - 1] > level.waterLevel[i] + level.rows[i] && level.waterLevel[i - 1] > 0) {
+						level.waterLevel[i] = (level.waterLevel[i - 1] + level.rows[i - 1]) - level.rows[i];
+					};
+					if (level.waterLevel[i + 1] + level.rows[i + 1] > level.waterLevel[i] + level.rows[i] && level.waterLevel[i + 1] > 0) {
+						level.waterLevel[i] = (level.waterLevel[i + 1] + level.rows[i + 1]) - level.rows[i];
+					};
 					// features
 					if (playerX + 0.5 > i && playerX - 0.5 < i + 1) {
-						if (playerY < bakedRows[i] + 1) {
+						if (playerY < level.rows[i] + 1) {
 							switch (level.features[i]) {
 								case 2:
 									if (dybbukTime <= 0) {
@@ -992,74 +1270,67 @@
 								case 12:
 									if (dybbukTime <= 0) {
 										totems++;
-										level.features[i] = 0;
 									};
+									level.features[i] = 0;
+									break;
+								case 13:
+									spawnMob("leprechaun", i + 2.5, bakedRows[i]);
+									level.features[i] = 0;
+									break;
+								case 14:
+									let coinAmount = Math.round(Math.random() * 50 + 50);
+									coins += coinAmount;
+									notificate("pot of gold contains " + coinAmount + " coins");
+									level.features[i] = 0;
+									break;
+								case 15:
+									if (dybbukTime <= 0) {
+										let food = Object.keys(foods).random();
+										foods[food].howmany++;
+										notificate("burlap sack contains " + food);
+									};
+									level.features[i] = 0;
 									break;
 							};
 						};
-						if (level.features[i] == 1 && (boots == "magnet boots" || playerY < bakedRows[i] + 1)) {
+						if (level.features[i] === 1 && (boots === "magnet boots" || playerY < level.rows[i] + 1)) {
 							if (dybbukTime <= 0) {
 								coins++;
 							};
 							level.features[i] = 0;
 						};
-						if ((playerY < bakedRows[i] + 4 && level.features[i] == 3) || (playerY < bakedRows[i] + 6 && level.features[i] == 4)) {
+						if ((playerY < level.rows[i] + 4 && level.features[i] === 3) || (playerY < bakedRows[i] + 6 && level.features[i] === 4)) {
 							inLadder = true;
+							inLadderSpeed = 0.1;
 						};
-						if (inLadder != oldInLadder) {
+						if (level.featureEntities[i] && playerY < bakedRows[i] + level.featureEntities[i].height) {
+							inLadder = true;
+							inLadderSpeed = 0.02 / level.featureEntities[i].height;
+						};
+						if (inLadder && !oldInLadder) {
 							playerXV = 0;
 							playerYV = 0;
 						};
-						if (playerY < bakedRows[i] + 3 && level.features[i] == 7) {
+						if (playerY < level.rows[i] + 3 && level.features[i] === 7) {
 							if (dybbukTime <= 0) {
 								spawnMob("sentry", i + 0.5, bakedRows[i + 1]);
 							};
 							level.features[i] = 8;
 						};
-						if (onGround && playerY == bakedRows[i] && boots !== "tennis rackets" && level.features[i] == 9) {
+						if (onGround && playerY === level.rows[i] && boots !== "tennis rackets" && level.features[i] === 9) {
 							level.rows[i - 1] = level.rows[i] = level.rows[i + 1] = level.rows[i] - 4;
 							level.features[i - 1] = 0;
 							level.features[i] = 0;
 							level.features[i + 1] = 0;
+							onGround = false;
+						};
+						if (playerY < level.rows[i] + 4 && level.features[i] === 16) {
+							notificate("press e to repair obelisk (1 totem)");
 						};
 					};
 					// feature entities
 					if (level.featureEntities[i]) {
-						let spawnOffset;
 						switch (level.featureEntities[i].type) {
-							case "golem":
-								spawnOffset = 35;
-								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 3 && onGround && level.featureEntities[i].riseSpeed == 0 && level.featureEntities[i + spawnOffset] == null) {
-									level.featureEntities[i].riseSpeed = -0.01;
-									placeFeatureEntity("golem", i + spawnOffset, true);
-								};
-								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
-								if (level.featureEntities[i].yOffset > 0) {
-									level.featureEntities[i].riseSpeed = 0;
-									level.featureEntities[i].yOffset = 0;
-								} else if (level.featureEntities[i].yOffset <= -3) {
-									level.featureEntities[i] = null;
-									continue;
-								};
-								break;
-							case "russet golem":
-								spawnOffset = 100;
-								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 6 && onGround && level.featureEntities[i].riseSpeed == 0 && level.featureEntities[i + spawnOffset] == null) {
-									level.featureEntities[i].riseSpeed = -0.01;
-									placeFeatureEntity("russet golem", i + spawnOffset, true);
-									if (level.featureEntities[i + Math.floor(spawnOffset / 2)] == null)  {
-										placeFeatureEntity("golem", i + Math.floor(spawnOffset / 2), true);
-									};
-								};
-								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
-								if (level.featureEntities[i].yOffset > 0) {
-									level.featureEntities[i].riseSpeed = 0;
-									level.featureEntities[i].yOffset = 0;
-								} else if (level.featureEntities[i].yOffset <= -6) {
-									level.featureEntities[i] = null;
-									continue;
-								};
-								break;
 							case "obelisk":
 								level.featureEntities[i].yOffset += level.featureEntities[i].riseSpeed;
 								if (level.featureEntities[i].yOffset > 0) {
@@ -1069,11 +1340,95 @@
 									level.featureEntities[i] = null;
 									continue;
 								};
-								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY < level.rows[i] + 4 && level.featureEntities[i].riseSpeed == 0) {
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY < level.rows[i] + 4 && level.featureEntities[i].riseSpeed === 0) {
 									document.getElementById("obelisk-shop-button").style.display = "block";
 								};
 								break;
 						};
+					};
+					if (level.golems[i]) {
+						let spawnOffset;
+						let golemType = level.golems[i].type;
+						/*switch (level.golems[i].type) {
+							case "golem":*/
+								spawnOffset = 35;
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + golems[golemType].height && onGround && level.golems[i].ySpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
+									level.golems[i].ySpeed = golems[golemType].sinkSpeed;
+									placeGolem("golem", i + spawnOffset, true);
+								};
+								level.golems[i].yOffset += level.golems[i].ySpeed;
+								if (level.golems[i].yOffset > 0) {
+									level.golems[i].ySpeed = 0;
+									level.golems[i].yOffset = 0;
+								} else if (level.golems[i].yOffset <= -golems[golemType].height) {
+									level.golems[i] = null;
+									continue;
+								};/*
+								break;
+							case "russet golem":
+								spawnOffset = 100;
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 6 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
+									level.golems[i].riseSpeed = -0.01;
+									placeFeatureEntity("russet golem", i + spawnOffset, true);
+									if (level.golems[i + Math.floor(spawnOffset / 2)] === null)  {
+										placeFeatureEntity("golem", i + Math.floor(spawnOffset / 2), true);
+									};
+								};
+								level.golems[i].yOffset += level.golems[i].riseSpeed;
+								if (level.golems[i].yOffset > 0) {
+									level.golems[i].riseSpeed = 0;
+									level.golems[i].yOffset = 0;
+								} else if (level.golems[i].yOffset <= -6) {
+									level.golems[i] = null;
+									continue;
+								};
+								break;
+							case "aqua golem":
+								spawnOffset = 10;
+								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 9 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
+									level.golems[i].riseSpeed = -0.005;
+									placeFeatureEntity("aqua golem", i + spawnOffset, true);
+									if (level.golems[i + Math.floor(spawnOffset * (1 / 3))] === null)  {
+										placeFeatureEntity("russet golem", i + Math.floor(spawnOffset * (1 / 3)), true);
+									};
+									if (level.golems[i + Math.floor(spawnOffset * (2 / 3))] === null)  {
+										placeFeatureEntity("golem", i + Math.floor(spawnOffset * (2 / 3)), true);
+									};
+								};
+								level.golems[i].yOffset += level.golems[i].riseSpeed;
+								if (level.golems[i].yOffset > 0) {
+									level.golems[i].riseSpeed = 0;
+									level.golems[i].yOffset = 0;
+								} else if (level.golems[i].yOffset <= -9) {
+									level.golems[i] = null;
+									continue;
+								};
+								break;
+							case "mecha golem":
+								spawnOffset = 10;
+								if (i + 2 > playerX - 0.5 && i - 1 < playerX + 0.5 && playerY <= level.rows[i] + 12 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
+									level.golems[i].riseSpeed = -0.01;
+									placeFeatureEntity("mecha golem", i + spawnOffset, true);
+									if (level.golems[i + Math.floor(spawnOffset * (1 / 4))] === null)  {
+										placeFeatureEntity("aqua golem", i + Math.floor(spawnOffset * (1 / 4)), true);
+									};
+									if (level.golems[i + Math.floor(spawnOffset * (2 / 4))] === null)  {
+										placeFeatureEntity("russet golem", i + Math.floor(spawnOffset * (2 / 4)), true);
+									};
+									if (level.golems[i + Math.floor(spawnOffset * (3 / 4))] === null)  {
+										placeFeatureEntity("golem", i + Math.floor(spawnOffset * (3 / 4)), true);
+									};
+								};
+								level.golems[i].yOffset += level.golems[i].riseSpeed;
+								if (level.golems[i].yOffset > 0) {
+									level.golems[i].riseSpeed = 0;
+									level.golems[i].yOffset = 0;
+								} else if (level.golems[i].yOffset <= -12) {
+									level.golems[i] = null;
+									continue;
+								};
+								break;
+						};*/
 					};
 				};
 
@@ -1125,17 +1480,35 @@
 								level.mobs.splice(level.mobs.indexOf(mob));
 							};
 							break;
+						case "leprechaun":
+							mob.x += 0.15//(playerX - 1.5) / (gameTime * 60);
+							mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+							if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1.5 && playerY + 2 > mob.y) {
+								let rainbowSize = 100;
+								level.terrainFeatures[Math.floor(mob.x - rainbowSize)] = "rainbow";
+								level.features[Math.floor(mob.x - rainbowSize)] = 14;
+								level.mobs.splice(level.mobs.indexOf(mob));
+							};
 					};
 					mob.age++;
 				};
 
-				cameraX = (cameraX * 3 + (playerX * 50 - canvas.width / 2)) / 4;
-				cameraY = (cameraY * 3 + ((playerY + 1) * -50 - canvas.height / 2)) / 4;
+				cameraX = lerp(cameraX, (playerX * blockSize - canvas.width / 2), 0.25);
+				cameraY = lerp(cameraY, ((playerY + 1) * -blockSize - canvas.height / 2), 0.25);
 				score = Math.max(score, Math.floor(playerX));
 				pb = Math.max(pb, score);
 
 				health += potions["regeneration potion"].time > 0 ? 0.0008 : -0.00008;
+				if (oxygen <= 0) {
+					health -= 0.003;
+				};
 				health = clamp(health, 0, maxHealth);
+				if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)]) {
+					oxygen -= 0.005;
+				} else {
+					oxygen += 0.005;
+				};
+				oxygen = clamp(oxygen, 0, 1);
 				dead = health <= 0;
 				notificationTime = Math.max(0, notificationTime - 1);
 
@@ -1145,132 +1518,185 @@
 
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-				images[((gameTime % 600 < 300 && getLayer(playerY) < 4) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
+				images[((gameTime % 600 < 300 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
 				
-				if (cameraY > 200) {
+				if (cameraY > 750 * -blockSize) {
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
 				};
 				
-				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4, (200 - cameraY) / 4, canvas.width, canvas.height);
-				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, canvas.height);
+				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4,					(750 * -blockSize - cameraY) / 4, canvas.width, canvas.height);
+				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	(750 * -blockSize - cameraY) / 4, canvas.width, canvas.height);
+
+				for (let i = 0; i < level.terrainFeatures.length; i++) {
+					if (level.terrainFeatures[i] === "rainbow") {
+						let rainbowSize = 100;
+						images.rainbow.draw(i * blockSize - cameraX, (level.rows[i] + rainbowSize / 2) * -blockSize - cameraY, blockSize * rainbowSize, blockSize * rainbowSize);
+					};
+				};
 
 				// grass
-				let rowBuffer = Object.keys(level.rows).filter(it => it * 50 + 50 > cameraX && it * 50 < cameraX + canvas.width);
+				let rowBuffer = Object.keys(level.rows).filter(it => it * blockSize + blockSize > cameraX && it * blockSize < cameraX + canvas.width);
 				for (let i = 0; i < rowBuffer.length; i++) {
-					let ice = getLayer(level.rows[rowBuffer[i]]) === 2 && Math.round((level.rows[rowBuffer[i]] - 200) * 1000) / 1000 <= Math.round((level.originalRows[rowBuffer[i]] - 200) * 0.9 * 1000) / 1000;
-					let groundImage = ice ? images.packedSnow : layers[clamp(getLayer(level.rows[rowBuffer[i]]), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)))][0];
-					let blockUVSize = groundImage.width / 25;
-					let rowY = level.rows[rowBuffer[i]] * -50 - cameraY;
-					groundImage.draw((blockUVSize * rowBuffer[i]) % (Math.floor(groundImage.width / blockUVSize) * blockUVSize), 0, blockUVSize, groundImage.height, rowBuffer[i] * 50 - cameraX, rowY, 50, 50 * (groundImage.height / blockUVSize));
+					let layer = getLayer(level.rows[rowBuffer[i]]);
+					let ice = (layer === 9) && Math.round((level.rows[rowBuffer[i]] - 900) * 1000) / 1000 <= Math.round((level.originalRows[rowBuffer[i]] - 900) * 0.9 * 1000) / 1000;
+					let groundImage = ice ? images.packedSnow : layers[getLayer(level.rows[rowBuffer[i]])][0];
+					let blockUVSize = groundImage.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
+					let waterUVSize = images.water.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
+					let rowY = level.rows[rowBuffer[i]] * -blockSize - cameraY;
+					groundImage.draw((blockUVSize * rowBuffer[i]) % (Math.floor(groundImage.width / blockUVSize) * blockUVSize), 0, blockUVSize, groundImage.height, rowBuffer[i] * blockSize - cameraX, rowY, blockSize, blockSize * (groundImage.height / blockUVSize));
+					if (level.waterLevel[rowBuffer[i]] > 0) {
+						ctx.globalAlpha = 0.5;
+						images.water.draw((waterUVSize * rowBuffer[i]) % (Math.floor(images.water.width / waterUVSize) * waterUVSize), 0, waterUVSize, images.water.height, rowBuffer[i] * blockSize - cameraX, (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]]) * -blockSize - cameraY, blockSize, level.waterLevel[rowBuffer[i]] * blockSize);
+						ctx.globalAlpha = 1;
+					};
 					switch (level.features[rowBuffer[i]]) {
 						case 0:
 							break;
 						case 1:
-							images.coin.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+							images.coin.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
 							break;
 						case 2:
-							images.gem.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+							images.gem.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
 							break;
 						case 3:
-							images.ladder.draw(rowBuffer[i] * 50 - cameraX, rowY - 200, 50, 200);
+							images.ladder.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 4, blockSize, blockSize * 4);
 							break;
 						case 4:
-							images.ladder.draw(rowBuffer[i] * 50 - cameraX, rowY - 300, 50, 300);
+							images.ladder.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 6, blockSize, blockSize * 6);
 							break;
 						case 5:
-							images.stones.draw(rowBuffer[i] * 50 - cameraX, rowY - 250, 50, 250);
+							images.stones.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 5, blockSize, blockSize * 5);
 							break;
 						case 6:
-							images.mysteryCrate.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+							images.mysteryCrate.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
 							break;
 						case 7:
-							images.sentryBarracks.draw(rowBuffer[i] * 50 - cameraX, rowY - 150, 50, 150);
+							images.sentryBarracks.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 3, blockSize, blockSize * 3);
 							break;
 						case 8:
-							images.sentryBarracks.draw(rowBuffer[i] * 50 - cameraX, rowY - 150, 50, 150);
+							images.sentryBarracks.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 3, blockSize, blockSize * 3);
 							break;
 						case 9:
-							images.pitfall.draw(rowBuffer[i] * 50 - cameraX, rowY, 50, 25);
+							images.pitfall.draw(rowBuffer[i] * blockSize - cameraX, rowY, blockSize, blockSize * 0.5);
 							break;
 						case 10:
-							images.dybbukBox.draw(110, 75, 200, 250, rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+							images.dybbukBox.draw(110, 75, 200, 250, rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
 							break;
 						case 11:
-							images.dybbukBoxOpen.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+							images.dybbukBoxOpen.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
 							break;
 						case 12:
-							images.totem.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+							images.totem.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
+							break;
+						case 13:
+							images.fourLeafClover.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
+							break;
+						case 14:
+							images.potOfGold.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
+							break;
+						case 15:
+							images.burlapSack.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
+							break;
+						case 16:
+							images.ruinedObelisk.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 4, blockSize, blockSize * 4);
 							break;
 						default:
-							images.error.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+							images.error.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
 					};
 					let featureEntity = level.featureEntities[rowBuffer[i]];
 					if (featureEntity) {
 						switch (featureEntity.type) {
-							case "golem":
-								images.golem.draw(0, 0, 1670, 1837 - (featureEntity.yOffset * -50 * (1830 / 150)), rowBuffer[i] * 50 - cameraX, rowY - 150 - featureEntity.yOffset * 50, 50, 150 - featureEntity.yOffset * -50);
-								break;
-							case "russet golem":
-								images.russetGolem.draw(0, 0, 570, 570 - (featureEntity.yOffset * -50 * (570 / 300)), rowBuffer[i] * 50 - cameraX, rowY - 300 - featureEntity.yOffset * 50, 50, 300 - featureEntity.yOffset * -50);
-								break;
 							case "obelisk":
-								images.obelisk.draw(875, 50, 200, 730 - (featureEntity.yOffset * -50 * (730 / 200)), rowBuffer[i] * 50 - cameraX, rowY - 200 - featureEntity.yOffset * 50, 50, 200 - featureEntity.yOffset * -50);
+								images.obelisk.draw(875, 50, 200, 730 - (featureEntity.yOffset * -blockSize * (730 / (blockSize * 4))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 4 - featureEntity.yOffset * blockSize, blockSize, blockSize * 4 - featureEntity.yOffset * -blockSize);
+								break;
+							case "scaffolding":
+								images.scaffolding.draw(rowBuffer[i] * blockSize - cameraX, rowY - featureEntity.height * blockSize, blockSize, featureEntity.height * blockSize);
 								break;
 							default:
-								images.error.draw(rowBuffer[i] * 50 - cameraX, rowY - 50, 50, 50);
+								images.error.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
+						};
+					};
+					let golem = level.golems[rowBuffer[i]];
+					if (golem) {
+						switch (golem.type) {
+							case "golem":
+								images.golem.draw(0, 0, 1670, 1837 - (golem.yOffset * -blockSize * (1830 / (blockSize * 3))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 3 - golem.yOffset * blockSize, blockSize, blockSize * 3 - golem.yOffset * -blockSize);
+								break;
+							case "russet golem":
+								images.russetGolem.draw(0, 0, 570, 570 - (golem.yOffset * -blockSize * (570 / (blockSize * 6))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 6 - golem.yOffset * blockSize, blockSize, blockSize * 6 - golem.yOffset * -blockSize);
+								break;
+							case "aqua golem":
+								images.aquaGolem.draw(200, 70, 450, 705 - (golem.yOffset * -blockSize * (705 / (blockSize * 9))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 9 - golem.yOffset * blockSize, blockSize, blockSize * 9 - golem.yOffset * -blockSize);
+								break;
+							case "mecha golem":
+								images.mechaGolem.draw(300, 0, 350, 600 - (golem.yOffset * -blockSize * (600 / (blockSize * 12))), (rowBuffer[i] - 1) * blockSize - cameraX, rowY - blockSize * 12 - golem.yOffset * blockSize, blockSize * 3, blockSize * 12 - golem.yOffset * -blockSize);
+								break;
+							case "celestial golem":
+								images.celestialGolem.draw(0, 0, 570, 570 - (golem.yOffset * -blockSize * (570 / (blockSize * 100))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 100 - golem.yOffset * blockSize, blockSize, blockSize * 100 - golem.yOffset * -blockSize);
+								break;
 						};
 					};
 				};
 			
 				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV <= 0 ? "guyFalling" : "guyJumping"))));
-				images[document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"].draw(playerX * 50 - 25 - cameraX, playerY * -50 - 100 - cameraY, 50, 100);
+				images[document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"].draw(playerX * blockSize - blockSize / 2 - cameraX, playerY * -blockSize - blockSize * 2 - cameraY, blockSize, blockSize * 2);
 				if (dybbukTime > 0) {
 					ctx.globalAlpha = 0.5;
-					images.dybbuk.draw(playerX * 50 - 25 - cameraX, playerY * -50 - 100 - cameraY, 50, 100);
+					images.dybbuk.draw(playerX * blockSize - blockSize / 2 - cameraX, playerY * -blockSize - blockSize * 2 - cameraY, blockSize, blockSize * 2);
 					ctx.globalAlpha = 1;
 				};
+				let grimReaperX = lerp(playerX - 1, playerX - 100, health / maxHealth);
+				images.grimReaper.draw((grimReaperX - 0.5) * blockSize - cameraX, (bakedRows[getHittableRows(grimReaperX).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)] + 3) * -blockSize - cameraY, blockSize, blockSize * 3);
 
-				for (let mob of level.mobs) {
-					if (mob.x * 50 + 25 - cameraX > 0 && mob.x * 50 - 25 - cameraX < canvas.width) {
+				for (let mob of level.mobs) {if (mob.x * blockSize + blockSize / 2 - cameraX > 0 && mob.x * blockSize - blockSize / 2 - cameraX < canvas.width) {
 						switch (mob.type) {
 							case "sentry":
 								if (mob.age >= 120) {
-									images.sentry.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+									images.sentry.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 4 - cameraY, blockSize, blockSize * 4);
 								};
 								break;
 							case "mimic":
 								if (mob.mimicking) {
 									switch (mob.mimicTarget) {
 										case "coin":
-											images.coin.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+											images.coin.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize - cameraY, blockSize, blockSize);
 											break;
 										case "gem":
-											images.gem.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+											images.gem.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize - cameraY, blockSize, blockSize);
 											break;
 										default:
-											images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 50 - cameraY, 50, 50);
+											images.error.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize - cameraY, blockSize, blockSize);
 									};
 								} else {
 									switch (Math.sign(Math.round(playerXV * 1000) / 1000)) {
 										case -1:
-											images.mimic.draw(307, 87, 84, 193, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+											images.mimic.draw(307, 87, 84, 193, mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 4 - cameraY, blockSize, blockSize * 4);
 											break;
 										case 0:
-											images.mimic.draw(217, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+											images.mimic.draw(217, 91, 95, 198, mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 4 - cameraY, blockSize, blockSize * 4);
 											break;
 										case 1:
-											images.mimic.draw(109, 91, 95, 198, mob.x * 50 - 25 - cameraX, mob.y * -50 - 200 - cameraY, 50, 200);
+											images.mimic.draw(109, 91, 95, 198, mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 4 - cameraY, blockSize, blockSize * 4);
 									};
 								};
 								break;
+							case "leprechaun":
+								images.leprechaun.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 1.5 - cameraY, blockSize, blockSize * 1.5);
+								break;
 							default:
-								images.error.draw(mob.x * 50 - 25 - cameraX, mob.y * -50 - 100 - cameraY, 50, 100);
+								images.error.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 2 - cameraY, blockSize, blockSize * 2);
 						};
 					};
 				};
+				let darknessOpacity = (Math.max(Math.sin((gameTime - 300) / (300 / Math.PI)), 0) ** 2);
+				ctx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.9, darknessOpacity)) + ")";
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.globalAlpha = clamp(1 - (health / maxHealth) / 0.1, 0, 1);
+				images.blood.draw(0, 0, canvas.width, canvas.height);
+				ctx.globalAlpha = 1;
 				ctx.font = "30px arial";
 				ctx.fillStyle = "yellow";
 				if (facasd) {
@@ -1278,20 +1704,40 @@
 					ctx.fillText("She was a rubber tapper and found that land was being invaded by rubber tappers and she", 0, 325);
 					ctx.fillText("started protecting thousands of hectares of land.", 0, 350);
 				};
+				if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)]) {
+					canvas.style.filter = "blur(5px)";
+				} else {
+					canvas.style.filter = "none";
+				};
 			};
+
 			let healthPercent = health / maxHealth
-			let r = clamp(2 - healthPercent * 2, 0, 1) * 255;
-			let g = clamp(healthPercent * 2, 0, 1) * 255;
-			let b = (potions["regeneration potion"].time > 0) * 127;
+			let healthR = clamp(2 - healthPercent * 2, 0, 1) * 255;
+			let healthG = clamp(healthPercent * 2, 0, 1) * 255;
+			let healthB = (potions["regeneration potion"].time > 0) * 127;
 			document.getElementById("health").style.width = 600 * (maxHealth / 1) + "px";
 			document.getElementById("health-inner").style.width = 600 * health + "px";
-			document.getElementById("health-inner").style.backgroundColor = "rgb(" + r + ", " + g + ", " + b + ")";
+			document.getElementById("health-inner").style.backgroundColor = "rgb(" + healthR + ", " + healthG + ", " + healthB + ")";
+
+			if (oxygen < 1) {
+				document.getElementById("oxygen").style.display = "block";
+				let oxygenPercent = oxygen;
+				let oxygenR = clamp(2 - oxygenPercent * 2, 0, 1) * 255;
+				let oxygenG = 0;
+				let oxygenB = clamp(oxygenPercent * 2, 0, 1) * 255;
+				document.getElementById("oxygen").style.width = 600 + "px";
+				document.getElementById("oxygen-inner").style.width = 600 * oxygen + "px";
+				document.getElementById("oxygen-inner").style.backgroundColor = "rgb(" + oxygenR + ", " + oxygenG + ", " + oxygenB + ")";
+			} else {
+				document.getElementById("oxygen").style.display = "none";
+			};
+
 			if (dead) {
 				ctx.font = "100px arial";
 				ctx.fillStyle = "red";
 				ctx.fillText("you died", 200, 200);
 			};
-			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps;
+			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps;// + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
 			document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 			for (let food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";

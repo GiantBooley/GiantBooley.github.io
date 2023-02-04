@@ -82,6 +82,19 @@
 				height: 50px;
 				background-color: rgb(0, 255, 0);
 			}
+			#oxygen {
+				position: absolute;
+				bottom: 50px;
+				left: 0px;
+				width: 600px;
+				height: 50px;
+				background-color: black;
+			}
+			#oxygen-inner {
+				width: 600px;
+				height: 50px;
+				background-color: rgb(0, 0, 255);
+			}
 			#joystick {
 				position: absolute;
 				display: flex;
@@ -173,6 +186,9 @@
 				<div id="stats">score: -<br>coins: -</div>
 				<button id="shop-button" onclick="shopButton();">SHOP</button>
 				<button id="obelisk-shop-button" onclick="obeliskShopButton();">OBELISK</button>
+				<div id="oxygen">
+					<div id="oxygen-inner"></div>
+				</div>
 				<div id="health">
 					<div id="health-inner"></div>
 				</div>
@@ -219,21 +235,23 @@
 						<label>cow brain</label><label id="cow-brain-howmany">(0)</label><button onclick="devourFood('cow brain');">devour</button><button onclick="purchaseFood('cow brain');">purchase (38 coins)</button><br>
 						<label>filling warm meal</label><label id="filling-warm-meal-howmany">(0)</label><button onclick="devourFood('filling warm meal');">devour</button><button onclick="purchaseFood('filling warm meal');">purchase (41 coins)</button><br>
 						<br>
-						<label>buckwheat pancake</label><label id="buckwheat-pancake-howmany">(0)</label><button onclick="devourFood('buckwheat pancake');">devour</button><button onclick="purchaseFood('buckwheat pancake');">purchase (44 coins)</button><br>
-						<label>sopping meal</label><label id="sopping-meal-howmany">(0)</label><button onclick="devourFood('sopping meal');">devour</button><button onclick="purchaseFood('sopping meal');">purchase (47 coins)</button><br>
-						<label>emptying cold meal</label><label id="emptying-cold-meal-howmany">(0)</label><button onclick="devourFood('emptying cold meal');">devour</button><button onclick="purchaseFood('emptying cold meal');">purchase (49 coins)</button><br>
-						<label>piping hot meal</label><label id="piping-hot-meal-howmany">(0)</label><button onclick="devourFood('piping hot meal');">devour</button><button onclick="purchaseFood('piping hot meal');">purchase (52 coins)</button><br>
-						<label>styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion</label><label id="styrofoam-tupperware-baggy-full-of-a-reheated-rehydrated-piping-hot-filling-sloppy-sopping-warm-meal-portion-howmany">(0)</label><button onclick="devourFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">devour</button><button onclick="purchaseFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">purchase (54 coins)</button>
+						<label>buckwheat pancake</label><label id="buckwheat-pancake-howmany">(0)</label><button onclick="devourFood('buckwheat pancake');">devour</button><button onclick="purchaseFood('buckwheat pancake');">purchase (47 coins)</button><br>
+						<label>sopping meal</label><label id="sopping-meal-howmany">(0)</label><button onclick="devourFood('sopping meal');">devour</button><button onclick="purchaseFood('sopping meal');">purchase (52 coins)</button><br>
+						<label>emptying cold meal</label><label id="emptying-cold-meal-howmany">(0)</label><button onclick="devourFood('emptying cold meal');">devour</button><button onclick="purchaseFood('emptying cold meal');">purchase (56 coins)</button><br>
+						<label>piping hot meal</label><label id="piping-hot-meal-howmany">(0)</label><button onclick="devourFood('piping hot meal');">devour</button><button onclick="purchaseFood('piping hot meal');">purchase (59 coins)</button><br>
+						<label>styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion</label><label id="styrofoam-tupperware-baggy-full-of-a-reheated-rehydrated-piping-hot-filling-sloppy-sopping-warm-meal-portion-howmany">(0)</label><button onclick="devourFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">devour</button><button onclick="purchaseFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">purchase (62 coins)</button>
 					</div><br>
 					<div id="stuff">
 						<h3>stuff</h3><br>
 						<label>ladder</label><label id="ladder-howmany">(0)</label><button onclick="placeLadder();">place</button><button onclick="purchaseLadder();">purchase (10 coins)</button><br>
-						<label>tall ladder</label><label id="tall-ladder-howmany">(0)</label><button onclick="placeTallLadder();">place</button><button onclick="purchaseTallLadder();">purchase (25 coins)</button>
+						<label>tall ladder</label><label id="tall-ladder-howmany">(0)</label><button onclick="placeTallLadder();">place</button><button onclick="purchaseTallLadder();">purchase (25 coins)</button><br>
+						<label>scaffolding</label><button onclick="purchaseScaffolding();">place (1 coin/block)</button>
 					</div>
 				</div>
 				<div id="shop-gems">
 					<div id="potions">
 						<h3>alchemy (potions)</h3>
+						<label>night vision potion (30 seconds)</label><label id="night-vision-potion-howmany">(0)</label><button onclick="chugPotion('night vision potion');">chug</button><button onclick="brewPotion('night vision potion');">brew (1 gem)</button><br>
 						<label>speed potion (10 seconds)</label><label id="speed-potion-howmany">(0)</label><button onclick="chugPotion('speed potion');">chug</button><button onclick="brewPotion('speed potion');">brew (2 gems)</button><br>
 						<label>jumping potion (10 seconds)</label><label id="jumping-potion-howmany">(0)</label><button onclick="chugPotion('jumping potion');">chug</button><button onclick="brewPotion('jumping potion');">brew (3 gems)</button><br>
 						<label>regeneration potion (10 seconds)</label><label id="regeneration-potion-howmany">(0)</label><button onclick="chugPotion('regeneration potion');">chug</button><button onclick="brewPotion('regeneration potion');">brew (5 gems)</button><br>
@@ -249,7 +267,8 @@
 				<hr>
 				<label>health</label><button onclick="obeliskShopUpgradeButton('health');">upgrade (1 totem)</button><br>
 				<label>speed</label><button onclick="obeliskShopUpgradeButton('speed');">upgrade (1 totem)</button><br>
-				<label>jump</label><button onclick="obeliskShopUpgradeButton('jump');">upgrade (1 totem)</button>
+				<label>jump</label><button onclick="obeliskShopUpgradeButton('jump');">upgrade (1 totem)</button><br>
+				<label>step</label><button onclick="obeliskShopUpgradeButton('step');">upgrade (1 totem)</button><br>
 			</div>
 			<div id="hacker-console">
 				<h1>hacker console</h1>
@@ -455,8 +474,9 @@
 			venus: new CanvasImage("rgb(255, 220, 0)", "https://www.solarsystemscope.com/textures/download/2k_venus_surface.jpg"),
 			mercury: new CanvasImage("rgb(200, 200, 200)", "https://www.solarsystemscope.com/textures/download/2k_mercury.jpg"),
 			sun: new CanvasImage("rgb(255, 200, 150)", "https://www.solarsystemscope.com/textures/download/2k_sun.jpg"),
-			mountain: new CanvasImage("rgb(200, 200, 200)", "https://upload.wikimedia.org/wikipedia/commons/e/e7/Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg")
-
+			mountain: new CanvasImage("rgb(200, 200, 200)", "https://upload.wikimedia.org/wikipedia/commons/e/e7/Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg"),
+			scaffolding: new CanvasImage("rgb(50, 50, 50)", "https://m.media-amazon.com/images/I/61+Fb8M51bL.jpg"),
+			celestialGolem: new CanvasImage("rgb(0, 0, 0)", "https://storage.googleapis.com/dream-machines-output/9d39f43b-4c34-4b78-b2d1-a86da1519af1/0_0.png")
 		};
 		var layers = {
 			"-13": [images.sun, 0.07, -0.03],
@@ -533,13 +553,14 @@
 			"cow brain": {cost: 38, hunger: 0.9, howmany: 0},
 			"filling warm meal": {cost: 41, hunger: 1, howmany: 0},
 
-			"buckwheat pancake": {cost: 44, hunger: 1.1, howmany: 0},
-			"sopping meal": {cost: 47, hunger: 1.2, howmany: 0},
-			"emptying cold meal": {cost: 49, hunger: -0.65, howmany: 0},
-			"piping hot meal": {cost: 52, hunger: 1.4, howmany: 0},
-			"styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion": {cost: 54, hunger: 1.5, howmany: 0}
+			"buckwheat pancake": {cost: 47, hunger: 1.2, howmany: 0},
+			"sopping meal": {cost: 52, hunger: 1.4, howmany: 0},
+			"emptying cold meal": {cost: 56, hunger: -0.8, howmany: 0},
+			"piping hot meal": {cost: 59, hunger: 1.8, howmany: 0},
+			"styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion": {cost: 62, hunger: 2, howmany: 0}
 		};
 		var potions = {
+			"night vision potion": {cost: 1, time: 0, duration: 30, howmany: 0},
 			"speed potion": {cost: 2, time: 0, duration: 10, howmany: 0},
 			"jumping potion": {cost: 3, time: 0, duration: 10, howmany: 0},
 			"regeneration potion": {cost: 5, time: 0, duration: 10, howmany: 0},
@@ -553,6 +574,7 @@
 		var dead = false;
 		var ladders = 0;
 		var inLadder = false;
+		var inLadderSpeed = 0.1;
 		var joystick = new Joystick(document.getElementById("joystick"));
 		var controls = {
 			up: false,
@@ -570,7 +592,7 @@
 		var notification = "";
 		var notificationTime = 0;
 		var gameTime = 0;
-		var developerMode = true;
+		var developerMode = false;
 		var macro = [];
 		var macroTime = 0;
 		var macroPlaying = false;
@@ -593,7 +615,7 @@
 			},
 			"russet golem": {
 				width: 1,
-				height: 3,
+				height: 6,
 				riseSpeed: 0.008,
 				sinkSpeed: -0.01,
 				image: images.russetGolem,
@@ -601,7 +623,7 @@
 			},
 			"aqua golem": {
 				width: 1,
-				height: 3,
+				height: 9,
 				riseSpeed: 0.005,
 				sinkSpeed: -0.005,
 				image: images.aquaGolem,
@@ -609,29 +631,46 @@
 			},
 			"mecha golem": {
 				width: 1,
-				height: 3,
+				height: 12,
 				riseSpeed: 0.01,
 				sinkSpeed: -0.01,
 				image: images.mechaGolem,
 				spawnOffset: 35
+			},
+			"celestial golem": {
+				width: 1,
+				height: 100,
+				riseSpeed: 1,
+				sinkSpeed: -1,
+				image: images.celestialGolem,
+				spawnOffset: 35
 			}
 		};
 		var hackerConsole = false;
+		var baseStepHeight = 0.5;
+		var oxygen = 1;
 
 		for (let i = 0; i < 25; i++) {
 			level.octaves.push(perlinNoise1D());
 		};
+		function getPerlinHeight(x) {
+			let perlinHeight = 0;
+			for (let j = 0; j < level.octaves.length; j++) {
+				let amplitude = 1400;
+				let wavelength = 4700;
+				perlinHeight += ((perlinGetVal(level.octaves[j], (x + level.perlinOffset) / (wavelength / (2 ** j))) - 0.5) * 2 * amplitude) / (2 ** j);
+			};
+			return perlinHeight;
+		};
+		var tempRows = [];
+		for (let i = 0; i < 50000; i++) {
+			tempRows[i] = getPerlinHeight(i);
+		};
+		level.perlinOffset = parseInt(Object.keys(tempRows).sort((a, b) => Math.abs(tempRows[a] - 750) - Math.abs(tempRows[b] - 750))[0]);
 		function generateLevel() {
 			let oldLength = level.rows.length;//rows.length === 0 ? -1 : rows.length;
 			for (let i = oldLength; i < oldLength + 5000; i++) {
-				let perlinHeight = 0;
-				level.perlinOffset = -Object.keys(level.originalRows).sort((a, b) => Math.abs(level.originalRows[a] - 750) - Math.abs(level.originalRows[b] - 750))[0];
-				for (let j = 0; j < level.octaves.length; j++) {
-					let amplitude = 1600;
-					let wavelength = 4500;
-					perlinHeight += ((perlinGetVal(level.octaves[j], i / (wavelength / (2 ** j))) - 0.5) * 2 * amplitude) / (2 ** j);
-				};
-				level.rows[i] = level.originalRows[i] = perlinHeight// + (level.rows[i - 1] ?? 0);
+				level.rows[i] = level.originalRows[i] = getPerlinHeight(i);// + (level.rows[i - 1] ?? 0);
 				level.featureEntities[i] = null;
 				level.golems[i] = null;
 			};
@@ -639,8 +678,8 @@
 			// round stuff and coins n gems
 			for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk
 				level.rows[i] = Math.round(level.rows[i]);
-				if (Math.random() < 1 / 20.0) {
-					//level.waterLevel[i] = Math.floor(Math.random() * 8);
+				if (Math.random() < 1 / 5 && level.rows[i - 25] >= level.rows[i] && level.rows[i + 25] >= level.rows[i] && level.rows[i - 26] > level.rows[i - 25] && level.rows[i + 26] > level.rows[i + 25]) {
+					level.waterLevel[i] = Math.floor(Math.random() * (Math.min(level.rows[i - 25], level.rows[i + 25]) - level.rows[i]));
 				} else {
 					level.waterLevel[i] = 0;
 				};
@@ -652,7 +691,7 @@
 				if (Math.random() < 1 / 4000) pool.push(7);
 				if (Math.random() < 1 / 2000) pool.push(10);
 				if (Math.random() < 1 / 8000) pool.push(12);
-				if (Math.random() < 1 / 15000) pool.push(13);
+				if (Math.random() < 1 / 25000) pool.push(13);
 				if (Math.random() < 1 / 1500) pool.push(15);
 				if (Math.random() < 1 / 20000) pool.push(16);
 				if (Math.random() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
@@ -669,6 +708,9 @@
 				};
 				if (Math.random() < 1 / 15000) {
 					placeGolem("mecha golem", i, false);
+				};
+				if (Math.random() < 1 / 40000) {
+					placeGolem("celestial golem", i, false);
 				};
 
 				if (Math.random() < 1 / 5000) {
@@ -871,7 +913,10 @@
 				dybbukTime,
 				basePlayerSpeed,
 				baseJumpHeight,
-				maxHealth
+				maxHealth,
+				score,
+				baseStepHeight,
+				oxygen
 			});
 			localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 		} catch(e) {alert(e.stack)}
@@ -903,6 +948,9 @@
 				basePlayerSpeed = saveCode.basePlayerSpeed ?? basePlayerSpeed;
 				baseJumpHeight = saveCode.baseJumpHeight ?? baseJumpHeight;
 				maxHealth = saveCode.maxHealth ?? maxHealth;
+				score = saveCode.score ?? score;
+				baseStepHeight = saveCode.baseStepHeight ?? baseStepHeight;
+				oxygen = saveCode.oxygen ?? oxygen;
 			};
 		};
 		function clearSlot(slot) {
@@ -937,6 +985,8 @@
 			if (type === "obelisk") {
 				featureEntity.yOffset = arguments[2] ? -4 : 0;
 				featureEntity.riseSpeed = arguments[2] ? 0.005 : 0;
+			} else if (type === "scaffolding") {
+				featureEntity.height = arguments[2];
 			};
 			level.featureEntities[Math.floor(x)] = featureEntity;
 		};
@@ -972,6 +1022,12 @@
 							alert("upgrade maxed");
 						};
 						break;
+					case "step":
+						if (baseStepHeight < 1.1) {
+							baseStepHeight = Math.min(baseStepHeight + 0.1, 1.1);
+						} else {
+							alert("upgrade maxed");
+						};
 				};
 				totems--;
 			} else {
@@ -983,6 +1039,17 @@
 			document.getElementById("hacker-console").style.display = hackerConsole ? "block" : "none";
 			if (!hackerConsole) {
 				document.getElementById("canvas-wrapper").focus();
+			};
+		};
+		function purchaseScaffolding() {
+			let height = Math.round(parseInt(prompt("what height (1 coin/block)")));
+			if (height > 0) {
+				if (coins >= height) {
+					placeFeatureEntity("scaffolding", playerX, height);
+					coins -= height;
+				} else {
+					alert("bankrupt");
+				};
 			};
 		};
 
@@ -1021,6 +1088,9 @@
 						bakedRows[i - 1] = level.rows[i] + height;
 						bakedRows[i] = level.rows[i] + height;
 						bakedRows[i + 1] = level.rows[i] + height;
+					} else if (level.golems[i] && level.golems[i].type === "celestial golem") {
+						let height = level.golems[i].yOffset + 100;
+						bakedRows[i] = level.rows[i] + height;
 					};
 				};
 
@@ -1036,11 +1106,11 @@
 				
 				let playerSpeed = basePlayerSpeed + (boots === "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
 				let groundFriction = (boots === "spike boots") ? 0.9 : layers[getLayer(playerY)][1];
-				if (controls.right != controls.left) {
+				if (controls.right !== controls.left) {
 					//move
 					let sign = controls.right - controls.left;
-					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : 0.1) : (flying ? sign * 0.3 : (sign * playerSpeed)));
-					playerXV = lerp(maxXV, playerXV, onGround ?  1 - groundFriction : 0.3) + (sign * 0.04 * (controls.up && onGround && !inWater));
+					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : inLadderSpeed) : (flying ? sign * 0.3 : (sign * playerSpeed)));
+					playerXV = lerp(maxXV, playerXV, onGround ? 1 - groundFriction : 0.15) + (sign * 0.04 * (controls.up && onGround && !inWater));
 				} else {
 					//friction
 					playerXV *= inLadder ? 0 : (onGround ? 1 - groundFriction : 0.99);
@@ -1051,9 +1121,9 @@
 					playerXV = clamp(playerXV, -0.3, 0.3);
 				};
 				let hittableRows = getHittableRows(playerX + playerXV);
-				if ((hittableRows[0] != undefined && bakedRows[hittableRows[0]] > playerY) || (hittableRows[1] != undefined && bakedRows[hittableRows[1]] > playerY)) {
+				if ((hittableRows[0] !== undefined && bakedRows[hittableRows[0]] > playerY) || (hittableRows[1] !== undefined && bakedRows[hittableRows[1]] > playerY)) {
 					let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
-					if (onGround && playerY >= bakedRows[max] - (boots === "stepping boots" ? 1 : 0.5) && potions["spider potion"].time <= 0) {
+					if (onGround && playerY >= bakedRows[max] - ((boots === "stepping boots") ? baseStepHeight * 2 : baseStepHeight) && potions["spider potion"].time <= 0) {
 						playerY = bakedRows[max];
 					} else {
 						playerXV = Math.ceil(playerX + (playerXV / 2)) - 0.5 - playerX;
@@ -1068,9 +1138,9 @@
 				// Y MOVEMENT //
 
 				if (inLadder) {
-					playerYV = (controls.up - controls.down) * (boots === "magnet boots" ? 0 : 0.1);
+					playerYV = (controls.up - controls.down) * (boots === "magnet boots" ? 0 : inLadderSpeed);
 				} else if (flying) {
-					if (controls.up != controls.down) {
+					if (controls.up !== controls.down) {
 						playerYV = (controls.up - controls.down) * 0.3;
 					};
 					playerYV *= 0.99;
@@ -1113,7 +1183,7 @@
 					health -= playerYV * -0.05;
 				};
 				if (onGround) {
-					if (getLayer(level.rows[max]) === 9 && level.rows[max] - 900 > (level.originalRows[max] - 900) * 0.9 && boots != "tennis rackets") {
+					if (getLayer(level.rows[max]) === 9 && level.rows[max] - 900 > (level.originalRows[max] - 900) * 0.9 && boots !== "tennis rackets") {
 						level.rows[max] -= 0.005;
 						if (level.rows[max] - 200 < (level.originalRows[max] - 200) * 0.9) {
 							level.rows[max] = (level.originalRows[max] - 200) * 0.9 + 200;
@@ -1231,8 +1301,13 @@
 						};
 						if ((playerY < level.rows[i] + 4 && level.features[i] === 3) || (playerY < bakedRows[i] + 6 && level.features[i] === 4)) {
 							inLadder = true;
+							inLadderSpeed = 0.1;
 						};
-						if (inLadder != oldInLadder) {
+						if (level.featureEntities[i] && playerY < bakedRows[i] + level.featureEntities[i].height) {
+							inLadder = true;
+							inLadderSpeed = 0.02 / level.featureEntities[i].height;
+						};
+						if (inLadder && !oldInLadder) {
 							playerXV = 0;
 							playerYV = 0;
 						};
@@ -1247,6 +1322,7 @@
 							level.features[i - 1] = 0;
 							level.features[i] = 0;
 							level.features[i + 1] = 0;
+							onGround = false;
 						};
 						if (playerY < level.rows[i] + 4 && level.features[i] === 16) {
 							notificate("press e to repair obelisk (1 totem)");
@@ -1423,7 +1499,16 @@
 				pb = Math.max(pb, score);
 
 				health += potions["regeneration potion"].time > 0 ? 0.0008 : -0.00008;
+				if (oxygen <= 0) {
+					health -= 0.003;
+				};
 				health = clamp(health, 0, maxHealth);
+				if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)]) {
+					oxygen -= 0.005;
+				} else {
+					oxygen += 0.005;
+				};
+				oxygen = clamp(oxygen, 0, 1);
 				dead = health <= 0;
 				notificationTime = Math.max(0, notificationTime - 1);
 
@@ -1433,17 +1518,17 @@
 
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-				images[((gameTime % 600 < 300 && getLayer(playerY) < 4) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
+				images[((gameTime % 600 < 300 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
 				
-				if (cameraY > 200) {
+				if (cameraY > 750 * -blockSize) {
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
 					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
 				};
 				
-				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4, (200 - cameraY) / 4, canvas.width, canvas.height);
-				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width, (200 - cameraY) / 4, canvas.width, canvas.height);
+				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4,					(750 * -blockSize - cameraY) / 4, canvas.width, canvas.height);
+				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	(750 * -blockSize - cameraY) / 4, canvas.width, canvas.height);
 
 				for (let i = 0; i < level.terrainFeatures.length; i++) {
 					if (level.terrainFeatures[i] === "rainbow") {
@@ -1527,6 +1612,9 @@
 							case "obelisk":
 								images.obelisk.draw(875, 50, 200, 730 - (featureEntity.yOffset * -blockSize * (730 / (blockSize * 4))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 4 - featureEntity.yOffset * blockSize, blockSize, blockSize * 4 - featureEntity.yOffset * -blockSize);
 								break;
+							case "scaffolding":
+								images.scaffolding.draw(rowBuffer[i] * blockSize - cameraX, rowY - featureEntity.height * blockSize, blockSize, featureEntity.height * blockSize);
+								break;
 							default:
 								images.error.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
 						};
@@ -1545,6 +1633,9 @@
 								break;
 							case "mecha golem":
 								images.mechaGolem.draw(300, 0, 350, 600 - (golem.yOffset * -blockSize * (600 / (blockSize * 12))), (rowBuffer[i] - 1) * blockSize - cameraX, rowY - blockSize * 12 - golem.yOffset * blockSize, blockSize * 3, blockSize * 12 - golem.yOffset * -blockSize);
+								break;
+							case "celestial golem":
+								images.celestialGolem.draw(0, 0, 570, 570 - (golem.yOffset * -blockSize * (570 / (blockSize * 100))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 100 - golem.yOffset * blockSize, blockSize, blockSize * 100 - golem.yOffset * -blockSize);
 								break;
 						};
 					};
@@ -1601,8 +1692,11 @@
 					};
 				};
 				let darknessOpacity = (Math.max(Math.sin((gameTime - 300) / (300 / Math.PI)), 0) ** 2);
-				ctx.fillStyle = "rgba(0, 0, 0, " + darknessOpacity + ")";
+				ctx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.9, darknessOpacity)) + ")";
 				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.globalAlpha = clamp(1 - (health / maxHealth) / 0.1, 0, 1);
+				images.blood.draw(0, 0, canvas.width, canvas.height);
+				ctx.globalAlpha = 1;
 				ctx.font = "30px arial";
 				ctx.fillStyle = "yellow";
 				if (facasd) {
@@ -1610,20 +1704,40 @@
 					ctx.fillText("She was a rubber tapper and found that land was being invaded by rubber tappers and she", 0, 325);
 					ctx.fillText("started protecting thousands of hectares of land.", 0, 350);
 				};
+				if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)]) {
+					canvas.style.filter = "blur(5px)";
+				} else {
+					canvas.style.filter = "none";
+				};
 			};
+
 			let healthPercent = health / maxHealth
-			let r = clamp(2 - healthPercent * 2, 0, 1) * 255;
-			let g = clamp(healthPercent * 2, 0, 1) * 255;
-			let b = (potions["regeneration potion"].time > 0) * 127;
+			let healthR = clamp(2 - healthPercent * 2, 0, 1) * 255;
+			let healthG = clamp(healthPercent * 2, 0, 1) * 255;
+			let healthB = (potions["regeneration potion"].time > 0) * 127;
 			document.getElementById("health").style.width = 600 * (maxHealth / 1) + "px";
 			document.getElementById("health-inner").style.width = 600 * health + "px";
-			document.getElementById("health-inner").style.backgroundColor = "rgb(" + r + ", " + g + ", " + b + ")";
+			document.getElementById("health-inner").style.backgroundColor = "rgb(" + healthR + ", " + healthG + ", " + healthB + ")";
+
+			if (oxygen < 1) {
+				document.getElementById("oxygen").style.display = "block";
+				let oxygenPercent = oxygen;
+				let oxygenR = clamp(2 - oxygenPercent * 2, 0, 1) * 255;
+				let oxygenG = 0;
+				let oxygenB = clamp(oxygenPercent * 2, 0, 1) * 255;
+				document.getElementById("oxygen").style.width = 600 + "px";
+				document.getElementById("oxygen-inner").style.width = 600 * oxygen + "px";
+				document.getElementById("oxygen-inner").style.backgroundColor = "rgb(" + oxygenR + ", " + oxygenG + ", " + oxygenB + ")";
+			} else {
+				document.getElementById("oxygen").style.display = "none";
+			};
+
 			if (dead) {
 				ctx.font = "100px arial";
 				ctx.fillStyle = "red";
 				ctx.fillText("you died", 200, 200);
 			};
-			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
+			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps;// + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
 			document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 			for (let food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
@@ -1635,12 +1749,12 @@
 			document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
 		};
 		function loop() {
-			//try {
+			try {
 				tick();
-			//} catch (e) {
-			//	alert(e.stack);
-			//	return;
-			//};
+			} catch (e) {
+				alert(e.stack);
+				return;
+			};
 			frameCount++;
 			let now = performance.now();
 			if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

@@ -175,6 +175,48 @@
 				height: calc(100% - 100px);
 				overflow: auto;
 			}
+			#menu {
+				position: absolute;
+				display: flex;
+				align-items: center;
+				justify-content: space-around;
+				flex-direction: column;
+				top: 0px;
+				left: 0px;
+				width: 100%;
+				height: 100%;
+				background-image: url("https://www.adorama.com/alc/wp-content/uploads/2018/11/landscape-photography-tips-yosemite-valley-feature.jpg");
+				background-size: 100% 100%;
+				padding: 50px;
+			}
+			#menu-title {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 60px;
+				color: white;
+				text-shadow: 3px 3px 5px black;
+			}
+			#menu-button {
+				font-size: 30px;
+				padding: 0.5em 5em;
+				background-color: white;
+				border: 3px solid black;
+				border-radius: 10px;
+				box-shadow: 3px 3px 10px black;
+			}
+			#menu-button:hover {
+				box-shadow: inset 3px 3px 10px black;
+			}
+			button {
+				background-color: white;
+				border: 3px solid black;
+				border-radius: 5px;
+			}
+			button:hover {
+				background-color: #DDDDDD;
+			}
+			button:focus {
+				box-shadow: inset 0px 0px 5px black;
+			}
 		</style>
 	</head>
 	<body>
@@ -245,7 +287,8 @@
 						<h3>stuff</h3><br>
 						<label>ladder</label><label id="ladder-howmany">(0)</label><button onclick="placeLadder();">place</button><button onclick="purchaseLadder();">purchase (10 coins)</button><br>
 						<label>tall ladder</label><label id="tall-ladder-howmany">(0)</label><button onclick="placeTallLadder();">place</button><button onclick="purchaseTallLadder();">purchase (25 coins)</button><br>
-						<label>scaffolding</label><button onclick="purchaseScaffolding();">place (1 coin/block)</button>
+						<label>scaffolding</label><button onclick="purchaseScaffolding();">place (1 coin/block)</button><br>
+						<label>trampoline</label><label id="trampoline-howmany">(0)</label><button onclick="placeTrampoline();">place</button><button onclick="purchaseTrampoline();">purchase (45 coins)</button><br>
 					</div>
 				</div>
 				<div id="shop-gems">
@@ -284,6 +327,10 @@
 
 			</div>
 		</div>
+		<div id="menu">
+			<h1 id="menu-title">forest simulator 3d</h1>
+			<button id="menu-button" onclick="playButton();">PLAY</button>
+		</div>
 	</body>
 	<script>
 		const canvas = document.getElementById("canvas");
@@ -311,11 +358,10 @@
 				this.url = src;
 				this.loaded = false;
 				this.color = color;
-				let canvasimagething = this;
-				this.image.onload = function() {
-					canvasimagething.loaded = true;
-					canvasimagething.width = this.width;
-					canvasimagething.height = this.height;
+				this.image.onload = (image) => {
+					this.loaded = true;
+					this.width = this.image.width;
+					this.height = this.image.height;
 					imagesLoaded++;
 				};
 			};
@@ -403,6 +449,9 @@
 		Array.prototype.random = function() {
 			return this[Math.floor(Math.random() * this.length)];
 		};
+		Array.prototype.mean = function() {
+			return this.reduce((a, b) => a + b, 0) / this.length;
+		};
 
 		var blockSize = 50;
 		var playerX = 1.5;
@@ -476,7 +525,10 @@
 			sun: new CanvasImage("rgb(255, 200, 150)", "https://www.solarsystemscope.com/textures/download/2k_sun.jpg"),
 			mountain: new CanvasImage("rgb(200, 200, 200)", "https://upload.wikimedia.org/wikipedia/commons/e/e7/Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg"),
 			scaffolding: new CanvasImage("rgb(50, 50, 50)", "https://m.media-amazon.com/images/I/61+Fb8M51bL.jpg"),
-			celestialGolem: new CanvasImage("rgb(0, 0, 0)", "https://storage.googleapis.com/dream-machines-output/9d39f43b-4c34-4b78-b2d1-a86da1519af1/0_0.png")
+			celestialGolem: new CanvasImage("rgb(0, 0, 0)", "https://storage.googleapis.com/dream-machines-output/9d39f43b-4c34-4b78-b2d1-a86da1519af1/0_0.png"),
+			tree1: new CanvasImage("rgb(0, 160, 0)", "https://www.fertilome.com/media/klowrey/Article%20Images/Tree.jpg"),
+			timeMachine: new CanvasImage("rgb(180, 180, 180)", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOqUVsOlm_9mRkhKgQMEA62c7AqQ8_5PPQqw&usqp=CAU"),
+			trampoline: new CanvasImage("rgb(0, 0, 200)", "https://www.flaghouse.com/productImages/image.axd/i.4540/w.1000/h.1000/xm.0/FlagHouse+Jogging+Trampoline_XL.jpg")
 		};
 		var layers = {
 			"-13": [images.sun, 0.07, -0.03],
@@ -541,7 +593,7 @@
 			"magnet boots": {bought: false, cost: 170}
 		};
 		var foods = {
-			"government meal": {cost: 1, hunger: 0.019, howmany: 0},
+			"government meal": {cost: 1, hunger: 0.01, howmany: 0},
 			"apple": {cost: 5, hunger: 0.1, howmany: 0},
 			"bread": {cost: 10, hunger: 0.2, howmany: 0},
 			"burger": {cost: 14, hunger: 0.3, howmany: 0},
@@ -592,7 +644,7 @@
 		var notification = "";
 		var notificationTime = 0;
 		var gameTime = 0;
-		var developerMode = false;
+		var developerMode = true;
 		var macro = [];
 		var macroTime = 0;
 		var macroPlaying = false;
@@ -649,6 +701,9 @@
 		var hackerConsole = false;
 		var baseStepHeight = 0.5;
 		var oxygen = 1;
+		var playing = false;
+		var timeTraveling = false;
+		var trampolines = 0;
 
 		for (let i = 0; i < 25; i++) {
 			level.octaves.push(perlinNoise1D());
@@ -660,7 +715,7 @@
 				let wavelength = 4700;
 				perlinHeight += ((perlinGetVal(level.octaves[j], (x + level.perlinOffset) / (wavelength / (2 ** j))) - 0.5) * 2 * amplitude) / (2 ** j);
 			};
-			return perlinHeight;
+			return Math.sin(x / 10) * 10//perlinHeight;
 		};
 		var tempRows = [];
 		for (let i = 0; i < 50000; i++) {
@@ -676,13 +731,14 @@
 			};
 
 			// round stuff and coins n gems
-			for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk
+			for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline
 				level.rows[i] = Math.round(level.rows[i]);
 				if (Math.random() < 1 / 5 && level.rows[i - 25] >= level.rows[i] && level.rows[i + 25] >= level.rows[i] && level.rows[i - 26] > level.rows[i - 25] && level.rows[i + 26] > level.rows[i + 25]) {
-					level.waterLevel[i] = Math.floor(Math.random() * (Math.min(level.rows[i - 25], level.rows[i + 25]) - level.rows[i]));
+					level.waterLevel[i] = 0//Math.floor(1 * (Math.min(level.rows[i - 25], level.rows[i + 25]) - level.rows[i]));
 				} else {
 					level.waterLevel[i] = 0;
 				};
+				//level.waterLevel[i] = Math.random() * 100;
 				let pool = [];
 				if (Math.random() < 1 / 20) pool.push(1);
 				if (Math.random() < 1 / 200) pool.push(2);
@@ -694,6 +750,7 @@
 				if (Math.random() < 1 / 25000) pool.push(13);
 				if (Math.random() < 1 / 4000) pool.push(15);
 				if (Math.random() < 1 / 20000) pool.push(16);
+				if (Math.random() < 1 / 20.000) pool.push(17);
 				if (Math.random() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
 				level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 
@@ -709,12 +766,15 @@
 				if (Math.random() < 1 / 15000) {
 					placeGolem("mecha golem", i, false);
 				};
-				if (Math.random() < 1 / 40000) {
+				if (Math.random() < 1 / 50000) {
 					placeGolem("celestial golem", i, false);
 				};
 
 				if (Math.random() < 1 / 5000) {
 					spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
+				};
+				if (Math.random() < 1 / 3000) {
+					level.terrainFeatures[i] = "tree1";
 				};
 				if (Math.random() < 1 / 4212133121320.00) {
 					level.terrainFeatures[i] = "rainbow";
@@ -749,10 +809,10 @@
 		};
 
 		function perlinNoise1D() {
-			let MAX_VERTICES = 32;
+			let MAX_VERTICES = 1024;
 			let r = [];
 			for (let i = 0; i < MAX_VERTICES; ++i) {
-				r.push(Math.random()); // mulberry32(i + 100));
+				r.push(Math.random());
 			};
 			return {MAX_VERTICES, r};
 		};
@@ -845,6 +905,15 @@
 						alert("bankrupt");
 					};
 				};
+				let timeMachineRows = getHittableRows(playerX).filter(it => level.features[it] === 17);
+				if (timeMachineRows.length > 0) {
+					if (gems >= 100) {
+						gems -= 100;
+						timeTraveling = true;
+					} else {
+						alert("bankrupt");
+					};
+				};
 			};
 		};
 		function purchaseLadder() {
@@ -890,7 +959,6 @@
 			};
 		};
 		function saveSlot(slot) {
-			try{
 			let saveCode = JSON.stringify({
 				level,
 				playerX,
@@ -916,10 +984,10 @@
 				maxHealth,
 				score,
 				baseStepHeight,
-				oxygen
+				oxygen,
+				trampolines
 			});
 			localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
-		} catch(e) {alert(e.stack)}
 		};
 		function loadSlot(slot) {
 			let saveCode = localStorage.getItem("forestSimulator3DSaveSlot" + slot);
@@ -951,6 +1019,7 @@
 				score = saveCode.score ?? score;
 				baseStepHeight = saveCode.baseStepHeight ?? baseStepHeight;
 				oxygen = saveCode.oxygen ?? oxygen;
+				trampolines = saveCode.trampolines ?? trampolines;
 			};
 		};
 		function clearSlot(slot) {
@@ -1052,6 +1121,25 @@
 				};
 			};
 		};
+		function playButton() {
+			document.getElementById("menu").style.display = "none";
+			document.getElementById("canvas-wrapper").focus();
+			playing = true;
+		};
+		function purchaseTrampoline() {
+			if (coins >= 45) {
+				coins -= 45;
+				trampolines++;
+			} else {
+				alert("bankrupt");
+			};
+		};
+		function placeTrampoline() {
+			if (trampolines >= 1 && level.features[Math.floor(playerX)] === 0) {
+				level.features[Math.floor(playerX)] = 18;
+				trampolines--;
+			};
+		};
 
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
@@ -1066,7 +1154,7 @@
 				macroPlaying = false;
 				macroTime = 0;
 			};
-			if (!shop && !dead && !obeliskShop) {
+			if (!shop && !dead && !obeliskShop && playing) {
 				if ((cameraX + canvas.width) / blockSize >= level.rows.length) { // playerx >=
 					generateLevel();
 				};
@@ -1091,6 +1179,8 @@
 					} else if (level.golems[i] && level.golems[i].type === "celestial golem") {
 						let height = level.golems[i].yOffset + 100;
 						bakedRows[i] = level.rows[i] + height;
+					} else if (level.features[i] === 18) {
+						bakedRows[i] = level.rows[i] + 1;
 					};
 				};
 
@@ -1121,8 +1211,8 @@
 					playerXV = clamp(playerXV, -0.3, 0.3);
 				};
 				let hittableRows = getHittableRows(playerX + playerXV);
+				let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
 				if ((hittableRows[0] !== undefined && bakedRows[hittableRows[0]] > playerY) || (hittableRows[1] !== undefined && bakedRows[hittableRows[1]] > playerY)) {
-					let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
 					if (onGround && playerY >= bakedRows[max] - ((boots === "stepping boots") ? baseStepHeight * 2 : baseStepHeight) && potions["spider potion"].time <= 0) {
 						playerY = bakedRows[max];
 					} else {
@@ -1132,6 +1222,12 @@
 							playerY += 0.2;
 						};
 					};
+				};
+				hittableRows = getHittableRows(playerX + playerXV);
+				max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
+				let trampoline = level.features[max] === 18 && playerY + playerYV <= bakedRows[max];
+				if (trampoline) {
+					playerXV *= 0.2;
 				};
 				playerX += playerXV;
 				
@@ -1144,7 +1240,7 @@
 						playerYV = (controls.up - controls.down) * 0.3;
 					};
 					playerYV *= 0.99;
-				} else {
+				} else if (!trampoline) {
 					let jumpHeight = baseJumpHeight + (boots === "spring boots") * 0.06 + (potions["jumping potion"].time > 0) * 0.08;
 					playerYV += controls.up * onGround * !inWater * (jumpHeight + Math.abs(playerXV) * 0.15);
 				};
@@ -1176,13 +1272,14 @@
 					playerYV = clamp(playerYV, -0.3, 0.3);
 				};
 				hittableRows = getHittableRows(playerX);
-				let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
+				max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
 				let oldOnGround = onGround;
 				onGround = playerY + playerYV <= bakedRows[max];
 				if (!oldOnGround && onGround && playerYV <= -0.6) {
 					health -= playerYV * -0.05;
 				};
-				if (onGround) {
+				trampoline = level.features[max] === 18 && onGround;
+				if (onGround && !trampoline) {
 					if (getLayer(level.rows[max]) === 9 && level.rows[max] - 900 > (level.originalRows[max] - 900) * 0.9 && boots !== "tennis rackets") {
 						level.rows[max] -= 0.005;
 						if (level.rows[max] - 200 < (level.originalRows[max] - 200) * 0.9) {
@@ -1191,6 +1288,9 @@
 					};
 					playerY = bakedRows[max];
 					playerYV = 0;
+				} else if (trampoline) {
+					playerY = level.rows[max] + 1;
+					playerYV *= -1;
 				};
 				playerY += playerYV;
 
@@ -1200,13 +1300,17 @@
 				inLadder = false;
 				dybbukTime = Math.max(0, dybbukTime - 1);
 				document.getElementById("obelisk-shop-button").style.display = "none";
+				level.waterLevel[47] += 0;
 				for (let i = 0; i < level.rows.length; i++) {
 					// water flow
-					if (level.waterLevel[i - 1] + level.rows[i - 1] > level.waterLevel[i] + level.rows[i] && level.waterLevel[i - 1] > 0) {
-						level.waterLevel[i] = (level.waterLevel[i - 1] + level.rows[i - 1]) - level.rows[i];
-					};
-					if (level.waterLevel[i + 1] + level.rows[i + 1] > level.waterLevel[i] + level.rows[i] && level.waterLevel[i + 1] > 0) {
-						level.waterLevel[i] = (level.waterLevel[i + 1] + level.rows[i + 1]) - level.rows[i];
+					let totalWaterHeight = x => level.waterLevel[x] + level.rows[x];
+					if (i >= 1 && i < level.rows.length - 1 && level.waterLevel[i] > 0) {
+						let waterLeft = level.rows[i - 1] < totalWaterHeight(i);
+						let waterRight = level.rows[i + 1] < totalWaterHeight(i);
+						let averageHeight = (totalWaterHeight(i - 1) * waterLeft + totalWaterHeight(i) + totalWaterHeight(i + 1) * waterRight) / (1 + waterLeft + waterRight);
+						if (waterLeft) level.waterLevel[i - 1] = averageHeight - level.rows[i - 1];
+						level.waterLevel[i] = averageHeight - level.rows[i];
+						if (waterRight) level.waterLevel[i + 1] = averageHeight - level.rows[i + 1];
 					};
 					// features
 					if (playerX + 0.5 > i && playerX - 0.5 < i + 1) {
@@ -1327,6 +1431,9 @@
 						if (playerY < level.rows[i] + 4 && level.features[i] === 16) {
 							notificate("press e to repair obelisk (1 totem)");
 						};
+						if (playerY < level.rows[i] + 2 && level.features[i] === 17) {
+							notificate("press e to time travel (100 gems)");
+						};
 					};
 					// feature entities
 					if (level.featureEntities[i]) {
@@ -1441,8 +1548,8 @@
 								if (xSign !== Math.sign(playerX - mob.x)) {
 									mob.x = playerX;
 								};
-								let sentryStepHeight = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
-								if (sentryStepHeight - (mob.y) <= 3) {
+								let sentryStepHeight = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)] ?? mob.y;
+								if (sentryStepHeight - mob.y <= 3) {
 									mob.y = sentryStepHeight;
 								} else {
 									mob.x = Math.ceil(mob.x) - 0.5;
@@ -1462,7 +1569,7 @@
 						case "mimic":
 							if (!mob.mimicking) {
 								mob.x = (mob.x > playerX ? Math.min : Math.max)(mob.x, mob.x + playerXV);
-								mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+								mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)] ?? mob.y;
 								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
 									health -= 0.01;
 								};
@@ -1516,6 +1623,12 @@
 				// draw screen vv
 
 
+				if (canvas.width !== innerWidth) {
+					canvas.width = innerWidth;
+				};
+				if (canvas.height !== innerHeight) {
+					canvas.height = innerHeight;
+				};
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
 
 				images[((gameTime % 600 < 300 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
@@ -1534,6 +1647,8 @@
 					if (level.terrainFeatures[i] === "rainbow") {
 						let rainbowSize = 100;
 						images.rainbow.draw(i * blockSize - cameraX, (level.rows[i] + rainbowSize / 2) * -blockSize - cameraY, blockSize * rainbowSize, blockSize * rainbowSize);
+					} else if (level.terrainFeatures[i] === "tree1") {
+						images.tree1.draw((i - 2.5) * blockSize - cameraX, (level.rows[i] + 10) * -blockSize - cameraY, blockSize * 4, blockSize * 10);
 					};
 				};
 
@@ -1544,14 +1659,8 @@
 					let ice = (layer === 9) && Math.round((level.rows[rowBuffer[i]] - 900) * 1000) / 1000 <= Math.round((level.originalRows[rowBuffer[i]] - 900) * 0.9 * 1000) / 1000;
 					let groundImage = ice ? images.packedSnow : layers[getLayer(level.rows[rowBuffer[i]])][0];
 					let blockUVSize = groundImage.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
-					let waterUVSize = images.water.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
 					let rowY = level.rows[rowBuffer[i]] * -blockSize - cameraY;
 					groundImage.draw((blockUVSize * rowBuffer[i]) % (Math.floor(groundImage.width / blockUVSize) * blockUVSize), 0, blockUVSize, groundImage.height, rowBuffer[i] * blockSize - cameraX, rowY, blockSize, blockSize * (groundImage.height / blockUVSize));
-					if (level.waterLevel[rowBuffer[i]] > 0) {
-						ctx.globalAlpha = 0.5;
-						images.water.draw((waterUVSize * rowBuffer[i]) % (Math.floor(images.water.width / waterUVSize) * waterUVSize), 0, waterUVSize, images.water.height, rowBuffer[i] * blockSize - cameraX, (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]]) * -blockSize - cameraY, blockSize, level.waterLevel[rowBuffer[i]] * blockSize);
-						ctx.globalAlpha = 1;
-					};
 					switch (level.features[rowBuffer[i]]) {
 						case 0:
 							break;
@@ -1602,6 +1711,12 @@
 							break;
 						case 16:
 							images.ruinedObelisk.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 4, blockSize, blockSize * 4);
+							break;
+						case 17:
+							images.timeMachine.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 2, blockSize, blockSize * 2);
+							break;
+						case 18:
+							images.trampoline.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
 							break;
 						default:
 							images.error.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
@@ -1691,9 +1806,39 @@
 						};
 					};
 				};
+				for (let i = 0; i < level.rows.length; i++) {
+					let waterUVSize = images.water.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
+					if (level.waterLevel[rowBuffer[i]] > 0) {
+						ctx.globalAlpha = 0.5;
+						let waveOffset = Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25;
+						let waterY = (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset) * -blockSize - cameraY;
+						images.water.draw((waterUVSize * rowBuffer[i]) % (Math.floor(images.water.width / waterUVSize) * waterUVSize), 0, waterUVSize, images.water.height, rowBuffer[i] * blockSize - cameraX, waterY, blockSize, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
+						ctx.globalAlpha = 1;
+
+						let gradient = ctx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
+						gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+						gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+						ctx.fillStyle = gradient;
+						ctx.fillRect(rowBuffer[i] * blockSize - cameraX, waterY, blockSize, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
+					};
+				};
 				let darknessOpacity = (Math.max(Math.sin((gameTime - 300) / (300 / Math.PI)), 0) ** 2);
-				ctx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.9, darknessOpacity)) + ")";
+				ctx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.95, darknessOpacity)) + ")";
 				ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+				if (timeTraveling) {
+					ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+					ctx.fillRect(0, (gameTime * 300) % canvas.height, canvas.width, 1);
+					ctx.fillStyle = "black";
+					ctx.fillRect(Math.random() * canvas.width, 0, 1, canvas.height);
+					let howManyNoises = 500;
+					let noiseBrightness = Math.random() * 255;
+					ctx.fillStyle = "rgb(" + noiseBrightness + ", " + noiseBrightness + ", " + noiseBrightness + ")";
+					for (let i = 0; i < howManyNoises; i++) {
+						ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() + 1, Math.random() + 1);
+					};
+				};
+
 				ctx.globalAlpha = clamp(1 - (health / maxHealth) / 0.1, 0, 1);
 				images.blood.draw(0, 0, canvas.width, canvas.height);
 				ctx.globalAlpha = 1;
@@ -1704,10 +1849,16 @@
 					ctx.fillText("She was a rubber tapper and found that land was being invaded by rubber tappers and she", 0, 325);
 					ctx.fillText("started protecting thousands of hectares of land.", 0, 350);
 				};
-				if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)]) {
-					canvas.style.filter = "blur(5px)";
-				} else {
-					canvas.style.filter = "none";
+				canvas.style.filter = (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] ? "blur(5px) " : "") + (timeTraveling ? ("sepia(100%) brightness(" + (Math.random() * 0.1 + (1 - 0.1 / 2)) + ") ") : "");
+				if (dead) {
+					let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+					gradient.addColorStop(0, "red");
+					gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+					ctx.fillStyle = gradient;
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+					ctx.font = "100px arial";
+					ctx.fillStyle = "red";
+					ctx.fillText("you died", 200, 200);
 				};
 			};
 
@@ -1732,12 +1883,9 @@
 				document.getElementById("oxygen").style.display = "none";
 			};
 
-			if (dead) {
-				ctx.font = "100px arial";
-				ctx.fillStyle = "red";
-				ctx.fillText("you died", 200, 200);
-			};
-			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps;// + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
+			
+			let minutes = (gameTime + 450) * ((12 * 60) / 300);
+			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps + "<br>time: " + ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " am" : " pm") + "<br>water volume: " + level.waterLevel.reduce((a, b) => a + b, 0);// + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
 			document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 			for (let food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
@@ -1747,6 +1895,7 @@
 			};
 			document.getElementById("ladder-howmany").innerHTML = "(" + ladders + ")";
 			document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
+			document.getElementById("trampoline-howmany").innerHTML = "(" + trampolines + ")";
 		};
 		function loop() {
 			try {

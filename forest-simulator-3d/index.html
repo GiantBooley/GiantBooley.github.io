@@ -26,7 +26,8 @@
 			#game {
 				user-select: none;
 			}
-			#canvas {
+			#canvas,#darkness {
+				position: absolute;
 				width: 100%;
 				height: 100%;
 			}
@@ -224,6 +225,7 @@
 			<div id="game" tabindex="0" onmouseup="joystick.mouseUp(event);" ontouchend="joystick.mouseUp(event);" onmousemove="joystick.mouseMove(event);" ontouchmove="joystick.mouseMove(event);" oncontextmenu="return false;">
 				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);" onkeyup="keysDown[event.key] = false;">
 					<canvas id="canvas"></canvas>
+					<canvas id="darkness"></canvas>
 				</div>
 				<div id="stats">score: -<br>coins: -</div>
 				<button id="shop-button" onclick="shopButton();">SHOP</button>
@@ -337,6 +339,12 @@
 		canvas.width = innerWidth;
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
+
+		const darkness = document.getElementById("darkness");
+		darkness.width = innerWidth;
+		darkness.height = innerHeight;
+		const darknessCtx = darkness.getContext("2d");
+		
 		document.getElementById("canvas-wrapper").focus();
 
 		class Tree {
@@ -572,7 +580,8 @@
 			terrainFeatures: [],
 			waterLevel: [],
 			golems: [],
-			perlinOffset: 0
+			perlinOffset: 0,
+			labels: []
 		};
 		var coins = 0;
 		var gems = 0;
@@ -704,6 +713,7 @@
 		var playing = false;
 		var timeTraveling = false;
 		var trampolines = 0;
+		var divingSuit = true;
 
 		for (let i = 0; i < 25; i++) {
 			level.octaves.push(perlinNoise1D());
@@ -715,7 +725,7 @@
 				let wavelength = 4700;
 				perlinHeight += ((perlinGetVal(level.octaves[j], (x + level.perlinOffset) / (wavelength / (2 ** j))) - 0.5) * 2 * amplitude) / (2 ** j);
 			};
-			return Math.sin(x / 10) * 10//perlinHeight;
+			return 750//perlinHeight;
 		};
 		var tempRows = [];
 		for (let i = 0; i < 50000; i++) {
@@ -732,13 +742,23 @@
 
 			// round stuff and coins n gems
 			for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline
-				level.rows[i] = Math.round(level.rows[i]);
-				if (Math.random() < 1 / 5 && level.rows[i - 25] >= level.rows[i] && level.rows[i + 25] >= level.rows[i] && level.rows[i - 26] > level.rows[i - 25] && level.rows[i + 26] > level.rows[i + 25]) {
-					level.waterLevel[i] = 0//Math.floor(1 * (Math.min(level.rows[i - 25], level.rows[i + 25]) - level.rows[i]));
-				} else {
-					level.waterLevel[i] = 0;
+				level.waterLevel[i] = 0;
+				level.labels[i] = "0";
+				if (i === 30) {
+					let trenchDepth = 100;
+					let trenchWidth = 19;
+					for (let j = -trenchWidth; j <= trenchWidth; j++) {
+						if (i + j < level.rows.length && i + j >= 0) {
+							let heightOffset = trenchDepth * (Math.sin((Math.PI / trenchWidth) * j + 1.5 * Math.PI) / 2 - 0.5);
+							level.labels[i + j] = Math.random();
+							k.level.rows[i + j] += heightOffset;
+							level.waterLevel[i + j] = -heightOffset;
+							//alert((i + j) + " " + heightOffset);
+						};
+					};
+					//level.waterLevel[i] = (trenchDepth * (trenchWidth * 2 + 1)) / 2;
 				};
-				//level.waterLevel[i] = Math.random() * 100;
+				level.rows[i] = Math.round(level.rows[i]);
 				let pool = [];
 				if (Math.random() < 1 / 20) pool.push(1);
 				if (Math.random() < 1 / 200) pool.push(2);
@@ -1143,10 +1163,10 @@
 
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
-			controls.up = 0 || isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5)) || (macroPlaying && parseInt(macro[macroTime][0]));
+			controls.up = isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5)) || (macroPlaying && parseInt(macro[macroTime][0]));
 			controls.down = isDown("ArrowDown") || isDown("s") || (joystick.strength > 0.5 && (joystick.angle > -67.5 && joystick.angle < 67.5)) || (macroPlaying && parseInt(macro[macroTime][1]));
 			controls.left = isDown("ArrowLeft") || isDown("a") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5)) || (macroPlaying && parseInt(macro[macroTime][2]));
-			controls.right = 0 || isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5)) || (macroPlaying && parseInt(macro[macroTime][3]));
+			controls.right = isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5)) || (macroPlaying && parseInt(macro[macroTime][3]));
 			if (macroPlaying) {
 				macroTime++;
 			};
@@ -1190,7 +1210,7 @@
 					potions[potion].time = Math.max(potions[potion].time - (1 / 60), 0);
 				};
 				flying = potions["bird potion"].time > 0;
-				inWater = playerY < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)];
+				inWater = playerY < bakedRows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && level.waterLevel[Math.floor(playerX)] > 0.75;
 
 				// X MOVEMENT //
 				
@@ -1300,18 +1320,27 @@
 				inLadder = false;
 				dybbukTime = Math.max(0, dybbukTime - 1);
 				document.getElementById("obelisk-shop-button").style.display = "none";
-				level.waterLevel[47] += 0;
+				// water
+				let totalWaterHeight = x => level.waterLevel[x] + bakedRows[x];
+				let waterTick = function(x){
+					let waterLeft = bakedRows[x - 1] < totalWaterHeight(x);
+					let waterRight = bakedRows[x + 1] < totalWaterHeight(x);
+					let averageHeight = (totalWaterHeight(x - 1) * waterLeft + totalWaterHeight(x) + totalWaterHeight(x + 1) * waterRight) / (1 + waterLeft + waterRight);
+					if (waterLeft) level.waterLevel[x - 1] = averageHeight - bakedRows[x - 1];
+					level.waterLevel[x] = averageHeight - bakedRows[x];
+					if (waterRight) level.waterLevel[x + 1] = averageHeight - bakedRows[x + 1];
+				};
 				for (let i = 0; i < level.rows.length; i++) {
-					// water flow
-					let totalWaterHeight = x => level.waterLevel[x] + level.rows[x];
-					if (i >= 1 && i < level.rows.length - 1 && level.waterLevel[i] > 0) {
-						let waterLeft = level.rows[i - 1] < totalWaterHeight(i);
-						let waterRight = level.rows[i + 1] < totalWaterHeight(i);
-						let averageHeight = (totalWaterHeight(i - 1) * waterLeft + totalWaterHeight(i) + totalWaterHeight(i + 1) * waterRight) / (1 + waterLeft + waterRight);
-						if (waterLeft) level.waterLevel[i - 1] = averageHeight - level.rows[i - 1];
-						level.waterLevel[i] = averageHeight - level.rows[i];
-						if (waterRight) level.waterLevel[i + 1] = averageHeight - level.rows[i + 1];
+					if (i >= 1 && i < bakedRows.length - 1 && level.waterLevel[i] > 0) {
+						//waterTick(i);
 					};
+				};
+				for (let i = level.rows.length - 1; i <= 0; i--) {
+					if (i >= 1 && i < bakedRows.length - 1 && level.waterLevel[i] > 0) {
+						//waterTick(i);
+					};
+				};
+				for (let i = 0; i < level.rows.length; i++) {
 					// features
 					if (playerX + 0.5 > i && playerX - 0.5 < i + 1) {
 						if (playerY < level.rows[i] + 1) {
@@ -1610,7 +1639,7 @@
 					health -= 0.003;
 				};
 				health = clamp(health, 0, maxHealth);
-				if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)]) {
+				if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && !divingSuit) {
 					oxygen -= 0.005;
 				} else {
 					oxygen += 0.005;
@@ -1624,12 +1653,13 @@
 
 
 				if (canvas.width !== innerWidth) {
-					canvas.width = innerWidth;
+					canvas.width = darkness.width = innerWidth;
 				};
 				if (canvas.height !== innerHeight) {
-					canvas.height = innerHeight;
+					canvas.height = darkness.height = innerHeight;
 				};
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				darknessCtx.clearRect(0, 0, canvas.width, canvas.height);
 
 				images[((gameTime % 600 < 300 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
 				
@@ -1661,6 +1691,13 @@
 					let blockUVSize = groundImage.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
 					let rowY = level.rows[rowBuffer[i]] * -blockSize - cameraY;
 					groundImage.draw((blockUVSize * rowBuffer[i]) % (Math.floor(groundImage.width / blockUVSize) * blockUVSize), 0, blockUVSize, groundImage.height, rowBuffer[i] * blockSize - cameraX, rowY, blockSize, blockSize * (groundImage.height / blockUVSize));
+
+					let gradient = darknessCtx.createLinearGradient(0, rowY - level.waterLevel[rowBuffer[i]] * blockSize, 0, (rowY - level.waterLevel[rowBuffer[i]] * blockSize) + blockSize * 15);
+					gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+					gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+					darknessCtx.fillStyle = gradient;
+					darknessCtx.fillRect(rowBuffer[i] * blockSize - cameraX, rowY, blockSize, canvas.height - rowY)
+
 					switch (level.features[rowBuffer[i]]) {
 						case 0:
 							break;
@@ -1754,6 +1791,9 @@
 								break;
 						};
 					};
+					ctx.fillStyle = "white";
+					ctx.font = "15px arial";
+					ctx.fillText(level.labels[rowBuffer[i]], rowBuffer[i] * blockSize - cameraX, canvas.height / 2);
 				};
 			
 				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV <= 0 ? "guyFalling" : "guyJumping"))));
@@ -1806,25 +1846,25 @@
 						};
 					};
 				};
-				for (let i = 0; i < level.rows.length; i++) {
+				for (let i = 0; i < rowBuffer.length; i++) {
 					let waterUVSize = images.water.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
 					if (level.waterLevel[rowBuffer[i]] > 0) {
 						ctx.globalAlpha = 0.5;
-						let waveOffset = Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25;
-						let waterY = (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset) * -blockSize - cameraY;
+						let waveOffset = Math.max(Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25, -level.waterLevel[rowBuffer[i]]);
+						let waterY = (bakedRows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset) * -blockSize - cameraY;
 						images.water.draw((waterUVSize * rowBuffer[i]) % (Math.floor(images.water.width / waterUVSize) * waterUVSize), 0, waterUVSize, images.water.height, rowBuffer[i] * blockSize - cameraX, waterY, blockSize, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
 						ctx.globalAlpha = 1;
 
-						let gradient = ctx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
+						let gradient = darknessCtx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
 						gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
 						gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
-						ctx.fillStyle = gradient;
-						ctx.fillRect(rowBuffer[i] * blockSize - cameraX, waterY, blockSize, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
+						darknessCtx.fillStyle = gradient;
+						darknessCtx.fillRect(rowBuffer[i] * blockSize - cameraX, waterY, blockSize, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
 					};
 				};
 				let darknessOpacity = (Math.max(Math.sin((gameTime - 300) / (300 / Math.PI)), 0) ** 2);
-				ctx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.95, darknessOpacity)) + ")";
-				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				darknessCtx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.95, darknessOpacity)) + ")";
+				darknessCtx.fillRect(0, 0, canvas.width, canvas.height);
 
 				if (timeTraveling) {
 					ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
@@ -1842,6 +1882,20 @@
 				ctx.globalAlpha = clamp(1 - (health / maxHealth) / 0.1, 0, 1);
 				images.blood.draw(0, 0, canvas.width, canvas.height);
 				ctx.globalAlpha = 1;
+
+				darknessCtx.beginPath();
+				let circleLightX = playerX * blockSize - cameraX;
+				let circleLightY = (playerY + 1) * -blockSize - cameraY;
+				let gradient = darknessCtx.createRadialGradient(circleLightX, circleLightY, 0, circleLightX, circleLightY, blockSize * 2);
+				gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+				gradient.addColorStop(0.5, "rgba(0, 0, 0, 0.5)");
+				darknessCtx.fillStyle = gradient;
+				darknessCtx.save();
+				darknessCtx.arc(playerX * blockSize - cameraX, (playerY + 1) * -blockSize - cameraY, blockSize * 2, 0, Math.PI * 2);
+				darknessCtx.globalCompositeOperation = "destination-out";
+				darknessCtx.fill();
+				darknessCtx.restore();
+
 				ctx.font = "30px arial";
 				ctx.fillStyle = "yellow";
 				if (facasd) {
@@ -1849,7 +1903,7 @@
 					ctx.fillText("She was a rubber tapper and found that land was being invaded by rubber tappers and she", 0, 325);
 					ctx.fillText("started protecting thousands of hectares of land.", 0, 350);
 				};
-				canvas.style.filter = (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] ? "blur(5px) " : "") + (timeTraveling ? ("sepia(100%) brightness(" + (Math.random() * 0.1 + (1 - 0.1 / 2)) + ") ") : "");
+				canvas.style.filter = ((playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && !divingSuit) ? "blur(5px) " : "") + (timeTraveling ? ("sepia(100%) brightness(" + (Math.random() * 0.1 + (1 - 0.1 / 2)) + ") ") : "");
 				if (dead) {
 					let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
 					gradient.addColorStop(0, "red");

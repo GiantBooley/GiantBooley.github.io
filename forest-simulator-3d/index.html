@@ -337,26 +337,26 @@
 			precision mediump float;
 
 			attribute vec2 a_position;
-			//attribute vec4 a_vertColor;
+			attribute vec3 a_color;
 			
-			//varying vec4 v_fragColor;
+			varying vec3 v_fragColor;
 
-			uniform vec2 u_rotation;
+			//uniform vec2 u_rotation;
 
 			void main() {
-				//v_fragColor = a_vertColor;
-				gl_Position = vec4(vec2(a_position.x * u_rotation.y + a_position.y * u_rotation.x, a_position.y * u_rotation.y - a_position.x * u_rotation.x), 0, 1);
+				v_fragColor = a_color;
+				gl_Position = vec4(a_position * vec2(0.9, 0.9), 0, 1);//vec4(vec2(a_position.x * u_rotation.y + a_position.y * u_rotation.x, a_position.y * u_rotation.y - a_position.x * u_rotation.x), 0, 1);
 			}
 		</script>
 		<script id="fragment" type="x-shader/x-fragment">
 			precision mediump float;
 
-			uniform vec4 u_color;
+			//uniform vec4 u_color;
 
-			//varying vec4 v_fragColor;
+			varying vec3 v_fragColor;
 	
 			void main() {
-				gl_FragColor = vec4(u_color);//v_fragColor
+				gl_FragColor = vec4(v_fragColor, 1);
 			}
 		</script>
 	</body>
@@ -381,9 +381,10 @@
 			constructor() {
 				this.gl = canvas.getContext("webgl");
 
+				// init
 				this.gl.viewport(0, 0, canvas.width, canvas.height);
 				this.gl.clearColor(0, 0, 0, 1);
-				this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFER_BIT);
+				this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 			
 				// get shader code
 				this.vertexCode = document.getElementById("vertex").firstChild.nodeValue;
@@ -404,109 +405,153 @@
 				this.gl.linkProgram(this.program);
 
 				// errors
-				if (!this.gl.getShaderParameter(this.vertexShader, this.gl.COMPILE_STATUS)) {
-					console.log(this.gl.getShaderInfoLog(this.vertexShader));
-				};
-				if (!this.gl.getShaderParameter(this.fragmentShader, this.gl.COMPILE_STATUS)) {
-					console.log(this.gl.getShaderInfoLog(this.fragmentShader));
-				};
-				if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
-					console.log(this.gl.getProgramInfoLog(this.program));
-				};
+				if (!this.gl.getShaderParameter(this.vertexShader, this.gl.COMPILE_STATUS)) console.log(this.gl.getShaderInfoLog(this.vertexShader));
+				if (!this.gl.getShaderParameter(this.fragmentShader, this.gl.COMPILE_STATUS)) console.log(this.gl.getShaderInfoLog(this.fragmentShader));
+				if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) console.log(this.gl.getProgramInfoLog(this.program));
 				this.gl.validateProgram(this.program);
-				if (!this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS)) {
-					console.log(this.gl.getProgramInfoLog(this.program));
-				};
+				if (!this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS)) console.log(this.gl.getProgramInfoLog(this.program));
 			};
 
-			draw() {
-				// vertexes and stuff
-				this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFER_BIT);
+			draw(vertices) {
+				this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
-				// get vertices
-				var squares = [];
-				let rowBuffer = Object.keys(level.rows).map(it => parseInt(it)).filter(it => it + 1 > cameraX - width / 2 && it < cameraX + width / 2);
-				for (let i = 0; i < rowBuffer.length; i++) {
-					//squares.push([i * 2 + 0.2 - width / 2, 0, 1, 1]);
-					let squareX = rowBuffer[i] - cameraX;
-					let squareY = Math.min(level.rows[rowBuffer[i]] - cameraY, height / 2);
-					if (squareY > -height / 2) {
-						squares.push([squareX, squareY, 1, -height / 2 - squareY, 0, 1, 0]);
-					};
-				};
-				squares.push([playerX - 0.5 - cameraX, playerY - cameraY, 1, 2, 1, 0, 1]);
-				this.vertices = this.vertexArray(squares);
+				// vertices
+				var vertices = this.getVertices();
+				var triangleVertexBufferObject = this.gl.createBuffer();
+				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, triangleVertexBufferObject);
+				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
 
-				this.triangleVertexBufferObject = this.gl.createBuffer();
-				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexBufferObject);
-				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.vertices), this.gl.STATIC_DRAW);
-
-				this.itemSize = 2; // x,y,r,g,b,a
-				this.numItems = this.vertices.length / this.itemSize;
-
-				// set color of triangle
-				h += 0.01;
-				this.u_colorLoc = this.gl.getUniformLocation(this.program, "u_color");
-				this.u_rotationLoc = this.gl.getUniformLocation(this.program, "u_rotation");
-				this.a_positionLoc = this.gl.getUniformLocation(this.program, "a_position");
-				//this.a_vertColorLoc = this.gl.getUniformLocation(this.program, "a_vertColor");
-				let angle = Math.atan2(Math.round(playerXV * 1000) / 1000, -Math.round(playerYV * 1000) / 1000);
-				this.gl.uniform2fv(this.u_rotationLoc, [Math.sin(angle), Math.cos(angle)]);
-				this.gl.uniform4fv(this.u_colorLoc, HSVtoRGB(h, 1, 1));
+				// variables
+				//var u_rotationLoc = this.gl.getUniformLocation(this.program, "u_rotation");
+				var a_positionLoc = this.gl.getAttribLocation(this.program, "a_position");
+				var a_colorLoc = this.gl.getAttribLocation(this.program, "a_color");
+				//let angle = Math.atan2(Math.round(playerXV * 1000) / 1000, -Math.round(playerYV * 1000) / 1000);
+				//this.gl.uniform2fv(u_rotationLoc, [Math.sin(angle), Math.cos(angle)]);
 
 				this.gl.vertexAttribPointer(
-					this.a_positionLoc,
+					a_positionLoc,
 					2,
 					this.gl.FLOAT,
 					this.gl.FALSE,
-					this.itemSize * Float32Array.BYTES_PER_ELEMENT,
+					5 * Float32Array.BYTES_PER_ELEMENT,
 					0
 				);
-				/*this.gl.vertexAttribPointer(
-					this.a_vertColorLoc,
-					4,
+				this.gl.vertexAttribPointer(
+					a_colorLoc,
+					3,
 					this.gl.FLOAT,
 					this.gl.FALSE,
-					this.itemSize * Float32Array.BYTES_PER_ELEMENT,
+					5 * Float32Array.BYTES_PER_ELEMENT,
 					2 * Float32Array.BYTES_PER_ELEMENT
-				);*/
-				this.gl.enableVertexAttribArray(this.a_positionLoc);
-				this.gl.enableVertexAttribArray(this.a_vertColorLoc);
+				);
+				this.gl.enableVertexAttribArray(a_positionLoc);
+				this.gl.enableVertexAttribArray(a_colorLoc);
 
 				// draw stuff
 				this.gl.useProgram(this.program);
-				this.gl.drawArrays(this.gl.TRIANGLES, 0, this.numItems);
+				this.gl.drawArrays(this.gl.TRIANGLES, 0, vertices.length / 5);
+			};
+			getVertices() {
+				let squares = [];
+
+				// sky
+				squares.push([-width / 2, -height / 2, width, height, ...images.skyDay.RGB]);
+
+				// level
+				let rowBuffer = range(Math.floor(playerX - width / 2), Math.floor(playerX + width / 2));//Object.keys(level.rows).map(it => parseInt(it)).filter(it => it + 1 > cameraX - width / 2 && it < cameraX + width / 2);
+				for (let i = 0; i < rowBuffer.length; i++) {
+					//rows
+					let squareX = rowBuffer[i] - cameraX;
+					let squareY = Math.min(Math.round(getPerlinHeight(rowBuffer[i])) - cameraY, height / 2); // level.rows[rowBuffer[i]]
+					if (squareY > -height / 2) {
+						squares.push([squareX, squareY, 1, -height / 2 - squareY, ...layers[getLayer(Math.round(getPerlinHeight(rowBuffer[i])))][0].RGB]);
+					};
+					//features
+					/*switch (level.features[rowBuffer[i]]) {
+						case 0:
+							break;
+						case 1: // x y w h r g b
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.coin.RGB]);
+							break;
+						case 2:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.gem.RGB]);
+							break;
+						case 3:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 4, ...images.ladder.RGB]);
+							break;
+						case 4:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 6, ...images.ladder.RGB]);
+							break;
+						case 5:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 5, ...images.stones.RGB]);
+							break;
+						case 6:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.mysteryCrate.RGB]);
+							break;
+						case 7:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 3, ...images.sentryBarracks.RGB]);
+							break;
+						case 8:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 3, ...images.sentryBarracks.RGB]);
+							break;
+						case 9:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, -0.25, ...images.pitfall.RGB]);
+							break;
+						case 10:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.dybbukBox.RGB]);
+							break;
+						case 11:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.dybbukBoxOpen.RGB]);
+							break;
+						case 12:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.totem.RGB]);
+							break;
+						case 13:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.fourLeafClover.RGB]);
+							break;
+						case 14:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.potOfGold.RGB]);
+							break;
+						case 15:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.burlapSack.RGB]);
+							break;
+						case 16:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 4, ...images.ruinedObelisk.RGB]);
+							break;
+						case 17:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 2, ...images.timeMachine.RGB]);
+							break;
+						case 18:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.trampoline.RGB]);
+							break;
+						default:
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.error.RGB]);
+					};*/
+				};
+
+				// player
+				squares.push([playerX - 0.5 - cameraX, playerY - cameraY, 1, 2, ...images.guy.RGB]);
+				return this.vertexArray(squares);
 			};
 			vertexArray(array) {
 				let newArray = [];
 				for (let i = 0; i < array.length; i++) {
-					newArray[i] = array[i].map((it, i) => ((i % 2 === 0) ? (it * blockSize) / canvas.width : (it * blockSize) / canvas.height));
-					newArray[i] = [newArray[i][0], newArray[i][1] + newArray[i][3], newArray[i][0], newArray[i][1], newArray[i][0] + newArray[i][2], newArray[i][1], newArray[i][0], newArray[i][1] + newArray[i][3], newArray[i][0] + newArray[i][2], newArray[i][1] + newArray[i][3], newArray[i][0] + newArray[i][2], newArray[i][1]]
+					newArray[i] = array[i].map((it, i) => (i % 2 === 0) ? (it * blockSize) / canvas.width : (it * blockSize) / canvas.height);
+					newArray[i].splice(4, 3);
+					let r = array[i][4];
+					let g = array[i][5];
+					let b = array[i][6];
+					newArray[i] = [
+						newArray[i][0], newArray[i][1] + newArray[i][3], r, g, b,
+						newArray[i][0], newArray[i][1], r, g, b,
+						newArray[i][0] + newArray[i][2], newArray[i][1], r, g, b,
+						newArray[i][0], newArray[i][1] + newArray[i][3], r, g, b,
+						newArray[i][0] + newArray[i][2], newArray[i][1] + newArray[i][3], r, g, b,
+						newArray[i][0] + newArray[i][2], newArray[i][1], r, g, b
+					];
 				};
 				return newArray.flat();
 			};
-		};
-		var h = 0;
-		var rot = 0;
-		function HSVtoRGB(h, s, v) {
-			var r, g, b, i, f, p, q, t;
-			if (arguments.length === 1) {
-				s = h.s, v = h.v, h = h.h;
-			};
-			i = Math.floor(h * 6);
-			f = h * 6 - i;
-			p = v * (1 - s);
-			q = v * (1 - f * s);
-			t = v * (1 - (1 - f) * s);
-			switch (i % 6) {
-				case 0: r = v, g = t, b = p; break;
-				case 1: r = q, g = v, b = p; break;
-				case 2: r = p, g = v, b = t; break;
-				case 3: r = p, g = q, b = v; break;
-				case 4: r = t, g = p, b = v; break;
-				case 5: r = v, g = p, b = q; break;
-			};
-			return [r, g, b, 1];
 		};
 		const renderer = new WebGLRenderer();
 		class Tree {
@@ -561,6 +606,9 @@
 				} else {
 					throw new TypeError("image draw 2 4 or 8 things");
 				};
+			};
+			get RGB() {
+				return [this.color[0] / 255, this.color[1] / 255, this.color[2] / 255];
 			};
 		};
 		class Joystick {
@@ -633,72 +681,71 @@
 		var seeds = [];
 		var imagesLoaded = 0;
 		var images = {
-			guy: new CanvasImage("rgb(255, 255, 255)", "https://t4.ftcdn.net/jpg/01/73/40/15/360_F_173401516_HH7aV0os9LEum5ayYNrtoovV1jYrt561.jpg"),
-			skyDay: new CanvasImage("rgb(200, 200, 255)", "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL3doeS1pcy1za3ktYmx1ZS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjgyOH19fQ=="),
-			grass: new CanvasImage("rgb(0, 200, 0)", "https://images.pexels.com/photos/413195/pexels-photo-413195.jpeg?cs=srgb&dl=pexels-pixmike-413195.jpg&fm=jpg"),
-			hills: new CanvasImage("rgb(0, 150, 0)", "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Chocolate_Hills_overview.JPG/1200px-Chocolate_Hills_overview.JPG"),
-			ice: new CanvasImage("rgb(220, 220, 255)", "https://media.istockphoto.com/id/466513257/photo/image-of-light-blue-ice-design.jpg?s=612x612&w=0&k=20&c=tkgdD6LDAjjDL-J_OCc2tkN924FLtjvgSeQWgVBY5-Y="),
-			snow: new CanvasImage("rgb(250, 250, 250)", "https://t4.ftcdn.net/jpg/00/73/39/95/360_F_73399559_6z3WIVyR5fPvXAW96ZFG1RBHsz6qVn4R.jpg"),
-			dirt: new CanvasImage("rgb(128, 128, 0)", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Dirt.JPG/640px-Dirt.JPG"),
-			stones: new CanvasImage("rgb(200, 200, 200)", "https://d3mvlb3hz2g78.cloudfront.net/wp-content/uploads/2016/01/thumb_720_450_f_28.jpg"),
-			stone: new CanvasImage("rgb(140, 140, 140)", "https://media.istockphoto.com/photos/light-grey-black-slate-stone-background-or-texture-picture-id1164746310?b=1&k=20&m=1164746310&s=612x612&w=0&h=nj0fWpCXBGNXhcUuWhXIF3HmcZiXMagkQ-DyPHAXLiw="),
-			darkStone: new  CanvasImage("rgb(80, 80, 80)", "https://media.istockphoto.com/id/1136387527/photo/black-gray-grunge-background-dirty-concrete-wall-stucco-vintage-rock-texture-ombre-dark-stone.jpg?b=1&s=170667a&w=0&k=20&c=iUFh6s42MVX40KVd7bmkfcPHtMjYvqNsVndFQ2dMFWY="),
-			stoneBackground: new CanvasImage("rgb(100, 100, 100)", "https://img.freepik.com/premium-photo/cave-wall-background_181627-531.jpg?w=2000"),
-			packedSnow: new CanvasImage("rgb(120, 120, 150)", "https://thumbs.dreamstime.com/b/snow-surface-full-frame-background-texture-pattern-14970280.jpg"),
-			magma: new CanvasImage("rgb(180, 70, 70)", "https://media.wired.co.uk/photos/606da0c989f3babb1f0133fb/master/w_1600%2Cc_limit/Lava.jpg"),
-			lava: new CanvasImage("rgb(220, 0, 0)", "https://3docean.img.customer.envatousercontent.com/files/371574722/Image+Preview.jpg?auto=compress%2Cformat&fit=crop&crop=top&w=590&h=590&s=dc0fcc220b7f9d9b06eedf277f6f0844"),
-			coin: new CanvasImage("rgb(255, 255, 0)", "https://m.media-amazon.com/images/I/51VLhMGtaTL._AC_SY1000_.jpg"),
-			gem: new CanvasImage("rgb(150, 150, 255)", "https://cdn.britannica.com/78/170778-131-D35E060F/Reflections-diamond.jpg"),
-			mysteryCrate: new CanvasImage("rgb(200, 200, 0)", "https://thumbs.dreamstime.com/b/crate-question-10722232.jpg"),
-			ladder: new CanvasImage("rgb(200, 200, 160)", "https://m.media-amazon.com/images/I/71l4pWDxfTL.jpg"),
-			guyJumping: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/young-businessman-jumping-excitement-full-length-shot-isolated-white-background-156089211.jpg"),
-			guyRunning: new CanvasImage("rgb(255, 255, 255)", "https://d2gg9evh47fn9z.cloudfront.net/800px_COLOURBOX3059374.jpg"),
-			guyClimbingLadder: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/businessman-climbing-ladder-8490148.jpg"),
-			guyFalling: new CanvasImage("rgb(255, 255, 255)", "https://media.istockphoto.com/id/1297454782/photo/businessman-falling-down-isolated.jpg?s=612x612&w=0&k=20&c=UwgYtYVhktnHcYOHovzWOD3oZT1JNrguZcl5cQCKEGw="),
-			guyDead: new CanvasImage("rgb(255, 200, 200)", "https://as1.ftcdn.net/v2/jpg/00/47/51/36/1000_F_47513651_NvfOZ1VY0YQwXriVuQKDCE6XLueitq57.jpg"),
-			guyFlying: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/flying-businessman-happy-high-isolated-white-37045715.jpg"),
-			sentry: new CanvasImage("rgb(15, 15, 15)", "https://forums.rpgmakerweb.com/data/attachments/182/182633-4abbd801946b4603beb05c7c7c9e81a2.jpg"),
-			sentryBarracks: new CanvasImage("rgb(170, 200, 170)", "https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/abandoned-shack-in-woods-douglas-barnett.jpg"),
-			pitfall: new CanvasImage("128, 128, 50", "https://content.instructables.com/FJL/5NV5/FV4LSDNT/FJL5NV5FV4LSDNT.jpg?auto=webp&fit=bounds&frame=1"),
-			skyNight: new CanvasImage("rgb(0, 0, 0)", "https://images.unsplash.com/photo-1528818955841-a7f1425131b5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8c3RhcnJ5JTIwc2t5fGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
-			moon: new CanvasImage("rgb(70, 170, 170)", "https://bigthink.com/wp-content/uploads/2020/10/origin-26.jpg"),
-			ironNickelAlloy: new CanvasImage("rgb(210, 210, 210)", "https://cdn.openpr.com/R/b/Rb1218790_g.jpg"),
-			mimic: new CanvasImage("rgb(240, 240, 240)", "https://www.halloweenforum.com/attachments/large-jpg.524714/"),
-			error: new CanvasImage("rgb(255, 0, 255)", "https://proofthatblog.com/wp-content/uploads/2013/06/question-mark.jpg"),
-			dybbuk: new CanvasImage("rgb(246, 223, 198)", "https://m.media-amazon.com/images/I/71lrPEdwT3L.jpg"),
-			dybbukBox: new CanvasImage("rgb(212, 80, 56)", "https://travel.home.sndimg.com/content/dam/images/travel/fullrights/2016/03/29/0/TPOS101H_215929_761477.1304868.jpg.rend.hgtvcom.616.462.suffix/1491593805712.jpeg"),
-			dybbukBoxOpen: new CanvasImage("rgb(202, 70, 46)", "https://i0.wp.com/bloody-disgusting.com/wp-content/uploads/2012/04/dybbuk-box.jpg"),
-			golem: new CanvasImage("rgb(150, 150, 10)", "https://upload.wikimedia.org/wikipedia/commons/9/9f/Prague-golem-reproduction.jpg"),
-			russetGolem: new CanvasImage("rgb(200, 150, 10)", "https://i.etsystatic.com/25674007/r/il/edaabf/2662111538/il_570xN.2662111538_kdmy.jpg"),
-			totem: new CanvasImage("rgb(180, 180, 20)", "https://m.media-amazon.com/images/I/41yYu0ji5GL._AC_SX466_.jpg"),
-			obelisk: new CanvasImage("rgb(30, 30, 120)", "https://cdnb.artstation.com/p/assets/images/images/029/560/119/large/julia-eriksson-rezle-juliaerikssonpillar.jpg?1597936831"),
-			mars: new CanvasImage("rgb(190, 50, 50)", "https://assets.newatlas.com/dims4/default/a1ac999/2147483647/strip/true/crop/1920x1080+0+0/resize/1920x1080!/quality/90/?url=http%3A%2F%2Fnewatlas-brightspot.s3.amazonaws.com%2Farchive%2Fmars-rivers-2.jpg"),
-			jupiter: new CanvasImage("rgb(200, 270, 20)", "https://thumbs.dreamstime.com/b/texture-surface-jupiter-elements-image-furnished-nasa-152406745.jpg"),
-			saturn: new CanvasImage("rgb(200, 200, 150)", "https://www.solarsystemscope.com/textures/download/8k_saturn.jpg"),
-			fourLeafClover: new CanvasImage("rgb(0, 210, 0)", "https://iadsb.tmgrup.com.tr/1b9d78/1200/627/0/133/1800/1074?u=https://idsb.tmgrup.com.tr/2019/06/30/superstitions-busted-four-leaf-clover-1561926823637.jpg"),
-			leprechaun: new CanvasImage("rgb(100, 255, 100)", "https://upload.wikimedia.org/wikipedia/commons/0/0b/Leprechaun_ill_artlibre_jnl.png"),
-			rainbow: new CanvasImage("rgb(100, 100, 100)", "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Rainbow_Circle.svg/2040px-Rainbow_Circle.svg.png"),
-			potOfGold: new CanvasImage("rgb(200, 200, 0)", "https://cdn5.vectorstock.com/i/1000x1000/74/44/green-full-pot-with-gold-coins-pot-with-four-leaf-vector-19727444.jpg"),
-			aquaGolem: new CanvasImage("rgb(100, 100, 255)", "https://m.media-amazon.com/images/I/51o2o3s46sL._AC_UF894,1000_QL80_.jpg"),
-			grimReaper: new CanvasImage("rgb(15, 15, 15)", "https://m.media-amazon.com/images/I/617-+DaGNBL._AC_SL1500_.jpg"),
-			blood: new CanvasImage("rgb(255, 0, 0)", "https://cdn140.picsart.com/301576808315211.png"),
-			burlapSack: new CanvasImage("rgb(160, 170, 20)", "https://m.media-amazon.com/images/I/510LO2c-5gL._AC_.jpg"),
-			mechaGolem: new CanvasImage("rgb(210, 210, 210)", "https://www.guinnessworldrecords.com/Images/largest-humanoid-vehicle_tcm25-589034.jpg"),
-			ruinedObelisk: new CanvasImage("rgb(50, 200, 50)", "https://c8.alamy.com/comp/EAXY7G/a-viking-rune-stone-is-seen-in-the-swedish-countryside-outside-of-EAXY7G.jpg"),
-			saturn: new CanvasImage("rgb(90, 200, 50)", "https://www.solarsystemscope.com/textures/download/2k_saturn.jpg"),
-			uranus: new CanvasImage("rgb(0, 255, 255)", "https://planet-texture-maps.fandom.com/wiki/Special:FilePath/Dh_uranus_texture.png"),
-			neptune: new CanvasImage("rgb(0, 0, 255)", "https://www.solarsystemscope.com/textures/download/2k_neptune.jpg"),
-			water: new CanvasImage("rgb(0, 0, 255)", "https://images.unsplash.com/photo-1476897017502-219c9169bd6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8d2F0ZXIlMjB0ZXh0dXJlfGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
-			venus: new CanvasImage("rgb(255, 220, 0)", "https://www.solarsystemscope.com/textures/download/2k_venus_surface.jpg"),
-			mercury: new CanvasImage("rgb(200, 200, 200)", "https://www.solarsystemscope.com/textures/download/2k_mercury.jpg"),
-			sun: new CanvasImage("rgb(255, 200, 150)", "https://www.solarsystemscope.com/textures/download/2k_sun.jpg"),
-			mountain: new CanvasImage("rgb(200, 200, 200)", "https://upload.wikimedia.org/wikipedia/commons/e/e7/Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg"),
-			scaffolding: new CanvasImage("rgb(50, 50, 50)", "https://m.media-amazon.com/images/I/61+Fb8M51bL.jpg"),
-			celestialGolem: new CanvasImage("rgb(0, 0, 0)", "https://storage.googleapis.com/dream-machines-output/9d39f43b-4c34-4b78-b2d1-a86da1519af1/0_0.png"),
-			tree1: new CanvasImage("rgb(0, 160, 0)", "https://www.fertilome.com/media/klowrey/Article%20Images/Tree.jpg"),
-			timeMachine: new CanvasImage("rgb(180, 180, 180)", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOqUVsOlm_9mRkhKgQMEA62c7AqQ8_5PPQqw&usqp=CAU"),
-			trampoline: new CanvasImage("rgb(0, 0, 200)", "https://www.flaghouse.com/productImages/image.axd/i.4540/w.1000/h.1000/xm.0/FlagHouse+Jogging+Trampoline_XL.jpg")
-		};
+            guy: new CanvasImage([228.6, 227.6, 231.7, 1.0], "https://t4.ftcdn.net/jpg/01/73/40/15/360_F_173401516_HH7aV0os9LEum5ayYNrtoovV1jYrt561.jpg"),
+            skyDay: new CanvasImage([108.5, 179.9, 219.2, 1.0], "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL3doeS1pcy1za3ktYmx1ZS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjgyOH19fQ=="),
+            grass: new CanvasImage([69.7, 160.9, 32.1, 1.0], "https://images.pexels.com/photos/413195/pexels-photo-413195.jpeg?cs=srgb&dl=pexels-pixmike-413195.jpg&fm=jpg"),
+            hills: new CanvasImage([112.5, 142.0, 137.8, 1.0], "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Chocolate_Hills_overview.JPG/1200px-Chocolate_Hills_overview.JPG"),
+            ice: new CanvasImage([177.9, 211.1, 237.4, 1.0], "https://media.istockphoto.com/id/466513257/photo/image-of-light-blue-ice-design.jpg?s=612x612&w=0&k=20&c=tkgdD6LDAjjDL-J_OCc2tkN924FLtjvgSeQWgVBY5-Y="),
+            snow: new CanvasImage([223.6, 225.6, 230.8, 1.0], "https://t4.ftcdn.net/jpg/00/73/39/95/360_F_73399559_6z3WIVyR5fPvXAW96ZFG1RBHsz6qVn4R.jpg"),
+            dirt: new CanvasImage([139.8, 131.3, 97.7, 1.0], "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Dirt.JPG/640px-Dirt.JPG"),
+            stones: new CanvasImage([172.3, 174.2, 173.4, 1.0], "https://d3mvlb3hz2g78.cloudfront.net/wp-content/uploads/2016/01/thumb_720_450_f_28.jpg"),
+            stone: new CanvasImage([143.3, 143.6, 140.3, 1.0], "https://media.istockphoto.com/photos/light-grey-black-slate-stone-background-or-texture-picture-id1164746310?b=1&k=20&m=1164746310&s=612x612&w=0&h=nj0fWpCXBGNXhcUuWhXIF3HmcZiXMagkQ-DyPHAXLiw="),
+            darkStone: new CanvasImage([54.0, 54.0, 54.0, 1.0], "https://media.istockphoto.com/id/1136387527/photo/black-gray-grunge-background-dirty-concrete-wall-stucco-vintage-rock-texture-ombre-dark-stone.jpg?b=1&s=170667a&w=0&k=20&c=iUFh6s42MVX40KVd7bmkfcPHtMjYvqNsVndFQ2dMFWY="),
+            stoneBackground: new CanvasImage([104.7, 112.2, 111.4, 1.0], "https://img.freepik.com/premium-photo/cave-wall-background_181627-531.jpg?w=2000"),
+            packedSnow: new CanvasImage([164.8, 165.6, 168.3, 1.0], "https://thumbs.dreamstime.com/b/snow-surface-full-frame-background-texture-pattern-14970280.jpg"),
+            magma: new CanvasImage([118.9, 34.5, 10.1, 1.0], "https://media.wired.co.uk/photos/606da0c989f3babb1f0133fb/master/w_1600%2Cc_limit/Lava.jpg"),
+            lava: new CanvasImage([225.2, 94.0, 17.8, 1.0], "https://3docean.img.customer.envatousercontent.com/files/371574722/Image+Preview.jpg?auto=compress%2Cformat&fit=crop&crop=top&w=590&h=590&s=dc0fcc220b7f9d9b06eedf277f6f0844"),
+            coin: new CanvasImage([148.7, 129.3, 82.1, 1.0], "https://m.media-amazon.com/images/I/51VLhMGtaTL._AC_SY1000_.jpg"),
+            gem: new CanvasImage([199.9, 200.3, 200.2, 1.0], "https://cdn.britannica.com/78/170778-131-D35E060F/Reflections-diamond.jpg"),
+            mysteryCrate: new CanvasImage([221.7, 197.2, 179.5, 1.0], "https://thumbs.dreamstime.com/b/crate-question-10722232.jpg"),
+            ladder: new CanvasImage([245.3, 236.3, 234.0, 1.0], "https://m.media-amazon.com/images/I/71l4pWDxfTL.jpg"),
+            guyJumping: new CanvasImage([216.4, 215.0, 214.7, 1.0], "https://thumbs.dreamstime.com/b/young-businessman-jumping-excitement-full-length-shot-isolated-white-background-156089211.jpg"),
+            guyRunning: new CanvasImage([229.0, 227.1, 228.6, 1.0], "https://d2gg9evh47fn9z.cloudfront.net/800px_COLOURBOX3059374.jpg"),
+            guyClimbingLadder: new CanvasImage([203.7, 204.7, 206.9, 1.0], "https://thumbs.dreamstime.com/b/businessman-climbing-ladder-8490148.jpg"),
+            guyFalling: new CanvasImage([231.1, 230.3, 230.8, 1.0], "https://media.istockphoto.com/id/1297454782/photo/businessman-falling-down-isolated.jpg?s=612x612&w=0&k=20&c=UwgYtYVhktnHcYOHovzWOD3oZT1JNrguZcl5cQCKEGw="),
+            guyDead: new CanvasImage([187.2, 184.1, 182.8, 1.0], "https://as1.ftcdn.net/v2/jpg/00/47/51/36/1000_F_47513651_NvfOZ1VY0YQwXriVuQKDCE6XLueitq57.jpg"),
+            guyFlying: new CanvasImage([228.2, 229.3, 231.5, 1.0], "https://thumbs.dreamstime.com/b/flying-businessman-happy-high-isolated-white-37045715.jpg"),
+            sentry: new CanvasImage([21.9, 21.9, 21.9, 1.0], "https://forums.rpgmakerweb.com/data/attachments/182/182633-4abbd801946b4603beb05c7c7c9e81a2.jpg"),
+            sentryBarracks: new CanvasImage([112.9, 98.6, 65.5, 1.0], "https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/abandoned-shack-in-woods-douglas-barnett.jpg"),
+            pitfall: new CanvasImage([119.1, 106.6, 85.9, 1.0], "https://content.instructables.com/FJL/5NV5/FV4LSDNT/FJL5NV5FV4LSDNT.jpg?auto=webp&fit=bounds&frame=1"),
+            skyNight: new CanvasImage([38.5, 48.1, 86.1, 1.0], "https://images.unsplash.com/photo-1528818955841-a7f1425131b5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8c3RhcnJ5JTIwc2t5fGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
+            moon: new CanvasImage([126.6, 133.3, 147.5, 1.0], "https://bigthink.com/wp-content/uploads/2020/10/origin-26.jpg"),
+            ironNickelAlloy: new CanvasImage([76.6, 76.6, 76.6, 1.0], "https://cdn.openpr.com/R/b/Rb1218790_g.jpg"),
+            mimic: new CanvasImage([86.2, 86.2, 86.2, 1.0], "https://www.halloweenforum.com/attachments/large-jpg.524714/"),
+            error: new CanvasImage([235.8, 214.6, 214.3, 1.0], "https://proofthatblog.com/wp-content/uploads/2013/06/question-mark.jpg"),
+            dybbuk: new CanvasImage([246.2, 240.7, 236.6, 1.0], "https://m.media-amazon.com/images/I/71lrPEdwT3L.jpg"),
+            dybbukBox: new CanvasImage([44.7, 21.9, 14.6, 1.0], "https://travel.home.sndimg.com/content/dam/images/travel/fullrights/2016/03/29/0/TPOS101H_215929_761477.1304868.jpg.rend.hgtvcom.616.462.suffix/1491593805712.jpeg"),
+            dybbukBoxOpen: new CanvasImage([76.0, 52.9, 44.3, 1.0], "https://i0.wp.com/bloody-disgusting.com/wp-content/uploads/2012/04/dybbuk-box.jpg"),
+            golem: new CanvasImage([142.7, 136.5, 136.5, 1.0], "https://upload.wikimedia.org/wikipedia/commons/9/9f/Prague-golem-reproduction.jpg"),
+            russetGolem: new CanvasImage([161.0, 151.3, 143.4, 1.0], "https://i.etsystatic.com/25674007/r/il/edaabf/2662111538/il_570xN.2662111538_kdmy.jpg"),
+            totem: new CanvasImage([217.3, 210.0, 207.6, 1.0], "https://m.media-amazon.com/images/I/41yYu0ji5GL._AC_SX466_.jpg"),
+            obelisk: new CanvasImage([34.7, 42.8, 61.8, 1.0], "https://cdnb.artstation.com/p/assets/images/images/029/560/119/large/julia-eriksson-rezle-juliaerikssonpillar.jpg?1597936831"),
+            mars: new CanvasImage([164.8, 117.0, 73.9, 1.0], "https://assets.newatlas.com/dims4/default/a1ac999/2147483647/strip/true/crop/1920x1080+0+0/resize/1920x1080!/quality/90/?url=http%3A%2F%2Fnewatlas-brightspot.s3.amazonaws.com%2Farchive%2Fmars-rivers-2.jpg"),
+            jupiter: new CanvasImage([185.0, 131.2, 68.2, 1.0], "https://thumbs.dreamstime.com/b/texture-surface-jupiter-elements-image-furnished-nasa-152406745.jpg"),
+            fourLeafClover: new CanvasImage([134.9, 171.3, 60.1, 1.0], "https://iadsb.tmgrup.com.tr/1b9d78/1200/627/0/133/1800/1074?u=https://idsb.tmgrup.com.tr/2019/06/30/superstitions-busted-four-leaf-clover-1561926823637.jpg"),
+            leprechaun: new CanvasImage([177.2, 180.0, 168.8, 1.0], "https://upload.wikimedia.org/wikipedia/commons/0/0b/Leprechaun_ill_artlibre_jnl.png"),
+            rainbow: new CanvasImage([57.0, 46.8, 35.4, 0.4624016885783112], "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Rainbow_Circle.svg/2040px-Rainbow_Circle.svg.png"),
+            potOfGold: new CanvasImage([127.7, 147.6, 118.9, 1.0], "https://cdn5.vectorstock.com/i/1000x1000/74/44/green-full-pot-with-gold-coins-pot-with-four-leaf-vector-19727444.jpg"),
+            aquaGolem: new CanvasImage([196.7, 202.1, 209.5, 1.0], "https://m.media-amazon.com/images/I/51o2o3s46sL._AC_UF894,1000_QL80_.jpg"),
+            grimReaper: new CanvasImage([181.0, 180.4, 180.5, 1.0], "https://m.media-amazon.com/images/I/617-+DaGNBL._AC_SL1500_.jpg"),
+            blood: new CanvasImage([13.8, 1.0, 1.0, 0.25157178200808133], "https://cdn140.picsart.com/301576808315211.png"),
+            burlapSack: new CanvasImage([199.5, 184.7, 167.9, 1.0], "https://m.media-amazon.com/images/I/510LO2c-5gL._AC_.jpg"),
+            mechaGolem: new CanvasImage([154.0, 150.8, 159.3, 1.0], "https://www.guinnessworldrecords.com/Images/largest-humanoid-vehicle_tcm25-589034.jpg"),
+            ruinedObelisk: new CanvasImage([146.7, 146.4, 123.0, 1.0], "https://c8.alamy.com/comp/EAXY7G/a-viking-rune-stone-is-seen-in-the-swedish-countryside-outside-of-EAXY7G.jpg"),
+            saturn: new CanvasImage([207.7, 192.7, 162.7, 1.0], "https://www.solarsystemscope.com/textures/download/2k_saturn.jpg"),
+            uranus: new CanvasImage([141.7, 191.4, 207.3, 1.0], "https://planet-texture-maps.fandom.com/wiki/Special:FilePath/Dh_uranus_texture.png"),
+            neptune: new CanvasImage([54.0, 79.4, 167.8, 1.0], "https://www.solarsystemscope.com/textures/download/2k_neptune.jpg"),
+            water: new CanvasImage([35.4, 119.1, 158.4, 1.0], "https://images.unsplash.com/photo-1476897017502-219c9169bd6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8d2F0ZXIlMjB0ZXh0dXJlfGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
+            venus: new CanvasImage([196.7, 112.6, 39.8, 1.0], "https://www.solarsystemscope.com/textures/download/2k_venus_surface.jpg"),
+            mercury: new CanvasImage([132.4, 131.6, 131.5, 1.0], "https://www.solarsystemscope.com/textures/download/2k_mercury.jpg"),
+            sun: new CanvasImage([241.8, 136.0, 40.0, 1.0], "https://www.solarsystemscope.com/textures/download/2k_sun.jpg"),
+            mountain: new CanvasImage([103.1, 112.6, 125.2, 1.0], "https://upload.wikimedia.org/wikipedia/commons/e/e7/Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg"),
+            scaffolding: new CanvasImage([238.5, 239.2, 240.5, 1.0], "https://m.media-amazon.com/images/I/61+Fb8M51bL.jpg"),
+            celestialGolem: new CanvasImage([85.2, 71.4, 72.5, 1.0], "https://storage.googleapis.com/dream-machines-output/9d39f43b-4c34-4b78-b2d1-a86da1519af1/0_0.png"),
+            tree1: new CanvasImage([172.9, 189.9, 171.8, 1.0], "https://www.fertilome.com/media/klowrey/Article%20Images/Tree.jpg"),
+            timeMachine: new CanvasImage([136.7, 126.5, 116.7, 1.0], "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOqUVsOlm_9mRkhKgQMEA62c7AqQ8_5PPQqw&usqp=CAU"),
+            trampoline: new CanvasImage([217.5, 220.5, 228.0, 1.0], "https://www.flaghouse.com/productImages/image.axd/i.4540/w.1000/h.1000/xm.0/FlagHouse+Jogging+Trampoline_XL.jpg")
+        };
 		var layers = {
 			"-13": [images.sun, 0.07, -0.03],
 			"-12": [images.mercury, 0.35, -0.012],
@@ -1321,6 +1368,17 @@
 				trampolines--;
 			};
 		};
+		function range(start, end) {
+			var array = [];
+			if (end - start > 25000000) {
+				console.error("range too large (" + (end - start) + ")");
+				return array;
+			};
+			for (let i = start; i <= end; i++) {
+				array.push(i);
+			};
+			return array;
+		};
 
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
@@ -1337,7 +1395,7 @@
 			};
 			if (!shop && !dead && !obeliskShop && playing) {
 				if (playerX >= level.rows.length) { // playerx >=
-					generateLevel();
+					//generateLevel();
 				};
 
 				let bakedRows = [...level.rows];
@@ -1380,7 +1438,7 @@
 				if (controls.right !== controls.left) {
 					//move
 					let sign = controls.right - controls.left;
-					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : inLadderSpeed) : (flying ? sign * 0.3 : (sign * playerSpeed)));
+					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : inLadderSpeed) : (flying ? (sign * basePlayerSpeed * 1.5) : (sign * playerSpeed)));
 					playerXV = lerp(maxXV, playerXV, onGround ? 1 - groundFriction : 0.15) + (sign * 0.04 * (controls.up && onGround && !inWater));
 				} else {
 					//friction
@@ -1418,7 +1476,7 @@
 					playerYV = (controls.up - controls.down) * (boots === "magnet boots" ? 0 : inLadderSpeed);
 				} else if (flying) {
 					if (controls.up !== controls.down) {
-						playerYV = (controls.up - controls.down) * 0.3;
+						playerYV = (controls.up - controls.down) * basePlayerSpeed * 1.5;
 					};
 					playerYV *= 0.99;
 				} else if (!trampoline) {

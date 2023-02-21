@@ -395,7 +395,7 @@
 
 			void main() {
 				v_fragTexCoord = a_texCoord;
-				gl_Position = vec4(a_position, 0, 1);//vec4(vec2(a_position.x * u_rotation.y + a_position.y * u_rotation.x, a_position.y * u_rotation.y - a_position.x * u_rotation.x), 0, 1);
+				gl_Position = vec4(a_position*vec2(1, 1), 0, 1);//vec4(vec2(a_position.x * u_rotation.y + a_position.y * u_rotation.x, a_position.y * u_rotation.y - a_position.x * u_rotation.x), 0, 1);
 			}
 		</script>
 		<script id="fragment" type="x-shader/x-fragment">
@@ -437,6 +437,7 @@
 				this.gl.viewport(0, 0, canvas.width, canvas.height);
 				this.gl.clearColor(0, 0, 0, 1);
 				this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+				this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
 			
 				// get shader code
 				this.vertexCode = document.getElementById("vertex").firstChild.nodeValue;
@@ -523,100 +524,102 @@
 				let squares = [];
 
 				// sky
-				squares.push([-canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight, ...images.skyDay.RGB]);
+				squares.push([-canvasWidth / 2, -canvasHeight / 2, canvasWidth, canvasHeight, cameraX / (canvasWidth * 3), cameraY / (canvasHeight * 3), 1, 1, ...images.skyDay.RGB]);
 
 				// level
 				let rowBuffer = range(Math.floor(cameraX - canvasWidth / 2), Math.floor(cameraX + canvasWidth / 2));//Object.keys(level.rows).map(it => parseInt(it)).filter(it => it + 1 > cameraX - width / 2 && it < cameraX + width / 2);
 				for (let i = 0; i < rowBuffer.length; i++) {
 					//rows
-					let squareX = Math.max(rowBuffer[i] - cameraX, -canvasWidth / 2);
+					let squareX = rowBuffer[i] - cameraX;
 					let rowY = (rowBuffer[i] >= 0 && rowBuffer[i] < level.rows.length) ? level.rows[rowBuffer[i]] : Math.round(getPerlinHeight(rowBuffer[i]));
-					let squareY = Math.min(rowY - cameraY, canvasHeight / 2); // level.rows[rowBuffer[i]]
+					let squareY = (rowY - cameraY); // level.rows[rowBuffer[i]]
+					squareY = Math.min(squareY, (squareY % 1) + Math.ceil(canvasHeight / 2));
 					if (squareY > -canvasHeight / 2) {
-						squares.push([squareX, squareY, Math.min(rowBuffer[i] - cameraX - squareX + 1, canvasWidth / 2 - squareX), -canvasHeight / 2 - squareY, ...layers[getLayer(Math.round(getPerlinHeight(rowBuffer[i])))][0].RGB]);
+						let scale = 5;
+						squares.push([squareX, -canvasHeight / 2, rowBuffer[i] - cameraX - squareX + 1, squareY + canvasHeight / 2, rowBuffer[i] / scale, (cameraY - 0.15) / scale, 1 / scale, (squareY + canvasHeight / 2) / scale, ...layers[getLayer(Math.round(getPerlinHeight(rowBuffer[i])))][0].RGB]);
 					};
 					//features
 					switch (level.features[rowBuffer[i]]) {
 						case 0:
 							break;
 						case 1: // x y w h r g b
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.coin.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.coin.RGB]);
 							break;
 						case 2:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.gem.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.gem.RGB]);
 							break;
 						case 3:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 4, ...images.ladder.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 4, 0, 0, 1, 1, ...images.ladder.RGB]);
 							break;
 						case 4:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 6, ...images.ladder.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 6, 0, 0, 1, 1, ...images.ladder.RGB]);
 							break;
 						case 5:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 5, ...images.stones.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 5, 0, 0, 1, 1, ...images.stones.RGB]);
 							break;
 						case 6:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.mysteryCrate.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.mysteryCrate.RGB]);
 							break;
 						case 7:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 3, ...images.sentryBarracks.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 3, 0, 0, 1, 1, ...images.sentryBarracks.RGB]);
 							break;
 						case 8:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 3, ...images.sentryBarracks.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 3, 0, 0, 1, 1, ...images.sentryBarracks.RGB]);
 							break;
 						case 9:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, -0.5, ...images.pitfall.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY - 0.5, 1, 0.5, 0, 0, 1, 1, ...images.pitfall.RGB]);
 							break;
 						case 10:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.dybbukBox.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.dybbukBox.RGB]);
 							break;
 						case 11:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.dybbukBoxOpen.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.dybbukBoxOpen.RGB]);
 							break;
 						case 12:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.totem.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.totem.RGB]);
 							break;
 						case 13:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.fourLeafClover.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.fourLeafClover.RGB]);
 							break;
 						case 14:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.potOfGold.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.potOfGold.RGB]);
 							break;
 						case 15:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.burlapSack.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.burlapSack.RGB]);
 							break;
 						case 16:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 4, ...images.ruinedObelisk.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 4, 0, 0, 1, 1, ...images.ruinedObelisk.RGB]);
 							break;
 						case 17:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 2, ...images.timeMachine.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 2, 0, 0, 1, 1, ...images.timeMachine.RGB]);
 							break;
 						case 18:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.trampoline.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.trampoline.RGB]);
 							break;
 						default:
-							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, ...images.error.RGB]);
+							squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, 0, 0, 1, 1, ...images.error.RGB]);
 					};
 					let featureEntity = level.featureEntities[rowBuffer[i]];
 					if (featureEntity) {
 						switch (featureEntity.type) {
 							case "obelisk":
-								squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 4 + featureEntity.yOffset]);
+								squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 4 + featureEntity.yOffset, 1]);
 								break;
 							case "scaffolding":
-								squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, featureEntity.height]);
+								squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, featureEntity.height, 1]);
 								break;
 							default:
-								squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, images.error]);
+								squares.push([rowBuffer[i] - cameraX, level.rows[rowBuffer[i]] - cameraY, 1, 1, images.error, 1]);
 						};
 					};
 				};
 
 				// player
-				squares.push([playerX - 0.5 - cameraX, playerY - cameraY, 1, 2, ...images.guy.RGB]);
+				squares.push([playerX - 0.5 - cameraX, playerY - cameraY, 1, 2, 0, 0, 1, 2, ...images.guy.RGB]);
 				return this.vertexArray(squares);
 			};
 			vertexArray(array) {
-				let newArray = [];
+				let newArray = []; // x,y,w,h,uvx,uvy,uvw,uvh
 				for (let i = 0; i < array.length; i++) {
 					newArray[i] = array[i].map((it, i) => (i % 2 === 0) ? (it * blockSize) / canvas.width : (it * blockSize) / canvas.height);
 					//newArray[i].splice(4, 3);
@@ -627,15 +630,17 @@
 					let y = array[i][1];
 					let width = array[i][2];
 					let height = array[i][3];
-					let uvWidth = width / 1;
-					let uvHeight = height / 1;
+					let uvX = array[i][4] ?? 0;
+					let uvY = array[i][5] ?? 0;
+					let uvWidth = array[i][6] ?? 1;
+					let uvHeight = array[i][7] ?? 1;
 					newArray[i] = [
-						newArray[i][0], newArray[i][1] + newArray[i][3],					0-0,		height-0,
-						newArray[i][0], newArray[i][1],										0-0,		0-0,
-						newArray[i][0] + newArray[i][2], newArray[i][1],					width-0,	0-0,
-						newArray[i][0], newArray[i][1] + newArray[i][3],					0-0,		height-0,
-						newArray[i][0] + newArray[i][2], newArray[i][1] + newArray[i][3],	width-0,	height-0,
-						newArray[i][0] + newArray[i][2], newArray[i][1],					width-0,	0-0
+						newArray[i][0], newArray[i][1] + newArray[i][3],					uvX + 0,		uvY + uvHeight,
+						newArray[i][0], newArray[i][1],										uvX + 0,		uvY + 0,
+						newArray[i][0] + newArray[i][2], newArray[i][1],					uvX + uvWidth,	uvY + 0,
+						newArray[i][0], newArray[i][1] + newArray[i][3],					uvX + 0,		uvY + uvHeight,
+						newArray[i][0] + newArray[i][2], newArray[i][1] + newArray[i][3],	uvX + uvWidth,	uvY + uvHeight,
+						newArray[i][0] + newArray[i][2], newArray[i][1],					uvX + uvWidth,	uvY + 0
 					];
 				};
 				return newArray.flat();
@@ -1207,7 +1212,7 @@
 			} else if (e.key === "m" && developerMode) {
 				macro = prompt("what macro").split(",");
 				macroTime = 0;
-				macroPlaying = true;
+				macroPlaying = false;
 			} else if (e.key === "p" && developerMode) {
 				spawnMob(prompt("what mob"), playerX - 3, level.rows[Math.floor(playerX - 3)] ?? 0);
 			} else if (e.key === "e") {
@@ -1478,12 +1483,12 @@
 				macroTime++;
 			};
 			if (macroTime >= macro.length) {
-				macroPlaying = false;
+				//macroPlaying = false;
 				macroTime = 0;
 			};
 			if (!shop && !dead && !obeliskShop && playing) {
 				if (playerX >= level.rows.length) { // playerx >=
-					//generateLevel();
+					generateLevel();
 				};
 
 				let bakedRows = [...level.rows];
@@ -1957,7 +1962,6 @@
 
 
 				// draw screen vv
-				drawScreen();
 			};
 		};
 		function drawScreen() {
@@ -2267,6 +2271,7 @@
 		function loop() {
 			//try {
 				tick();
+				drawScreen();
 			//} catch (e) {
 			//	alert(e.stack);
 			//	return;

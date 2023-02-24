@@ -26,7 +26,8 @@
 			#game {
 				user-select: none;
 			}
-			#canvas {
+			#canvas,#darkness {
+				position: absolute;
 				width: 100%;
 				height: 100%;
 			}
@@ -175,6 +176,98 @@
 				height: calc(100% - 100px);
 				overflow: auto;
 			}
+			#menu {
+				position: absolute;
+				display: flex;
+				align-items: center;
+				justify-content: space-around;
+				flex-direction: column;
+				top: 0px;
+				left: 0px;
+				width: 100%;
+				height: 100%;
+				background-image: url("https://www.adorama.com/alc/wp-content/uploads/2018/11/landscape-photography-tips-yosemite-valley-feature.jpg");
+				background-size: 100% 100%;
+				padding: 50px;
+			}
+			#menu-title {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 60px;
+				color: white;
+				text-shadow: 3px 3px 5px black;
+			}
+			#menu-button {
+				font-size: 30px;
+				padding: 0.5em 5em;
+				background-color: white;
+				border: 3px solid black;
+				border-radius: 10px;
+				box-shadow: 3px 3px 10px black;
+			}
+			#menu-button:hover {
+				box-shadow: inset 3px 3px 10px black;
+			}
+			button {
+				background-color: white;
+				border: 3px solid black;
+				border-radius: 5px;
+			}
+			button:hover {
+				background-color: #DDDDDD;
+			}
+			button:focus {
+				box-shadow: inset 0px 0px 5px black;
+			}
+			#arrow-keys {
+				position: absolute;
+				bottom: 10px;
+				right: 10px;
+				width: 300px;
+				height: 100px;
+				display: flex;
+				flex-direction: column;
+			}
+			.arrow-key {
+				color: white;
+				background-color: rgba(100, 100, 100, 0.8);
+				border-radius: 5px;
+				font-family: Arial, Helvetica, sans-serif;
+				width: 100px;
+				height: 50px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 30px;
+			}
+			.arrow-key:hover {
+				background-color: rgba(80, 80, 80, 0.8);
+			}
+			.arrow-key:active {
+				background-color: rgba(50, 50, 50, 0.9);
+			}
+			#arrow-keys-top {
+				width: 300px;
+				height: 50px;
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+			}
+			#arrow-keys-bottom {
+				width: 300px;
+				height: 50px;
+				display: flex;
+				flex-direction: row;
+			}
+			#cursor {
+				position: absolute;
+				width: 10px;
+				height: 10px;
+				left: 0px;
+				top: 0px;
+				transform: translate(-0.5, -0.5);
+				background-color: black;
+				pointer-events: none;
+			}
 		</style>
 	</head>
 	<body>
@@ -182,6 +275,7 @@
 			<div id="game" tabindex="0" onmouseup="joystick.mouseUp(event);" ontouchend="joystick.mouseUp(event);" onmousemove="joystick.mouseMove(event);" ontouchmove="joystick.mouseMove(event);" oncontextmenu="return false;">
 				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);" onkeyup="keysDown[event.key] = false;">
 					<canvas id="canvas"></canvas>
+					<canvas id="darkness"></canvas>
 				</div>
 				<div id="stats">score: -<br>coins: -</div>
 				<button id="shop-button" onclick="shopButton();">SHOP</button>
@@ -193,6 +287,16 @@
 					<div id="health-inner"></div>
 				</div>
 				<div id="joystick" onmousedown="joystick.mouseDown(event);" ontouchstart="joystick.mouseDown(event);"><div id="circle-thing"></div></div>
+				<div id="arrow-keys">
+					<div id="arrow-keys-top">
+						<div class="arrow-key arrow-up">^</div>
+					</div><br>
+					<div id="arrow-keys-bottom">
+						<div class="arrow-key arrow-left">&lt;</div>
+						<div class="arrow-key arrow-down">v</div>
+						<div class="arrow-key arrow-right">&gt;</div>
+					</div>
+				</div>
 			</div>
 			<div id="shop">
 				<h1>shop</h1>
@@ -211,7 +315,7 @@
 				<div id="shop-coins">
 					<div id="boots">
 						<h3>boots</h3>
-						<button onclick="clickShoeButton(this, 'sketchers');">Sketchers (0 coins)</button><br>
+						<button onclick="clickShoeButton(this, 'hondas');">Hondas (0 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'tennis rackets');">Tennis rackets (30 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'running shoes');">Running shoes (60 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'spring boots');">Spring boots (90 coins)</button><br>
@@ -245,7 +349,8 @@
 						<h3>stuff</h3><br>
 						<label>ladder</label><label id="ladder-howmany">(0)</label><button onclick="placeLadder();">place</button><button onclick="purchaseLadder();">purchase (10 coins)</button><br>
 						<label>tall ladder</label><label id="tall-ladder-howmany">(0)</label><button onclick="placeTallLadder();">place</button><button onclick="purchaseTallLadder();">purchase (25 coins)</button><br>
-						<label>scaffolding</label><button onclick="purchaseScaffolding();">place (1 coin/block)</button>
+						<label>scaffolding</label><button onclick="purchaseScaffolding();">place (1 coin/block)</button><br>
+						<label>trampoline</label><label id="trampoline-howmany">(0)</label><button onclick="placeTrampoline();">place</button><button onclick="purchaseTrampoline();">purchase (45 coins)</button><br>
 					</div>
 				</div>
 				<div id="shop-gems">
@@ -283,69 +388,459 @@
 			<div id="notification">
 
 			</div>
+			<div id="cursor">
+
+			</div>
 		</div>
+		<div id="menu">
+			<h1 id="menu-title">forest simulator 3d</h1>
+			<button id="menu-button" onclick="playButton();">PLAY</button>
+		</div>
+		<script id="vertex" type="x-shader/x-vertex">
+			attribute vec4 a_position;
+			attribute vec2 a_texcoord;
+
+			uniform mat4 u_matrix;
+			uniform mat4 u_textureMatrix;
+
+			varying vec2 v_texcoord;
+
+			void main() {
+				gl_Position = u_matrix * a_position * vec4(1, 1, 1, 1);
+				v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
+			}
+		</script>
+		<script id="fragment" type="x-shader/x-fragment">
+			precision mediump float;
+
+			varying vec2 v_texcoord;
+
+			uniform sampler2D u_texture;
+
+			void main() {
+				gl_FragColor = texture2D(u_texture, v_texcoord);
+				gl_FragColor.rgb *= gl_FragColor.a;
+			}
+		</script>
 	</body>
+	<script src="./m4.js"></script>
 	<script>
 		const canvas = document.getElementById("canvas");
 		canvas.width = innerWidth;
 		canvas.height = innerHeight;
-		const ctx = canvas.getContext("2d");
+		//const ctx = canvas.getContext("2d");
+
+		const darkness = document.getElementById("darkness");
+		darkness.width = innerWidth;
+		darkness.height = innerHeight;
+		const darknessCtx = darkness.getContext("2d");
+		
 		document.getElementById("canvas-wrapper").focus();
 
-		class Tree {
+		var blockSize = 50;
+
+		class WebGLRenderer {
 			constructor() {
-				this
+				this.gl = canvas.getContext("webgl");
+
+				// init
+				this.gl.viewport(0, 0, canvas.width, canvas.height);
+				this.gl.clearColor(0, 0, 0, 1);
+				this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+			
+				// get shader code
+				this.vertexCode = document.getElementById("vertex").firstChild.nodeValue;
+				this.fragmentCode = document.getElementById("fragment").firstChild.nodeValue;
+
+				// create shaders and program
+				this.vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
+				this.gl.shaderSource(this.vertexShader, this.vertexCode);
+				this.gl.compileShader(this.vertexShader);
+				
+				this.fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+				this.gl.shaderSource(this.fragmentShader, this.fragmentCode);
+				this.gl.compileShader(this.fragmentShader);
+
+				this.program = this.gl.createProgram();
+				this.gl.attachShader(this.program, this.vertexShader);
+				this.gl.attachShader(this.program, this.fragmentShader);
+				this.gl.linkProgram(this.program);
+
+				this.positionLocation = this.gl.getAttribLocation(this.program, "a_position");
+				this.texcoordLocation = this.gl.getAttribLocation(this.program, "a_texcoord");
+
+				// lookup uniforms
+				this.matrixLocation = this.gl.getUniformLocation(this.program, "u_matrix");
+				this.textureMatrixLocation = this.gl.getUniformLocation(this.program, "u_textureMatrix");
+				this.textureLocation = this.gl.getUniformLocation(this.program, "u_texture");
+
+				this.positionBuffer = this.gl.createBuffer();
+				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+				this.positions = [
+					0, 0,
+					0, 1,
+					1, 0,
+					1, 0,
+					0, 1,
+					1, 1,
+				];
+				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.positions), this.gl.STATIC_DRAW);
+
+				this.texcoordBuffer = this.gl.createBuffer();
+				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texcoordBuffer);
+				this.texcoords = [
+					0, 0,
+					0, 1,
+					1, 0,
+					1, 0,
+					0, 1,
+					1, 1,
+				];
+				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.texcoords), this.gl.STATIC_DRAW);
+
+				this.defaultTexture = this.loadImageAndCreateTextureInfo("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAjSURBVBhXY/zP8J8BBhiBEAaYoDQGIF0CYSgQINtHNTsYGAA9/gQN0D1U/wAAAABJRU5ErkJggg==");
+				// errors
+				if (!this.gl.getShaderParameter(this.vertexShader, this.gl.COMPILE_STATUS)) console.log(this.gl.getShaderInfoLog(this.vertexShader));
+				if (!this.gl.getShaderParameter(this.fragmentShader, this.gl.COMPILE_STATUS)) console.log(this.gl.getShaderInfoLog(this.fragmentShader));
+				if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) console.log(this.gl.getProgramInfoLog(this.program));
+				this.gl.validateProgram(this.program);
+				if (!this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS)) console.log(this.gl.getProgramInfoLog(this.program));
+			};
+
+			loadTextures() {
+				for (let texture in textures) {
+					textures[texture] = this.loadImageAndCreateTextureInfo(textures[texture]);
+				};
+			};
+			getTexture(texture) {
+				return (typeof textures !== "undefined") ? textures[texture] : this.defaultTexture;
+			};
+			loadImageAndCreateTextureInfo(url, color) {
+				var tex = this.gl.createTexture();
+				this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
+				this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 255, 255]));
+				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+				this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+
+				var textureInfo = {
+					width: 1,	 // we don't know the size until it loads
+					height: 1,
+					texture: tex,
+				};
+				var img = new Image();
+				img.addEventListener("load", () => {
+					textureInfo.width = img.width;
+					textureInfo.height = img.height;
+				
+					this.gl.bindTexture(this.gl.TEXTURE_2D, textureInfo.texture);
+					this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, img);
+				});
+				img.src = url;
+				return textureInfo;
+			};
+			drawImage(texInfo, dstX=0, dstY=0, dstWidth=blockSize, dstHeight=blockSize, uvX=0, uvY=0, uvWidth=1, uvHeight=1) {
+				uvX *= texInfo.width;
+				uvY *= texInfo.height;
+				uvWidth *= texInfo.width;
+				uvHeight *= texInfo.height;
+				this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
+				this.gl.useProgram(this.program);
+				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+				this.gl.enableVertexAttribArray(this.positionLocation);
+				this.gl.vertexAttribPointer(this.positionLocation, 2, this.gl.FLOAT, false, 0, 0);
+				this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texcoordBuffer);
+				this.gl.enableVertexAttribArray(this.texcoordLocation);
+				this.gl.vertexAttribPointer(this.texcoordLocation, 2, this.gl.FLOAT, false, 0, 0);
+				var matrix = m4.orthographic(0, this.gl.canvas.width, this.gl.canvas.height, 0, -1, 1);
+				matrix = m4.translate(matrix, dstX, dstY, 0);
+				matrix = m4.scale(matrix, dstWidth, dstHeight, 1);
+				this.gl.uniformMatrix4fv(this.matrixLocation, false, matrix);
+				var texMatrix = m4.translation(uvX / texInfo.width, uvY / texInfo.height, 0);
+				texMatrix = m4.scale(texMatrix, uvWidth / texInfo.width, uvHeight / texInfo.height, 1);
+				this.gl.uniformMatrix4fv(this.textureMatrixLocation, false, texMatrix);
+				this.gl.uniform1i(this.textureLocation, 0);
+				this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+			};
+			draw() {
+				this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+				// vertices
+				darknessCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+				//images[((gameTime % 600 < 300 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
+				
+				//if (cameraY > 750 * -blockSize) {
+				//	images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
+				//	images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
+				//	images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
+				//	images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
+				//};
+				this.drawImage(this.getTexture("skyDay"), 0, 0, canvas.width, canvas.height, 0, 1, 1);
+				let stoneBackgroundScroll = 1 / 4;
+				let stoneBackgroundOffset = Math.max((750 - cameraY) * -blockSize * stoneBackgroundScroll, 0);
+				//this.drawImage(this.getTexture("stoneBackground"), 0, stoneBackgroundOffset, canvas.width, canvas.height - stoneBackgroundOffset, cameraX / (canvas.width / blockSize / stoneBackgroundScroll), (-cameraY * stoneBackgroundScroll) / canvas.height, 1, (canvas.height - stoneBackgroundOffset) / canvas.height / 4);
+
+				//images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4,					(750 * -blockSize - cameraY) / 4, canvas.width, canvas.height);
+				//images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	(750 * -blockSize - cameraY) / 4, canvas.width, canvas.height);
+
+				for (let i = 0; i < level.terrainFeatures.length; i++) {
+					if (level.terrainFeatures[i] === "rainbow") {
+						let rainbowSize = 100;
+						this.drawImage(this.getTexture("rainbow"), (i - cameraX) * blockSize, (level.rows[i] + rainbowSize / 2 - cameraY) * -blockSize, blockSize * rainbowSize, blockSize * rainbowSize, 0, 0, 1, 1);
+					} else if (level.terrainFeatures[i] === "tree1") {
+						this.drawImage(this.getTexture("tree1"), (i - 2.5 - cameraX) * blockSize, (level.rows[i] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1);
+					};
+				};
+
+				// grass
+				let rowBuffer = range(Math.floor(cameraX), Math.floor(cameraX + canvas.width / blockSize));
+				for (let i = 0; i < rowBuffer.length; i++) {
+					//let layer = getLayer(level.rows[rowBuffer[i]]);
+					//let ice = (layer === 9) && Math.round((level.rows[rowBuffer[i]] - 900) * 1000) / 1000 <= Math.round((level.originalRows[rowBuffer[i]] - 900) * 0.9 * 1000) / 1000;
+					//let groundImage = ice ? images.packedSnow : layers[getLayer(level.rows[rowBuffer[i]])][0];
+					//let blockUVSize = groundImage.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
+					let rowY = (getRowY(level.rows, rowBuffer[i]) - cameraY) * -blockSize;
+					let groundUVSize = 25;
+					if (rowY < canvas.height) {
+						this.drawImage(this.getTexture(layers[getLayer(getRowY(level.rows, rowBuffer[i]))][0]), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
+					};
+					let gradient = darknessCtx.createLinearGradient(0, rowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize, 0, (rowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize) + blockSize * 15);
+					gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+					gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+					darknessCtx.fillStyle = gradient;
+					darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, rowY, blockSize + 0.1, canvas.height - rowY)
+					
+					if (rowBuffer[i] >= 0 && rowBuffer[i] < level.rows.length) {
+						switch (level.features[rowBuffer[i]]) {
+							case 0:
+								break;
+							case 1:
+								this.drawImage(this.getTexture("coin"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								break;
+							case 2:
+								this.drawImage(this.getTexture("gem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								break;
+							case 3:
+								this.drawImage(this.getTexture("ladder"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 4, blockSize, blockSize * 4);
+								break;
+							case 4:
+								this.drawImage(this.getTexture("ladder"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 6, blockSize, blockSize * 6);
+								break;
+							case 5:
+								this.drawImage(this.getTexture("stones"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 5, blockSize, blockSize * 5);
+								break;
+							case 6:
+								this.drawImage(this.getTexture("mysteryCrate"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								break;
+							case 7:
+								this.drawImage(this.getTexture("sentryBarracks"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 3, blockSize, blockSize * 3);
+								break;
+							case 8:
+								this.drawImage(this.getTexture("sentryBarracks"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 3, blockSize, blockSize * 3);
+								break;
+							case 9:
+								this.drawImage(this.getTexture("pitfall"), (rowBuffer[i] - cameraX) * blockSize, rowY, blockSize, blockSize * 0.5);
+								break;
+							case 10:
+								this.drawImage(this.getTexture("dybbukBox"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								break;
+							case 11:
+								this.drawImage(this.getTexture("dybbukBoxOpen"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								break;
+							case 12:
+								this.drawImage(this.getTexture("totem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								break;
+							case 13:
+								this.drawImage(this.getTexture("fourLeafClover"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								break;
+							case 14:
+								this.drawImage(this.getTexture("potOfGold"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								break;
+							case 15:
+								this.drawImage(this.getTexture("burlapSack"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								break;
+							case 16:
+								this.drawImage(this.getTexture("ruinedObelisk"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 4, blockSize, blockSize * 4);
+								break;
+							case 17:
+								this.drawImage(this.getTexture("timeMachine"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 2, blockSize, blockSize * 2);
+								break;
+							case 18:
+								this.drawImage(this.getTexture("trampoline"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								break;
+							default:
+								this.drawImage(this.getTexture("error"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+						};
+						let featureEntity = level.featureEntities[rowBuffer[i]];
+						if (featureEntity) {
+							switch (featureEntity.type) {
+								case "obelisk":
+									this.drawImage(this.getTexture("obelisk"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 4 - featureEntity.yOffset * blockSize, blockSize, blockSize * 4 - featureEntity.yOffset * -blockSize, 0.43, 0.1, 0.15, (1 + featureEntity.yOffset / 4) * 0.7);
+									break;
+								case "scaffolding":
+									this.drawImage(this.getTexture("scaffolding"), (rowBuffer[i] - cameraX) * blockSize, rowY - featureEntity.height * blockSize, blockSize, featureEntity.height * blockSize);
+									break;
+								default:
+									this.drawImage(this.getTexture("error"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+							};
+						};
+						let golem = level.golems[rowBuffer[i]];
+						if (golem) {
+							switch (golem.type) {
+								case "golem":
+									this.drawImage(this.getTexture("golem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 3 - golem.yOffset * blockSize, blockSize, blockSize * 3 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 3));
+									break;
+								case "russet golem":
+									this.drawImage(this.getTexture("russetGolem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 6 - golem.yOffset * blockSize, blockSize, blockSize * 6 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 6));
+									break;
+								case "aqua golem":
+									this.drawImage(this.getTexture("aquaGolem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 9 - golem.yOffset * blockSize, blockSize, blockSize * 9 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 9));
+									break;
+								case "mecha golem":
+									this.drawImage(this.getTexture("mechaGolem"), (rowBuffer[i] - 1 - cameraX) * blockSize, rowY - blockSize * 12 - golem.yOffset * blockSize, blockSize * 3, blockSize * 12 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 12));
+									break;
+								case "celestial golem":
+									this.drawImage(this.getTexture("celestialGolem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 100 - golem.yOffset * blockSize, blockSize, blockSize * 100 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 100));
+									break;
+							};
+						};/*
+						ctx.fillStyle = "white";
+						ctx.font = "15px arial";
+						ctx.fillText(level.labels[rowBuffer[i]], rowBuffer[i] * blockSize - cameraX, canvas.height / 2);*/
+					};
+				};
+				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV <= 0 ? "guyFalling" : "guyJumping"))));
+				this.drawImage(this.getTexture(document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
+				if (dybbukTime > 0) {
+					this.drawImage(this.getTexture("dybbuk"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
+				};
+				let grimReaperX = lerp(playerX - 1, playerX - 100, health / maxHealth);
+				this.drawImage(this.getTexture("grimReaper"), (grimReaperX - 0.5 - cameraX) * blockSize, (level.rows[getHittableRows(grimReaperX).reduce((a, b) => level.rows[a] > level.rows[b] ? a : b)] + 3 - cameraY) * -blockSize, blockSize, blockSize * 3);
+
+				for (let mob of level.mobs) {
+					if ((mob.x + 0.5 - cameraX) * blockSize > 0 && (mob.x - 0.5 - cameraX) * blockSize < canvas.width) {
+						switch (mob.type) {
+							case "sentry":
+								if (mob.age >= 120) {
+									this.drawImage(this.getTexture("sentry"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4);
+								};
+								break;
+							case "mimic":
+								if (mob.mimicking) {
+									switch (mob.mimicTarget) {
+										case "coin":
+											this.drawImage(this.getTexture("coin"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1 - cameraY) * -blockSize, blockSize, blockSize);
+											break;
+										case "gem":
+											this.drawImage(this.getTexture("gem"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1 - cameraY) * -blockSize, blockSize, blockSize);
+											break;
+										default:
+											this.drawImage(this.getTexture("error"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1 - cameraY) * -blockSize, blockSize, blockSize);
+									};
+								} else {
+									switch (Math.sign(Math.round(playerXV * 1000) / 1000)) {
+										case -1:
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4);
+											break;
+										case 0:
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4);
+											break;
+										case 1:
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4);
+									};
+								};
+								break;
+							case "leprechaun":
+								this.drawImage(this.getTexture("leprechaun"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y - 1.5 - cameraY) * -blockSize, blockSize, blockSize * 1.5);
+								break;
+							default:
+								this.drawImage(this.getTexture("error"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y - 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
+						};
+					};
+				};
+				for (let i = 0; i < rowBuffer.length; i++) {
+					if (level.waterLevel[rowBuffer[i]] > 0) {
+						let waveOffset = Math.max(Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25, -level.waterLevel[rowBuffer[i]]);
+						let waterUVSize = 25;
+						let waterY = (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset - cameraY) * -blockSize;
+						let waterHeight = Math.min((level.rows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.max(waterY, 0));
+
+						if (waterY < canvas.height) {
+							//this.drawImage(this.getTexture(layers[getLayer(getRowY(level.rows, rowBuffer[i]))][0]), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
+							this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, ((Math.max(waterY, 0) - waterY) / blockSize - level.waterLevel[rowBuffer[i]]) / waterUVSize + (level.rows[rowBuffer[i]] - cameraY * blockSize / waterUVSize), 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize);
+						};
+
+						let gradient = darknessCtx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
+						gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
+						gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+						darknessCtx.fillStyle = gradient;
+						darknessCtx.fillRect(rowBuffer[i] * blockSize - cameraX, waterY, blockSize, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
+					};
+				};
+				let darknessOpacity = (Math.max(Math.sin((gameTime - 300) / (300 / Math.PI)), 0) ** 2);
+				darknessCtx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.95, darknessOpacity)) + ")";
+				darknessCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+				/*if (timeTraveling) {
+					ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+					ctx.fillRect(0, (gameTime * 300) % canvas.height, canvas.width, 1);
+					ctx.fillStyle = "black";
+					ctx.fillRect(Math.random() * canvas.width, 0, 1, canvas.height);
+					let howManyNoises = 500;
+					let noiseBrightness = Math.random() * 255;
+					ctx.fillStyle = "rgb(" + noiseBrightness + ", " + noiseBrightness + ", " + noiseBrightness + ")";
+					for (let i = 0; i < howManyNoises; i++) {
+						ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() + 1, Math.random() + 1);
+					};
+				};
+
+				ctx.globalAlpha = clamp(1 - (health / maxHealth) / 0.1, 0, 1);
+				images.blood.draw(0, 0, canvas.width, canvas.height);
+				ctx.globalAlpha = 1;*/
+
+				darknessCtx.beginPath();
+				let circleLightX = playerX * blockSize - cameraX;
+				let circleLightY = (playerY + 1) * -blockSize - cameraY;
+				let gradient = darknessCtx.createRadialGradient(circleLightX, circleLightY, 0, circleLightX, circleLightY, blockSize * 2);
+				gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+				gradient.addColorStop(0.5, "rgba(0, 0, 0, 0.5)");
+				darknessCtx.fillStyle = gradient;
+				darknessCtx.save();
+				darknessCtx.arc(playerX * blockSize - cameraX, (playerY + 1) * -blockSize - cameraY, blockSize * 2, 0, Math.PI * 2);
+				darknessCtx.globalCompositeOperation = "destination-out";
+				darknessCtx.fill();
+				darknessCtx.restore();/*
+
+				ctx.font = "30px arial";
+				ctx.fillStyle = "yellow";
+				if (facasd) {
+					ctx.fillText("Marina silva is a brazilian politician and an activist for deforestation and other things.", 0, 300);
+					ctx.fillText("She was a rubber tapper and found that land was being invaded by rubber tappers and she", 0, 325);
+					ctx.fillText("started protecting thousands of hectares of land.", 0, 350);
+				};
+				canvas.style.filter = ((playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && !divingSuit) ? "blur(5px) " : "") + (timeTraveling ? ("sepia(100%) brightness(" + (Math.random() * 0.1 + (1 - 0.1 / 2)) + ") ") : "");
+				if (dead) {
+					let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+					gradient.addColorStop(0, "red");
+					gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+					ctx.fillStyle = gradient;
+					ctx.fillRect(0, 0, canvas.width, canvas.height);
+					ctx.font = "100px arial";
+					ctx.fillStyle = "red";
+					ctx.fillText("you died", 200, 200);
+				};*/
 			};
 		};
+		const renderer = new WebGLRenderer();
 
 		var keysDown = [];
 		function isDown(key) {
 			return keysDown[key] ?? false;
 		};
-		class CanvasImage {
-			constructor(color, src) {
-				this.image = new Image();
-				//this.image.crossOrigin = "anonymous";
-				this.width = 500;
-				this.height = 500;
-				this.url = src;
-				this.loaded = false;
-				this.color = color;
-				let canvasimagething = this;
-				this.image.onload = function() {
-					canvasimagething.loaded = true;
-					canvasimagething.width = this.width;
-					canvasimagething.height = this.height;
-					imagesLoaded++;
-				};
-			};
-			draw(sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
-				if (this.image.src !== this.url) {
-					this.image.src = this.url;
-				};
-				ctx.fillStyle = this.color ?? "rgb(255, 0, 255)";
-				if (arguments.length === 2) {
-					if (this.loaded) {
-						ctx.drawImage(this.image, arguments[0], arguments[1]);
-					} else {
-						ctx.fillRect(arguments[0], arguments[1], blockSize, blockSize);
-					};
-				} else if (arguments.length === 4) {
-					if (this.loaded) {
-						ctx.drawImage(this.image, arguments[0], arguments[1], arguments[2], arguments[3]);
-					} else {
-						ctx.fillRect(arguments[0], arguments[1], arguments[2], arguments[3]);
-					};
-				} else if (arguments.length === 8) {
-					if (this.loaded) {
-						ctx.drawImage(this.image, arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5], arguments[6], arguments[7]);
-					} else {
-						ctx.fillRect(arguments[4], arguments[5], arguments[6], arguments[7]);
-					};
-				} else {
-					throw new TypeError("image draw 2 4 or 8 things");
-				};
-			};
+		function cot(x) {
+			return 1 / Math.tan(x);
 		};
 		class Joystick {
 			constructor(element) {
@@ -363,10 +858,31 @@
 					let rect = this.element.getBoundingClientRect();
 					let xy = this.coordinates(rect.x, rect.y);
 					if (this.isMouseDown) {
-						this.angle = Math.atan2(coords[0], coords[1]) * 180 / Math.PI;
+						this.angle = Math.atan2(coords[0], coords[1]);
 						this.strength = clamp(Math.sqrt((coords[0] - (xy[0] + rect.width / 2)) ** 2 + (coords[1] - (xy[1] + rect.height / 2)) ** 2) / 100, 0, 1);
 					};
 					this.updateCircle();
+				};
+			};
+			getAmplitudes() {
+				let x = clamp(Math.tan(this.angle), -1, 1);
+				let y = clamp(cot(this.angle), -1, 1);
+				if (this.angle > -Math.PI && this.angle < -Math.PI / 2) {
+					x *= -1;
+					gems = 0;
+				};
+				if (this.angle > Math.PI / 2 && this.angle < Math.PI) {
+					x *= -1;
+					y *= -1;
+					gems = 1
+				};
+				if (this.angle > 0 && this.angle < Math.PI / 2) {
+					y *= -1;
+					gems = 3;
+				};
+				return {
+					"x": x * this.strength,
+					"y": y * this.strength
 				};
 			};
 			mouseUp(e) {
@@ -394,7 +910,7 @@
 				return [x - (rect.x + rect.width / 2), y - (rect.y + rect.height / 2)];
 			};
 			updateCircle() {
-				document.getElementById("circle-thing").style.transform = "translate(" + (Math.sin(this.angle * Math.PI / 180) * this.strength * 100) + "px, " + (Math.cos(this.angle * Math.PI / 180) * this.strength * 100) + "px)";
+				document.getElementById("circle-thing").style.transform = "translate(" + (Math.sin(this.angle) * this.strength * 100) + "px, " + (Math.cos(this.angle) * this.strength * 100) + "px)";
 			};
 		};
 		Math.mod = function(a, b) {
@@ -403,112 +919,51 @@
 		Array.prototype.random = function() {
 			return this[Math.floor(Math.random() * this.length)];
 		};
+		Array.prototype.mean = function() {
+			return this.reduce((a, b) => a + b, 0) / this.length;
+		};
 
-		var blockSize = 50;
-		var playerX = 1.5;
+		var playerX = 0.5;
 		var playerY = 0;
 		var playerXV = 0;
 		var playerYV = 0;
-		var cameraX = playerX * blockSize - (canvas.width / 2);
-		var cameraY = (playerY + 1) * -blockSize - (canvas.height / 2);
+		var cameraX = playerX - (canvas.width / 2);
+		var cameraY = (playerY + 1) - (canvas.height / 2);
+		var cameraPanX = 0;
+		var cameraPanY = 0;
+		var cameraSnapPending = true;
 		var onGround = false;
-		var seeds = [];
-		var imagesLoaded = 0;
-		var images = {
-			guy: new CanvasImage("rgb(255, 255, 255)", "https://t4.ftcdn.net/jpg/01/73/40/15/360_F_173401516_HH7aV0os9LEum5ayYNrtoovV1jYrt561.jpg"),
-			skyDay: new CanvasImage("rgb(200, 200, 255)", "https://media.hswstatic.com/eyJidWNrZXQiOiJjb250ZW50Lmhzd3N0YXRpYy5jb20iLCJrZXkiOiJnaWZcL3doeS1pcy1za3ktYmx1ZS5qcGciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjgyOH19fQ=="),
-			grass: new CanvasImage("rgb(0, 200, 0)", "https://images.pexels.com/photos/413195/pexels-photo-413195.jpeg?cs=srgb&dl=pexels-pixmike-413195.jpg&fm=jpg"),
-			hills: new CanvasImage("rgb(0, 150, 0)", "https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Chocolate_Hills_overview.JPG/1200px-Chocolate_Hills_overview.JPG"),
-			ice: new CanvasImage("rgb(220, 220, 255)", "https://media.istockphoto.com/id/466513257/photo/image-of-light-blue-ice-design.jpg?s=612x612&w=0&k=20&c=tkgdD6LDAjjDL-J_OCc2tkN924FLtjvgSeQWgVBY5-Y="),
-			snow: new CanvasImage("rgb(250, 250, 250)", "https://t4.ftcdn.net/jpg/00/73/39/95/360_F_73399559_6z3WIVyR5fPvXAW96ZFG1RBHsz6qVn4R.jpg"),
-			dirt: new CanvasImage("rgb(128, 128, 0)", "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Dirt.JPG/640px-Dirt.JPG"),
-			stones: new CanvasImage("rgb(200, 200, 200)", "https://d3mvlb3hz2g78.cloudfront.net/wp-content/uploads/2016/01/thumb_720_450_f_28.jpg"),
-			stone: new CanvasImage("rgb(140, 140, 140)", "https://media.istockphoto.com/photos/light-grey-black-slate-stone-background-or-texture-picture-id1164746310?b=1&k=20&m=1164746310&s=612x612&w=0&h=nj0fWpCXBGNXhcUuWhXIF3HmcZiXMagkQ-DyPHAXLiw="),
-			darkStone: new  CanvasImage("rgb(80, 80, 80)", "https://media.istockphoto.com/id/1136387527/photo/black-gray-grunge-background-dirty-concrete-wall-stucco-vintage-rock-texture-ombre-dark-stone.jpg?b=1&s=170667a&w=0&k=20&c=iUFh6s42MVX40KVd7bmkfcPHtMjYvqNsVndFQ2dMFWY="),
-			stoneBackground: new CanvasImage("rgb(100, 100, 100)", "https://img.freepik.com/premium-photo/cave-wall-background_181627-531.jpg?w=2000"),
-			packedSnow: new CanvasImage("rgb(120, 120, 150)", "https://thumbs.dreamstime.com/b/snow-surface-full-frame-background-texture-pattern-14970280.jpg"),
-			magma: new CanvasImage("rgb(180, 70, 70)", "https://media.wired.co.uk/photos/606da0c989f3babb1f0133fb/master/w_1600%2Cc_limit/Lava.jpg"),
-			lava: new CanvasImage("rgb(220, 0, 0)", "https://3docean.img.customer.envatousercontent.com/files/371574722/Image+Preview.jpg?auto=compress%2Cformat&fit=crop&crop=top&w=590&h=590&s=dc0fcc220b7f9d9b06eedf277f6f0844"),
-			coin: new CanvasImage("rgb(255, 255, 0)", "https://m.media-amazon.com/images/I/51VLhMGtaTL._AC_SY1000_.jpg"),
-			gem: new CanvasImage("rgb(150, 150, 255)", "https://cdn.britannica.com/78/170778-131-D35E060F/Reflections-diamond.jpg"),
-			mysteryCrate: new CanvasImage("rgb(200, 200, 0)", "https://thumbs.dreamstime.com/b/crate-question-10722232.jpg"),
-			ladder: new CanvasImage("rgb(200, 200, 160)", "https://m.media-amazon.com/images/I/71l4pWDxfTL.jpg"),
-			guyJumping: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/young-businessman-jumping-excitement-full-length-shot-isolated-white-background-156089211.jpg"),
-			guyRunning: new CanvasImage("rgb(255, 255, 255)", "https://d2gg9evh47fn9z.cloudfront.net/800px_COLOURBOX3059374.jpg"),
-			guyClimbingLadder: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/businessman-climbing-ladder-8490148.jpg"),
-			guyFalling: new CanvasImage("rgb(255, 255, 255)", "https://media.istockphoto.com/id/1297454782/photo/businessman-falling-down-isolated.jpg?s=612x612&w=0&k=20&c=UwgYtYVhktnHcYOHovzWOD3oZT1JNrguZcl5cQCKEGw="),
-			guyDead: new CanvasImage("rgb(255, 200, 200)", "https://as1.ftcdn.net/v2/jpg/00/47/51/36/1000_F_47513651_NvfOZ1VY0YQwXriVuQKDCE6XLueitq57.jpg"),
-			guyFlying: new CanvasImage("rgb(255, 255, 255)", "https://thumbs.dreamstime.com/b/flying-businessman-happy-high-isolated-white-37045715.jpg"),
-			sentry: new CanvasImage("rgb(15, 15, 15)", "https://forums.rpgmakerweb.com/data/attachments/182/182633-4abbd801946b4603beb05c7c7c9e81a2.jpg"),
-			sentryBarracks: new CanvasImage("rgb(170, 200, 170)", "https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/abandoned-shack-in-woods-douglas-barnett.jpg"),
-			pitfall: new CanvasImage("128, 128, 50", "https://content.instructables.com/FJL/5NV5/FV4LSDNT/FJL5NV5FV4LSDNT.jpg?auto=webp&fit=bounds&frame=1"),
-			skyNight: new CanvasImage("rgb(0, 0, 0)", "https://images.unsplash.com/photo-1528818955841-a7f1425131b5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8NHx8c3RhcnJ5JTIwc2t5fGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
-			moon: new CanvasImage("rgb(70, 170, 170)", "https://bigthink.com/wp-content/uploads/2020/10/origin-26.jpg"),
-			ironNickelAlloy: new CanvasImage("rgb(210, 210, 210)", "https://cdn.openpr.com/R/b/Rb1218790_g.jpg"),
-			mimic: new CanvasImage("rgb(240, 240, 240)", "https://www.halloweenforum.com/attachments/large-jpg.524714/"),
-			error: new CanvasImage("rgb(255, 0, 255)", "https://proofthatblog.com/wp-content/uploads/2013/06/question-mark.jpg"),
-			dybbuk: new CanvasImage("rgb(246, 223, 198)", "https://m.media-amazon.com/images/I/71lrPEdwT3L.jpg"),
-			dybbukBox: new CanvasImage("rgb(212, 80, 56)", "https://travel.home.sndimg.com/content/dam/images/travel/fullrights/2016/03/29/0/TPOS101H_215929_761477.1304868.jpg.rend.hgtvcom.616.462.suffix/1491593805712.jpeg"),
-			dybbukBoxOpen: new CanvasImage("rgb(202, 70, 46)", "https://i0.wp.com/bloody-disgusting.com/wp-content/uploads/2012/04/dybbuk-box.jpg"),
-			golem: new CanvasImage("rgb(150, 150, 10)", "https://upload.wikimedia.org/wikipedia/commons/9/9f/Prague-golem-reproduction.jpg"),
-			russetGolem: new CanvasImage("rgb(200, 150, 10)", "https://i.etsystatic.com/25674007/r/il/edaabf/2662111538/il_570xN.2662111538_kdmy.jpg"),
-			totem: new CanvasImage("rgb(180, 180, 20)", "https://m.media-amazon.com/images/I/41yYu0ji5GL._AC_SX466_.jpg"),
-			obelisk: new CanvasImage("rgb(30, 30, 120)", "https://cdnb.artstation.com/p/assets/images/images/029/560/119/large/julia-eriksson-rezle-juliaerikssonpillar.jpg?1597936831"),
-			mars: new CanvasImage("rgb(190, 50, 50)", "https://assets.newatlas.com/dims4/default/a1ac999/2147483647/strip/true/crop/1920x1080+0+0/resize/1920x1080!/quality/90/?url=http%3A%2F%2Fnewatlas-brightspot.s3.amazonaws.com%2Farchive%2Fmars-rivers-2.jpg"),
-			jupiter: new CanvasImage("rgb(200, 270, 20)", "https://thumbs.dreamstime.com/b/texture-surface-jupiter-elements-image-furnished-nasa-152406745.jpg"),
-			saturn: new CanvasImage("rgb(200, 200, 150)", "https://www.solarsystemscope.com/textures/download/8k_saturn.jpg"),
-			fourLeafClover: new CanvasImage("rgb(0, 210, 0)", "https://iadsb.tmgrup.com.tr/1b9d78/1200/627/0/133/1800/1074?u=https://idsb.tmgrup.com.tr/2019/06/30/superstitions-busted-four-leaf-clover-1561926823637.jpg"),
-			leprechaun: new CanvasImage("rgb(100, 255, 100)", "https://upload.wikimedia.org/wikipedia/commons/0/0b/Leprechaun_ill_artlibre_jnl.png"),
-			rainbow: new CanvasImage("rgb(100, 100, 100)", "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Rainbow_Circle.svg/2040px-Rainbow_Circle.svg.png"),
-			potOfGold: new CanvasImage("rgb(200, 200, 0)", "https://cdn5.vectorstock.com/i/1000x1000/74/44/green-full-pot-with-gold-coins-pot-with-four-leaf-vector-19727444.jpg"),
-			aquaGolem: new CanvasImage("rgb(100, 100, 255)", "https://m.media-amazon.com/images/I/51o2o3s46sL._AC_UF894,1000_QL80_.jpg"),
-			grimReaper: new CanvasImage("rgb(15, 15, 15)", "https://m.media-amazon.com/images/I/617-+DaGNBL._AC_SL1500_.jpg"),
-			blood: new CanvasImage("rgb(255, 0, 0)", "https://cdn140.picsart.com/301576808315211.png"),
-			burlapSack: new CanvasImage("rgb(160, 170, 20)", "https://m.media-amazon.com/images/I/510LO2c-5gL._AC_.jpg"),
-			mechaGolem: new CanvasImage("rgb(210, 210, 210)", "https://www.guinnessworldrecords.com/Images/largest-humanoid-vehicle_tcm25-589034.jpg"),
-			ruinedObelisk: new CanvasImage("rgb(50, 200, 50)", "https://c8.alamy.com/comp/EAXY7G/a-viking-rune-stone-is-seen-in-the-swedish-countryside-outside-of-EAXY7G.jpg"),
-			saturn: new CanvasImage("rgb(90, 200, 50)", "https://www.solarsystemscope.com/textures/download/2k_saturn.jpg"),
-			uranus: new CanvasImage("rgb(0, 255, 255)", "https://planet-texture-maps.fandom.com/wiki/Special:FilePath/Dh_uranus_texture.png"),
-			neptune: new CanvasImage("rgb(0, 0, 255)", "https://www.solarsystemscope.com/textures/download/2k_neptune.jpg"),
-			water: new CanvasImage("rgb(0, 0, 255)", "https://images.unsplash.com/photo-1476897017502-219c9169bd6f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8d2F0ZXIlMjB0ZXh0dXJlfGVufDB8fDB8fA%3D%3D&w=1000&q=80"),
-			venus: new CanvasImage("rgb(255, 220, 0)", "https://www.solarsystemscope.com/textures/download/2k_venus_surface.jpg"),
-			mercury: new CanvasImage("rgb(200, 200, 200)", "https://www.solarsystemscope.com/textures/download/2k_mercury.jpg"),
-			sun: new CanvasImage("rgb(255, 200, 150)", "https://www.solarsystemscope.com/textures/download/2k_sun.jpg"),
-			mountain: new CanvasImage("rgb(200, 200, 200)", "https://upload.wikimedia.org/wikipedia/commons/e/e7/Everest_North_Face_toward_Base_Camp_Tibet_Luca_Galuzzi_2006.jpg"),
-			scaffolding: new CanvasImage("rgb(50, 50, 50)", "https://m.media-amazon.com/images/I/61+Fb8M51bL.jpg"),
-			celestialGolem: new CanvasImage("rgb(0, 0, 0)", "https://storage.googleapis.com/dream-machines-output/9d39f43b-4c34-4b78-b2d1-a86da1519af1/0_0.png")
-		};
 		var layers = {
-			"-13": [images.sun, 0.07, -0.03],
-			"-12": [images.mercury, 0.35, -0.012],
-			"-11": [images.venus, 0.3, -0.01],
-			"-10": [images.ice, 0.03, -0.012],
-			"-9": [images.mountain, 0.1, -0.012],
-			"-8": [images.stone, 0.35, -0.012],
-			"-7": [images.grass, 0.35, -0.012],
-			"-6": [images.dirt, 0.2, -0.012],
-			"-5": [images.stones, 0.25, -0.012],
-			"-4": [images.stone, 0.3, -0.012],
-			"-3": [images.darkStone, 0.35, -0.012],
-			"-2": [images.magma, 0.23, -0.012],
-			"-1": [images.lava, 0.1, -0.012],
-			"0": [images.ironNickelAlloy, 0.14, -0.012],
-			"1": [images.lava, 0.1, -0.012],
-			"2": [images.magma, 0.23, -0.012],
-			"3": [images.darkStone, 0.35, -0.012],
-			"4": [images.stone, 0.3, -0.012],
-			"5": [images.stones, 0.25, -0.012],
-			"6": [images.dirt, 0.2, -0.012],
-			"7": [images.grass, 0.35, -0.012],
-			"8": [images.stone, 0.35, -0.012],
-			"9": [images.snow, 0.12, -0.012],
-			"10": [images.ice, 0.03, -0.012],
-			"11": [images.moon, 0.3, -0.007],
-			"12": [images.mars, 0.25, -0.009],
-			"13": [images.jupiter, 0.07, -0.0175],
-			"14": [images.saturn, 0.07, -0.016],
-			"15": [images.uranus, 0.07, -0.013],
-			"16": [images.neptune, 0.07, -0.014]
+			"-13": ["sun", 0.07, -0.0175],
+			"-12": ["mercury", 0.35, -0.012],
+			"-11": ["venus", 0.3, -0.01],
+			"-10": ["ice", 0.03, -0.012],
+			"-9": ["mountain", 0.1, -0.012],
+			"-8": ["stone", 0.35, -0.012],
+			"-7": ["grass", 0.35, -0.012],
+			"-6": ["dirt", 0.2, -0.012],
+			"-5": ["stones", 0.25, -0.012],
+			"-4": ["stone", 0.3, -0.012],
+			"-3": ["darkStone", 0.35, -0.012],
+			"-2": ["magma", 0.23, -0.012],
+			"-1": ["lava", 0.1, -0.012],
+			"0": ["ironNickelAlloy", 0.14, -0.012],
+			"1": ["lava", 0.1, -0.012],
+			"2": ["magma", 0.23, -0.012],
+			"3": ["darkStone", 0.35, -0.012],
+			"4": ["stone", 0.3, -0.012],
+			"5": ["stones", 0.25, -0.012],
+			"6": ["dirt", 0.2, -0.012],
+			"7": ["grass", 0.35, -0.012],
+			"8": ["stone", 0.35, -0.012],
+			"9": ["snow", 0.12, -0.012],
+			"10": ["ice", 0.03, -0.012],
+			"11": ["moon", 0.3, -0.007],
+			"12": ["mars", 0.25, -0.009],
+			"13": ["jupiter", 0.07, -0.0175],
+			"14": ["saturn", 0.07, -0.016],
+			"15": ["uranus", 0.07, -0.013],
+			"16": ["neptune", 0.07, -0.014]
 		};
 		var level = {
 			rows: [],
@@ -520,7 +975,8 @@
 			terrainFeatures: [],
 			waterLevel: [],
 			golems: [],
-			perlinOffset: 0
+			perlinOffset: 0,
+			labels: []
 		};
 		var coins = 0;
 		var gems = 0;
@@ -531,7 +987,7 @@
 		var facasd = false;
 		var shop = false;
 		var bootses = {
-			"sketchers": {bought: true, cost: 0},
+			"hondas": {bought: true, cost: 0},
 			"tennis rackets": {bought: false, cost: 30},
 			"running shoes": {bought: false, cost: 60},
 			"spring boots": {bought: false, cost: 90},
@@ -541,7 +997,7 @@
 			"magnet boots": {bought: false, cost: 170}
 		};
 		var foods = {
-			"government meal": {cost: 1, hunger: 0.019, howmany: 0},
+			"government meal": {cost: 1, hunger: 0.01, howmany: 0},
 			"apple": {cost: 5, hunger: 0.1, howmany: 0},
 			"bread": {cost: 10, hunger: 0.2, howmany: 0},
 			"burger": {cost: 14, hunger: 0.3, howmany: 0},
@@ -569,7 +1025,7 @@
 			"anti gravity potion": {cost: 10, time: 0, duration: 10, howmany: 0},
 			"bird potion": {cost: 12, time: 0, duration: 10, howmany: 0}
 		};
-		var boots = "sketchers";
+		var boots = "hondas";
 		var health = 1;
 		var dead = false;
 		var ladders = 0;
@@ -593,9 +1049,6 @@
 		var notificationTime = 0;
 		var gameTime = 0;
 		var developerMode = false;
-		var macro = [];
-		var macroTime = 0;
-		var macroPlaying = false;
 		var dybbukTime = 0;
 		var crouching = false;
 		var obeliskShop = false;
@@ -610,7 +1063,7 @@
 				height: 3,
 				riseSpeed: 0.01,
 				sinkSpeed: -0.01,
-				image: images.golem,
+				image: "golem",
 				spawnOffset: 35
 			},
 			"russet golem": {
@@ -618,7 +1071,7 @@
 				height: 6,
 				riseSpeed: 0.008,
 				sinkSpeed: -0.01,
-				image: images.russetGolem,
+				image: "russetGolem",
 				spawnOffset: 35
 			},
 			"aqua golem": {
@@ -626,7 +1079,7 @@
 				height: 9,
 				riseSpeed: 0.005,
 				sinkSpeed: -0.005,
-				image: images.aquaGolem,
+				image: "russetGolem",
 				spawnOffset: 35
 			},
 			"mecha golem": {
@@ -634,7 +1087,7 @@
 				height: 12,
 				riseSpeed: 0.01,
 				sinkSpeed: -0.01,
-				image: images.mechaGolem,
+				image: "mechaGolem",
 				spawnOffset: 35
 			},
 			"celestial golem": {
@@ -642,13 +1095,21 @@
 				height: 100,
 				riseSpeed: 1,
 				sinkSpeed: -1,
-				image: images.celestialGolem,
+				image: "celestialGolem",
 				spawnOffset: 35
 			}
 		};
 		var hackerConsole = false;
 		var baseStepHeight = 0.5;
 		var oxygen = 1;
+		var playing = false;
+		var timeTraveling = false;
+		var trampolines = 0;
+		var divingSuit = false;
+		var oldGamePadMenuButtonPressed = false;
+		var oldGamePadAButtonPressed = false;
+		var cursorX = 0;
+		var cursorY = 0;
 
 		for (let i = 0; i < 25; i++) {
 			level.octaves.push(perlinNoise1D());
@@ -676,13 +1137,24 @@
 			};
 
 			// round stuff and coins n gems
-			for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk
-				level.rows[i] = Math.round(level.rows[i]);
-				if (Math.random() < 1 / 5 && level.rows[i - 25] >= level.rows[i] && level.rows[i + 25] >= level.rows[i] && level.rows[i - 26] > level.rows[i - 25] && level.rows[i + 26] > level.rows[i + 25]) {
-					level.waterLevel[i] = Math.floor(Math.random() * (Math.min(level.rows[i - 25], level.rows[i + 25]) - level.rows[i]));
-				} else {
-					level.waterLevel[i] = 0;
+			for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline
+				level.waterLevel[i] = 0;
+				level.labels[i] = "0";
+				if (i === 300000000) {
+					let trenchDepth = 100;
+					let trenchWidth = 19;
+					for (let j = -trenchWidth; j <= trenchWidth; j++) {
+						if (i + j < level.rows.length && i + j >= 0) {
+							let heightOffset = trenchDepth * (Math.sin((Math.PI / trenchWidth) * j + 1.5 * Math.PI) / 2 - 0.5);
+							level.labels[i + j] = Math.random();
+							level.rows[i + j] += heightOffset;
+							level.waterLevel[i + j] = -heightOffset;
+							//alert((i + j) + " " + heightOffset);
+						};
+					};
+					//level.waterLevel[i] = (trenchDepth * (trenchWidth * 2 + 1)) / 2;
 				};
+				level.rows[i] = Math.round(level.rows[i]);
 				let pool = [];
 				if (Math.random() < 1 / 20) pool.push(1);
 				if (Math.random() < 1 / 200) pool.push(2);
@@ -694,27 +1166,31 @@
 				if (Math.random() < 1 / 25000) pool.push(13);
 				if (Math.random() < 1 / 4000) pool.push(15);
 				if (Math.random() < 1 / 20000) pool.push(16);
+				if (Math.random() < 1 / 20.000) pool.push(17);
 				if (Math.random() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
 				level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
 
-				if (Math.random() < 1 / 3000) {
+				if (Math.random() < 1 / 5000) {
 					placeGolem("golem", i, false);
 				};
-				if (Math.random() < 1 / 8000) {
+				if (Math.random() < 1 / 10000) {
 					placeGolem("russet golem", i, false);
 				};
-				if (Math.random() < 1 / 10000) {
+				if (Math.random() < 1 / 12000) {
 					placeGolem("aqua golem", i, false);
 				};
-				if (Math.random() < 1 / 15000) {
+				if (Math.random() < 1 / 17000) {
 					placeGolem("mecha golem", i, false);
 				};
-				if (Math.random() < 1 / 40000) {
+				if (Math.random() < 1 / 52000) {
 					placeGolem("celestial golem", i, false);
 				};
 
 				if (Math.random() < 1 / 5000) {
 					spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
+				};
+				if (Math.random() < 1 / 3000) {
+					level.terrainFeatures[i] = "tree1";
 				};
 				if (Math.random() < 1 / 4212133121320.00) {
 					level.terrainFeatures[i] = "rainbow";
@@ -723,7 +1199,7 @@
 			level.originalRows = [...level.rows];
 		};
 		generateLevel();
-		playerY = level.rows[1];
+		playerY = level.rows[0];
 		function getHittableRows(x) {
 			hittableRows = [];
 			if (Math.mod(x, 1) < 0.5) {
@@ -749,10 +1225,10 @@
 		};
 
 		function perlinNoise1D() {
-			let MAX_VERTICES = 32;
+			let MAX_VERTICES = 1024;
 			let r = [];
 			for (let i = 0; i < MAX_VERTICES; ++i) {
-				r.push(Math.random()); // mulberry32(i + 100));
+				r.push(Math.random());
 			};
 			return {MAX_VERTICES, r};
 		};
@@ -772,6 +1248,7 @@
 		function shopButton() {
 			if (shop = !shop) {
 				document.getElementById("shop").style.display = "block";
+				document.getElementById("save-slot-selector").focus();
 			} else {
 				document.getElementById("shop").style.display = "none";
 				document.getElementById("canvas-wrapper").focus();
@@ -825,13 +1302,10 @@
 			} else if (e.key === "r" && developerMode) {
 				playerXV = 0;
 				playerYV = 0;
-				playerX = 1.5;
-				playerY = level.rows[1] ?? 0;
+				playerX = 0.5;
+				playerY = level.rows[0] ?? 0;
+				cameraSnapPending = true;
 				gameTime = 0;
-			} else if (e.key === "m" && developerMode) {
-				macro = prompt("what macro").split(",");
-				macroTime = 0;
-				macroPlaying = true;
 			} else if (e.key === "p" && developerMode) {
 				spawnMob(prompt("what mob"), playerX - 3, level.rows[Math.floor(playerX - 3)] ?? 0);
 			} else if (e.key === "e") {
@@ -845,6 +1319,17 @@
 						alert("bankrupt");
 					};
 				};
+				let timeMachineRows = getHittableRows(playerX).filter(it => level.features[it] === 17);
+				if (timeMachineRows.length > 0) {
+					if (gems >= 100) {
+						gems -= 100;
+						timeTraveling = true;
+					} else {
+						alert("bankrupt");
+					};
+				};
+			} else if (e.key === " " && developerMode) {
+				playerX *= 2;
 			};
 		};
 		function purchaseLadder() {
@@ -890,7 +1375,6 @@
 			};
 		};
 		function saveSlot(slot) {
-			try{
 			let saveCode = JSON.stringify({
 				level,
 				playerX,
@@ -916,10 +1400,10 @@
 				maxHealth,
 				score,
 				baseStepHeight,
-				oxygen
+				oxygen,
+				trampolines
 			});
 			localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
-		} catch(e) {alert(e.stack)}
 		};
 		function loadSlot(slot) {
 			let saveCode = localStorage.getItem("forestSimulator3DSaveSlot" + slot);
@@ -951,6 +1435,7 @@
 				score = saveCode.score ?? score;
 				baseStepHeight = saveCode.baseStepHeight ?? baseStepHeight;
 				oxygen = saveCode.oxygen ?? oxygen;
+				trampolines = saveCode.trampolines ?? trampolines;
 			};
 		};
 		function clearSlot(slot) {
@@ -1052,22 +1537,97 @@
 				};
 			};
 		};
+		function playButton() {
+			document.getElementById("menu").style.display = "none";
+			document.getElementById("canvas-wrapper").focus();
+			playing = true;
+		};
+		function purchaseTrampoline() {
+			if (coins >= 45) {
+				coins -= 45;
+				trampolines++;
+			} else {
+				alert("bankrupt");
+			};
+		};
+		function placeTrampoline() {
+			if (trampolines >= 1 && level.features[Math.floor(playerX)] === 0) {
+				level.features[Math.floor(playerX)] = 18;
+				trampolines--;
+			};
+		};
+		function range(start, end) {
+			var array = [];
+			if (end - start > 25000000) {
+				console.error("range too large (" + (end - start) + ")");
+				return array;
+			};
+			for (let i = start; i <= end; i++) {
+				array.push(i);
+			};
+			return array;
+		};
+		function getRowY(rows, x) {
+			x = Math.round(x);
+			if (x <= -5 && x > -25) {
+				return -2000000;
+			};
+			return (x >= 0 && x < rows.length) ? rows[x] : Math.round(getPerlinHeight(x));
+		};
 
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
-			controls.up = 0 || isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5)) || (macroPlaying && parseInt(macro[macroTime][0]));
-			controls.down = isDown("ArrowDown") || isDown("s") || (joystick.strength > 0.5 && (joystick.angle > -67.5 && joystick.angle < 67.5)) || (macroPlaying && parseInt(macro[macroTime][1]));
-			controls.left = isDown("ArrowLeft") || isDown("a") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5)) || (macroPlaying && parseInt(macro[macroTime][2]));
-			controls.right = 0 || isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5)) || (macroPlaying && parseInt(macro[macroTime][3]));
-			if (macroPlaying) {
-				macroTime++;
+			let magnitudes = {
+				"keyboard": {
+					"up": (isDown("ArrowUp") || isDown("w")) * 1,
+					"down": (isDown("ArrowDown") || isDown("s")) * 1,
+					"left": (isDown("ArrowLeft") || isDown("a")) * 1,
+					"right": (isDown("ArrowRight") || isDown("d")) * 1
+				},
+				"joystick": {
+					"up": Math.max(joystick.getAmplitudes().y, 0),
+					"down": Math.max(-joystick.getAmplitudes().y, 0),
+					"left": Math.max(-joystick.getAmplitudes().x, 0),
+					"right": Math.max(joystick.getAmplitudes().x, 0)
+				},
+				"gamepad": {
+					"up": 0,
+					"down": 0,
+					"left": 0,
+					"right": 0
+				}
 			};
-			if (macroTime >= macro.length) {
-				macroPlaying = false;
-				macroTime = 0;
+			cameraPanX = 0;
+			cameraPanY = 0;
+			if (navigator.getGamepads().filter(it => it !== null).length > 0) {
+				let gamePad = navigator.getGamepads()[0];
+				magnitudes.gamepad.up =		Math.min(Math.max(-gamePad.axes[1], 0) + gamePad.buttons[0].value + gamePad.buttons[12].value, 1);
+				magnitudes.gamepad.down =	Math.min(Math.max(gamePad.axes[1], 0) + gamePad.buttons[13].value, 1);
+				magnitudes.gamepad.left =	Math.min(Math.max(-gamePad.axes[0], 0) + gamePad.buttons[14].value, 1);
+				magnitudes.gamepad.right =	Math.min(Math.max(gamePad.axes[0], 0) + gamePad.buttons[15].value, 1);
+				cameraPanX = gamePad.axes[2] * 10;
+				cameraPanY = -gamePad.axes[3] * 10;
+				if (gamePad.buttons[9].pressed && !oldGamePadMenuButtonPressed) {
+					shopButton();
+				};
+				if (shop || obeliskShop) {
+					cursorX += gamePad.axes[0] * 3;
+					cursorY += gamePad.axes[1] * 3;
+					if (gamePad.buttons[0].pressed && !oldGamePadAButtonPressed) {
+						document.elementFromPoint(cursorX, cursorY).click();
+					};
+				};
+				oldGamePadMenuButtonPressed = gamePad.buttons[9].pressed;
+				oldGamePadAButtonPressed = gamePad.buttons[0].pressed;
 			};
-			if (!shop && !dead && !obeliskShop) {
-				if ((cameraX + canvas.width) / blockSize >= level.rows.length) { // playerx >=
+			controls.up = clamp(magnitudes.keyboard.up + magnitudes.joystick.up + magnitudes.gamepad.up, 0, 1);
+			controls.down = clamp(magnitudes.keyboard.down + magnitudes.joystick.down + magnitudes.gamepad.down, 0, 1);
+			controls.left = clamp(magnitudes.keyboard.left + magnitudes.joystick.left + magnitudes.gamepad.left, 0, 1);
+			controls.right = clamp(magnitudes.keyboard.right + magnitudes.joystick.right + magnitudes.gamepad.right, 0, 1);
+			document.getElementById("cursor").style.left = cursorX + "px";
+			document.getElementById("cursor").style.top = cursorY + "px";
+			if (!shop && !dead && !obeliskShop && playing) {
+				if (playerX >= level.rows.length) { // playerx >=
 					generateLevel();
 				};
 
@@ -1091,6 +1651,8 @@
 					} else if (level.golems[i] && level.golems[i].type === "celestial golem") {
 						let height = level.golems[i].yOffset + 100;
 						bakedRows[i] = level.rows[i] + height;
+					} else if (level.features[i] === 18) {
+						bakedRows[i] = level.rows[i] + 1;
 					};
 				};
 
@@ -1100,7 +1662,7 @@
 					potions[potion].time = Math.max(potions[potion].time - (1 / 60), 0);
 				};
 				flying = potions["bird potion"].time > 0;
-				inWater = playerY < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)];
+				inWater = playerY < bakedRows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && level.waterLevel[Math.floor(playerX)] > 0.75;
 
 				// X MOVEMENT //
 				
@@ -1109,8 +1671,8 @@
 				if (controls.right !== controls.left) {
 					//move
 					let sign = controls.right - controls.left;
-					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : inLadderSpeed) : (flying ? sign * 0.3 : (sign * playerSpeed)));
-					playerXV = lerp(maxXV, playerXV, onGround ? 1 - groundFriction : 0.15) + (sign * 0.04 * (controls.up && onGround && !inWater));
+					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : inLadderSpeed) : (flying ? (sign * basePlayerSpeed * 1.5) : (sign * playerSpeed)));
+					playerXV = lerp(maxXV, playerXV, onGround ? 1 - groundFriction : 0.15) + (sign * 0.04 * (controls.up > 0.5 && onGround && !inWater));
 				} else {
 					//friction
 					playerXV *= inLadder ? 0 : (onGround ? 1 - groundFriction : 0.99);
@@ -1121,10 +1683,10 @@
 					playerXV = clamp(playerXV, -0.3, 0.3);
 				};
 				let hittableRows = getHittableRows(playerX + playerXV);
-				if ((hittableRows[0] !== undefined && bakedRows[hittableRows[0]] > playerY) || (hittableRows[1] !== undefined && bakedRows[hittableRows[1]] > playerY)) {
-					let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
-					if (onGround && playerY >= bakedRows[max] - ((boots === "stepping boots") ? baseStepHeight * 2 : baseStepHeight) && potions["spider potion"].time <= 0) {
-						playerY = bakedRows[max];
+				let max = hittableRows.reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b);
+				if ((hittableRows[0] !== undefined && getRowY(bakedRows, hittableRows[0]) > playerY) || (hittableRows[1] !== undefined && getRowY(bakedRows, hittableRows[1]) > playerY)) {
+					if (onGround && playerY >= getRowY(bakedRows, max) - ((boots === "stepping boots") ? baseStepHeight * 2 : baseStepHeight) && potions["spider potion"].time <= 0) {
+						playerY = getRowY(bakedRows, max);
 					} else {
 						playerXV = Math.ceil(playerX + (playerXV / 2)) - 0.5 - playerX;
 						if (potions["spider potion"].time > 0) {
@@ -1132,6 +1694,12 @@
 							playerY += 0.2;
 						};
 					};
+				};
+				hittableRows = getHittableRows(playerX + playerXV);
+				max = hittableRows.reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b);
+				let trampoline = level.features[max] === 18 && playerY + playerYV <= getRowY(bakedRows, max);
+				if (trampoline) {
+					playerXV *= 0.2;
 				};
 				playerX += playerXV;
 				
@@ -1141,12 +1709,12 @@
 					playerYV = (controls.up - controls.down) * (boots === "magnet boots" ? 0 : inLadderSpeed);
 				} else if (flying) {
 					if (controls.up !== controls.down) {
-						playerYV = (controls.up - controls.down) * 0.3;
+						playerYV = (controls.up - controls.down) * basePlayerSpeed * 1.5;
 					};
 					playerYV *= 0.99;
-				} else {
+				} else if (!trampoline) {
 					let jumpHeight = baseJumpHeight + (boots === "spring boots") * 0.06 + (potions["jumping potion"].time > 0) * 0.08;
-					playerYV += controls.up * onGround * !inWater * (jumpHeight + Math.abs(playerXV) * 0.15);
+					playerYV += (controls.up > 0.5) * onGround * !inWater * (jumpHeight + Math.abs(playerXV) * 0.15);
 				};
 
 				//gravity
@@ -1156,12 +1724,13 @@
 					gravity -= 0.012;
 				};
 				if (inWater) {
+					gravity = -0.001;
 					if (controls.up === controls.down) {
 						gravity = -0.001;
 					} else {
-						if (controls.up) {
+						if (controls.up > 0.5) {
 							gravity = 0.01;
-						} else if (controls.down) {
+						} else if (controls.down > 0.5) {
 							gravity = -0.01;
 						};
 					};
@@ -1176,21 +1745,25 @@
 					playerYV = clamp(playerYV, -0.3, 0.3);
 				};
 				hittableRows = getHittableRows(playerX);
-				let max = hittableRows.reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b);
+				max = hittableRows.reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b);
 				let oldOnGround = onGround;
-				onGround = playerY + playerYV <= bakedRows[max];
+				onGround = playerY + playerYV <= getRowY(bakedRows, max);
 				if (!oldOnGround && onGround && playerYV <= -0.6) {
 					health -= playerYV * -0.05;
 				};
-				if (onGround) {
+				trampoline = level.features[max] === 18 && onGround;
+				if (onGround && !trampoline) {
 					if (getLayer(level.rows[max]) === 9 && level.rows[max] - 900 > (level.originalRows[max] - 900) * 0.9 && boots !== "tennis rackets") {
 						level.rows[max] -= 0.005;
 						if (level.rows[max] - 200 < (level.originalRows[max] - 200) * 0.9) {
 							level.rows[max] = (level.originalRows[max] - 200) * 0.9 + 200;
 						};
 					};
-					playerY = bakedRows[max];
+					playerY = getRowY(bakedRows, max);
 					playerYV = 0;
+				} else if (trampoline) {
+					playerY = level.rows[max] + 1;
+					playerYV *= -1;
 				};
 				playerY += playerYV;
 
@@ -1200,14 +1773,27 @@
 				inLadder = false;
 				dybbukTime = Math.max(0, dybbukTime - 1);
 				document.getElementById("obelisk-shop-button").style.display = "none";
+				// water
+				let totalWaterHeight = x => level.waterLevel[x] + bakedRows[x];
+				let waterTick = function(x) {
+					let waterLeft = bakedRows[x - 1] < totalWaterHeight(x);
+					let waterRight = bakedRows[x + 1] < totalWaterHeight(x);
+					let averageHeight = (totalWaterHeight(x - 1) * waterLeft + totalWaterHeight(x) + totalWaterHeight(x + 1) * waterRight) / (1 + waterLeft + waterRight);
+					if (waterLeft) level.waterLevel[x - 1] = averageHeight - bakedRows[x - 1];
+					level.waterLevel[x] = averageHeight - bakedRows[x];
+					if (waterRight) level.waterLevel[x + 1] = averageHeight - bakedRows[x + 1];
+				};
 				for (let i = 0; i < level.rows.length; i++) {
-					// water flow
-					if (level.waterLevel[i - 1] + level.rows[i - 1] > level.waterLevel[i] + level.rows[i] && level.waterLevel[i - 1] > 0) {
-						level.waterLevel[i] = (level.waterLevel[i - 1] + level.rows[i - 1]) - level.rows[i];
+					if (i >= 1 && i < bakedRows.length - 1 && level.waterLevel[i] > 0) {
+						waterTick(i);
 					};
-					if (level.waterLevel[i + 1] + level.rows[i + 1] > level.waterLevel[i] + level.rows[i] && level.waterLevel[i + 1] > 0) {
-						level.waterLevel[i] = (level.waterLevel[i + 1] + level.rows[i + 1]) - level.rows[i];
+				};
+				for (let i = level.rows.length - 1; i <= 0; i--) {
+					if (i >= 1 && i < bakedRows.length - 1 && level.waterLevel[i] > 0) {
+						waterTick(i);
 					};
+				};
+				for (let i = 0; i < level.rows.length; i++) {
 					// features
 					if (playerX + 0.5 > i && playerX - 0.5 < i + 1) {
 						if (playerY < level.rows[i] + 1) {
@@ -1327,6 +1913,9 @@
 						if (playerY < level.rows[i] + 4 && level.features[i] === 16) {
 							notificate("press e to repair obelisk (1 totem)");
 						};
+						if (playerY < level.rows[i] + 2 && level.features[i] === 17) {
+							notificate("press e to time travel (100 gems)");
+						};
 					};
 					// feature entities
 					if (level.featureEntities[i]) {
@@ -1370,7 +1959,7 @@
 								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 6 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
 									level.golems[i].riseSpeed = -0.01;
 									placeFeatureEntity("russet golem", i + spawnOffset, true);
-									if (level.golems[i + Math.floor(spawnOffset / 2)] === null)  {
+									if (level.golems[i + Math.floor(spawnOffset / 2)] === null)	{
 										placeFeatureEntity("golem", i + Math.floor(spawnOffset / 2), true);
 									};
 								};
@@ -1388,10 +1977,10 @@
 								if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY <= level.rows[i] + 9 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
 									level.golems[i].riseSpeed = -0.005;
 									placeFeatureEntity("aqua golem", i + spawnOffset, true);
-									if (level.golems[i + Math.floor(spawnOffset * (1 / 3))] === null)  {
+									if (level.golems[i + Math.floor(spawnOffset * (1 / 3))] === null)	{
 										placeFeatureEntity("russet golem", i + Math.floor(spawnOffset * (1 / 3)), true);
 									};
-									if (level.golems[i + Math.floor(spawnOffset * (2 / 3))] === null)  {
+									if (level.golems[i + Math.floor(spawnOffset * (2 / 3))] === null)	{
 										placeFeatureEntity("golem", i + Math.floor(spawnOffset * (2 / 3)), true);
 									};
 								};
@@ -1409,13 +1998,13 @@
 								if (i + 2 > playerX - 0.5 && i - 1 < playerX + 0.5 && playerY <= level.rows[i] + 12 && onGround && level.golems[i].riseSpeed === 0 && level.golems[i + spawnOffset] === null && boots !== "tennis rackets") {
 									level.golems[i].riseSpeed = -0.01;
 									placeFeatureEntity("mecha golem", i + spawnOffset, true);
-									if (level.golems[i + Math.floor(spawnOffset * (1 / 4))] === null)  {
+									if (level.golems[i + Math.floor(spawnOffset * (1 / 4))] === null)	{
 										placeFeatureEntity("aqua golem", i + Math.floor(spawnOffset * (1 / 4)), true);
 									};
-									if (level.golems[i + Math.floor(spawnOffset * (2 / 4))] === null)  {
+									if (level.golems[i + Math.floor(spawnOffset * (2 / 4))] === null)	{
 										placeFeatureEntity("russet golem", i + Math.floor(spawnOffset * (2 / 4)), true);
 									};
-									if (level.golems[i + Math.floor(spawnOffset * (3 / 4))] === null)  {
+									if (level.golems[i + Math.floor(spawnOffset * (3 / 4))] === null)	{
 										placeFeatureEntity("golem", i + Math.floor(spawnOffset * (3 / 4)), true);
 									};
 								};
@@ -1441,8 +2030,8 @@
 								if (xSign !== Math.sign(playerX - mob.x)) {
 									mob.x = playerX;
 								};
-								let sentryStepHeight = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
-								if (sentryStepHeight - (mob.y) <= 3) {
+								let sentryStepHeight = getRowY(bakedRows, getHittableRows(mob.x).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b)) ?? mob.y;
+								if (sentryStepHeight - mob.y <= 3 || getHittableRows(mob.x).some(it => level.features[it] === 3 || level.features[it] === 4 || (level.featureEntities[it] && level.featureEntities[it].type === "scaffolding" && level.featureEntities[it].height >= getRowY(bakedRows, it + 1) - getRowY(bakedRows, it)))) {
 									mob.y = sentryStepHeight;
 								} else {
 									mob.x = Math.ceil(mob.x) - 0.5;
@@ -1462,7 +2051,7 @@
 						case "mimic":
 							if (!mob.mimicking) {
 								mob.x = (mob.x > playerX ? Math.min : Math.max)(mob.x, mob.x + playerXV);
-								mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+								mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)] ?? mob.y;
 								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
 									health -= 0.01;
 								};
@@ -1493,8 +2082,12 @@
 					mob.age++;
 				};
 
-				cameraX = lerp(cameraX, (playerX * blockSize - canvas.width / 2), 0.25);
-				cameraY = lerp(cameraY, ((playerY + 1) * -blockSize - canvas.height / 2), 0.25);
+				let targetCameraX = playerX - canvas.width / blockSize / 2 + cameraPanX;
+				let targetCameraY = playerY + 1 + canvas.height / blockSize / 2 + cameraPanY;
+				cameraX = cameraSnapPending ? targetCameraX : lerp(cameraX, targetCameraX, 0.25);
+				cameraY = cameraSnapPending ? targetCameraY : lerp(cameraY, targetCameraY, 0.25);
+				cameraSnapPending = false;
+
 				score = Math.max(score, Math.floor(playerX));
 				pb = Math.max(pb, score);
 
@@ -1503,7 +2096,7 @@
 					health -= 0.003;
 				};
 				health = clamp(health, 0, maxHealth);
-				if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)]) {
+				if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && !divingSuit) {
 					oxygen -= 0.005;
 				} else {
 					oxygen += 0.005;
@@ -1514,202 +2107,21 @@
 
 
 				// draw screen vv
-
-
-				ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-				images[((gameTime % 600 < 300 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
-				
-				if (cameraY > 750 * -blockSize) {
-					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
-					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
-					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
-					images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
-				};
-				
-				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4,					(750 * -blockSize - cameraY) / 4, canvas.width, canvas.height);
-				images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	(750 * -blockSize - cameraY) / 4, canvas.width, canvas.height);
-
-				for (let i = 0; i < level.terrainFeatures.length; i++) {
-					if (level.terrainFeatures[i] === "rainbow") {
-						let rainbowSize = 100;
-						images.rainbow.draw(i * blockSize - cameraX, (level.rows[i] + rainbowSize / 2) * -blockSize - cameraY, blockSize * rainbowSize, blockSize * rainbowSize);
-					};
-				};
-
-				// grass
-				let rowBuffer = Object.keys(level.rows).filter(it => it * blockSize + blockSize > cameraX && it * blockSize < cameraX + canvas.width);
-				for (let i = 0; i < rowBuffer.length; i++) {
-					let layer = getLayer(level.rows[rowBuffer[i]]);
-					let ice = (layer === 9) && Math.round((level.rows[rowBuffer[i]] - 900) * 1000) / 1000 <= Math.round((level.originalRows[rowBuffer[i]] - 900) * 0.9 * 1000) / 1000;
-					let groundImage = ice ? images.packedSnow : layers[getLayer(level.rows[rowBuffer[i]])][0];
-					let blockUVSize = groundImage.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
-					let waterUVSize = images.water.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
-					let rowY = level.rows[rowBuffer[i]] * -blockSize - cameraY;
-					groundImage.draw((blockUVSize * rowBuffer[i]) % (Math.floor(groundImage.width / blockUVSize) * blockUVSize), 0, blockUVSize, groundImage.height, rowBuffer[i] * blockSize - cameraX, rowY, blockSize, blockSize * (groundImage.height / blockUVSize));
-					if (level.waterLevel[rowBuffer[i]] > 0) {
-						ctx.globalAlpha = 0.5;
-						images.water.draw((waterUVSize * rowBuffer[i]) % (Math.floor(images.water.width / waterUVSize) * waterUVSize), 0, waterUVSize, images.water.height, rowBuffer[i] * blockSize - cameraX, (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]]) * -blockSize - cameraY, blockSize, level.waterLevel[rowBuffer[i]] * blockSize);
-						ctx.globalAlpha = 1;
-					};
-					switch (level.features[rowBuffer[i]]) {
-						case 0:
-							break;
-						case 1:
-							images.coin.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-							break;
-						case 2:
-							images.gem.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-							break;
-						case 3:
-							images.ladder.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 4, blockSize, blockSize * 4);
-							break;
-						case 4:
-							images.ladder.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 6, blockSize, blockSize * 6);
-							break;
-						case 5:
-							images.stones.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 5, blockSize, blockSize * 5);
-							break;
-						case 6:
-							images.mysteryCrate.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-							break;
-						case 7:
-							images.sentryBarracks.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 3, blockSize, blockSize * 3);
-							break;
-						case 8:
-							images.sentryBarracks.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 3, blockSize, blockSize * 3);
-							break;
-						case 9:
-							images.pitfall.draw(rowBuffer[i] * blockSize - cameraX, rowY, blockSize, blockSize * 0.5);
-							break;
-						case 10:
-							images.dybbukBox.draw(110, 75, 200, 250, rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-							break;
-						case 11:
-							images.dybbukBoxOpen.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-							break;
-						case 12:
-							images.totem.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-							break;
-						case 13:
-							images.fourLeafClover.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-							break;
-						case 14:
-							images.potOfGold.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-							break;
-						case 15:
-							images.burlapSack.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-							break;
-						case 16:
-							images.ruinedObelisk.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 4, blockSize, blockSize * 4);
-							break;
-						default:
-							images.error.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-					};
-					let featureEntity = level.featureEntities[rowBuffer[i]];
-					if (featureEntity) {
-						switch (featureEntity.type) {
-							case "obelisk":
-								images.obelisk.draw(875, 50, 200, 730 - (featureEntity.yOffset * -blockSize * (730 / (blockSize * 4))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 4 - featureEntity.yOffset * blockSize, blockSize, blockSize * 4 - featureEntity.yOffset * -blockSize);
-								break;
-							case "scaffolding":
-								images.scaffolding.draw(rowBuffer[i] * blockSize - cameraX, rowY - featureEntity.height * blockSize, blockSize, featureEntity.height * blockSize);
-								break;
-							default:
-								images.error.draw(rowBuffer[i] * blockSize - cameraX, rowY - blockSize, blockSize, blockSize);
-						};
-					};
-					let golem = level.golems[rowBuffer[i]];
-					if (golem) {
-						switch (golem.type) {
-							case "golem":
-								images.golem.draw(0, 0, 1670, 1837 - (golem.yOffset * -blockSize * (1830 / (blockSize * 3))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 3 - golem.yOffset * blockSize, blockSize, blockSize * 3 - golem.yOffset * -blockSize);
-								break;
-							case "russet golem":
-								images.russetGolem.draw(0, 0, 570, 570 - (golem.yOffset * -blockSize * (570 / (blockSize * 6))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 6 - golem.yOffset * blockSize, blockSize, blockSize * 6 - golem.yOffset * -blockSize);
-								break;
-							case "aqua golem":
-								images.aquaGolem.draw(200, 70, 450, 705 - (golem.yOffset * -blockSize * (705 / (blockSize * 9))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 9 - golem.yOffset * blockSize, blockSize, blockSize * 9 - golem.yOffset * -blockSize);
-								break;
-							case "mecha golem":
-								images.mechaGolem.draw(300, 0, 350, 600 - (golem.yOffset * -blockSize * (600 / (blockSize * 12))), (rowBuffer[i] - 1) * blockSize - cameraX, rowY - blockSize * 12 - golem.yOffset * blockSize, blockSize * 3, blockSize * 12 - golem.yOffset * -blockSize);
-								break;
-							case "celestial golem":
-								images.celestialGolem.draw(0, 0, 570, 570 - (golem.yOffset * -blockSize * (570 / (blockSize * 100))), rowBuffer[i] * blockSize - cameraX, rowY - blockSize * 100 - golem.yOffset * blockSize, blockSize, blockSize * 100 - golem.yOffset * -blockSize);
-								break;
-						};
-					};
-				};
-			
-				let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV <= 0 ? "guyFalling" : "guyJumping"))));
-				images[document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"].draw(playerX * blockSize - blockSize / 2 - cameraX, playerY * -blockSize - blockSize * 2 - cameraY, blockSize, blockSize * 2);
-				if (dybbukTime > 0) {
-					ctx.globalAlpha = 0.5;
-					images.dybbuk.draw(playerX * blockSize - blockSize / 2 - cameraX, playerY * -blockSize - blockSize * 2 - cameraY, blockSize, blockSize * 2);
-					ctx.globalAlpha = 1;
-				};
-				let grimReaperX = lerp(playerX - 1, playerX - 100, health / maxHealth);
-				images.grimReaper.draw((grimReaperX - 0.5) * blockSize - cameraX, (bakedRows[getHittableRows(grimReaperX).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)] + 3) * -blockSize - cameraY, blockSize, blockSize * 3);
-
-				for (let mob of level.mobs) {if (mob.x * blockSize + blockSize / 2 - cameraX > 0 && mob.x * blockSize - blockSize / 2 - cameraX < canvas.width) {
-						switch (mob.type) {
-							case "sentry":
-								if (mob.age >= 120) {
-									images.sentry.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 4 - cameraY, blockSize, blockSize * 4);
-								};
-								break;
-							case "mimic":
-								if (mob.mimicking) {
-									switch (mob.mimicTarget) {
-										case "coin":
-											images.coin.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize - cameraY, blockSize, blockSize);
-											break;
-										case "gem":
-											images.gem.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize - cameraY, blockSize, blockSize);
-											break;
-										default:
-											images.error.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize - cameraY, blockSize, blockSize);
-									};
-								} else {
-									switch (Math.sign(Math.round(playerXV * 1000) / 1000)) {
-										case -1:
-											images.mimic.draw(307, 87, 84, 193, mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 4 - cameraY, blockSize, blockSize * 4);
-											break;
-										case 0:
-											images.mimic.draw(217, 91, 95, 198, mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 4 - cameraY, blockSize, blockSize * 4);
-											break;
-										case 1:
-											images.mimic.draw(109, 91, 95, 198, mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 4 - cameraY, blockSize, blockSize * 4);
-									};
-								};
-								break;
-							case "leprechaun":
-								images.leprechaun.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 1.5 - cameraY, blockSize, blockSize * 1.5);
-								break;
-							default:
-								images.error.draw(mob.x * blockSize - blockSize / 2 - cameraX, mob.y * -blockSize - blockSize * 2 - cameraY, blockSize, blockSize * 2);
-						};
-					};
-				};
-				let darknessOpacity = (Math.max(Math.sin((gameTime - 300) / (300 / Math.PI)), 0) ** 2);
-				ctx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.9, darknessOpacity)) + ")";
-				ctx.fillRect(0, 0, canvas.width, canvas.height);
-				ctx.globalAlpha = clamp(1 - (health / maxHealth) / 0.1, 0, 1);
-				images.blood.draw(0, 0, canvas.width, canvas.height);
-				ctx.globalAlpha = 1;
-				ctx.font = "30px arial";
-				ctx.fillStyle = "yellow";
-				if (facasd) {
-					ctx.fillText("Marina silva is a brazilian politician and an activist for deforestation and other things.", 0, 300);
-					ctx.fillText("She was a rubber tapper and found that land was being invaded by rubber tappers and she", 0, 325);
-					ctx.fillText("started protecting thousands of hectares of land.", 0, 350);
-				};
-				if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)]) {
-					canvas.style.filter = "blur(5px)";
-				} else {
-					canvas.style.filter = "none";
-				};
 			};
+		};
+		function drawScreen() {
+			if (canvas.width !== innerWidth) {
+				canvas.width = darkness.width = innerWidth;
+			};
+			if (canvas.height !== innerHeight) {
+				canvas.height = darkness.height = innerHeight;
+			};
+			canvasWidth = canvas.width / blockSize * 2;
+			canvasHeight = canvas.height / blockSize * 2;
+			renderer.gl.viewport(0, 0, canvas.width, canvas.height);
+			renderer.draw();
+
+			
 
 			let healthPercent = health / maxHealth
 			let healthR = clamp(2 - healthPercent * 2, 0, 1) * 255;
@@ -1731,13 +2143,9 @@
 			} else {
 				document.getElementById("oxygen").style.display = "none";
 			};
-
-			if (dead) {
-				ctx.font = "100px arial";
-				ctx.fillStyle = "red";
-				ctx.fillText("you died", 200, 200);
-			};
-			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps;// + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
+			
+			let minutes = (gameTime + 450) * ((12 * 60) / 300);
+			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps + "<br>time: " + ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " am" : " pm") + "<br>water volume: " + level.waterLevel.reduce((a, b) => a + b, 0);// + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
 			document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 			for (let food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
@@ -1747,14 +2155,16 @@
 			};
 			document.getElementById("ladder-howmany").innerHTML = "(" + ladders + ")";
 			document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
+			document.getElementById("trampoline-howmany").innerHTML = "(" + trampolines + ")";
 		};
 		function loop() {
-			try {
+			//try {
 				tick();
-			} catch (e) {
-				alert(e.stack);
-				return;
-			};
+				drawScreen();
+			//} catch (e) {
+			//	alert(e.stack);
+			//	return;
+			//};
 			frameCount++;
 			let now = performance.now();
 			if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {
@@ -1765,7 +2175,6 @@
 			requestAnimationFrame(loop);
 		};
 		loop();
-		ctx.font = "100px arial";
-		ctx.fillText("loading textures", 100, 100);
 	</script>
+	<script src="./textures_varying.js"></script>
 </html>

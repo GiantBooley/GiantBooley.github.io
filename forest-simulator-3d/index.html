@@ -1584,7 +1584,7 @@
 			controls.right = clamp(magnitudes.keyboard.right + magnitudes.joystick.right + magnitudes.gamepad.right, 0, 1);
 			if (!shop && !dead && !obeliskShop && playing) {
 				if (playerX >= level.rows.length) { // playerx >=
-					//generateLevel();
+					generateLevel();
 				};
 
 				let bakedRows = [...level.rows];

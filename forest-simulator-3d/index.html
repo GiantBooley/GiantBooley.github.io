@@ -1623,7 +1623,7 @@
 				// X MOVEMENT //
 				
 				let playerSpeed = basePlayerSpeed + (boots === "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
-				let groundFriction = 0.25//(boots === "spike boots") ? 0.9 : layers[getLayer(playerY)][1];
+				let groundFriction = (boots === "spike boots") ? 0.9 : layers[getLayer(playerY)][1];
 				if (controls.right !== controls.left) {
 					//move
 					let sign = controls.right - controls.left;

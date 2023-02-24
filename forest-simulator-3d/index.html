@@ -305,7 +305,7 @@
 				<div id="shop-coins">
 					<div id="boots">
 						<h3>boots</h3>
-						<button onclick="clickShoeButton(this, 'sketchers');">Sketchers (0 coins)</button><br>
+						<button onclick="clickShoeButton(this, 'hondas');">Hondas (0 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'tennis rackets');">Tennis rackets (30 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'running shoes');">Running shoes (60 coins)</button><br>
 						<button onclick="clickShoeButton(this, 'spring boots');">Spring boots (90 coins)</button><br>
@@ -406,6 +406,7 @@
 
 			void main() {
 				gl_FragColor = texture2D(u_texture, v_texcoord);
+				gl_FragColor.rgb *= gl_FragColor.a;
 			}
 		</script>
 	</body>
@@ -427,7 +428,11 @@
 
 		class WebGLRenderer {
 			constructor() {
-				this.gl = canvas.getContext("webgl");
+				this.gl = canvas.getContext("webgl", {
+					premultipliedAlpha: false
+				});
+				this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+				this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
 				// init
 				this.gl.viewport(0, 0, canvas.width, canvas.height);
@@ -553,7 +558,7 @@
 				this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
 				// vertices
-				//darknessCtx.clearRect(0, 0, canvas.width, canvas.height);
+				darknessCtx.clearRect(0, 0, canvas.width, canvas.height);
 
 				//images[((gameTime % 600 < 300 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
 				
@@ -592,12 +597,12 @@
 					if (rowY < canvas.height) {
 						this.drawImage(this.getTexture(layers[getLayer(getRowY(level.rows, rowBuffer[i]))][0]), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
 					};
-					/*let gradient = darknessCtx.createLinearGradient(0, rowY - level.waterLevel[rowBuffer[i]] * blockSize, 0, (rowY - level.waterLevel[rowBuffer[i]] * blockSize) + blockSize * 15);
+					let gradient = darknessCtx.createLinearGradient(0, rowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize, 0, (rowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize) + blockSize * 15);
 					gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
 					gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
 					darknessCtx.fillStyle = gradient;
-					darknessCtx.fillRect(rowBuffer[i] * blockSize - cameraX, rowY, blockSize, canvas.height - rowY)
-					*/
+					darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, rowY, blockSize, canvas.height - rowY)
+					
 					if (rowBuffer[i] >= 0 && rowBuffer[i] < level.rows.length) {
 						switch (level.features[rowBuffer[i]]) {
 							case 0:
@@ -751,7 +756,12 @@
 						let waveOffset = Math.max(Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25, -level.waterLevel[rowBuffer[i]]);
 						let waterUVSize = 2;
 						let waterY = (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset - cameraY) * -blockSize;
-						this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, waterY, blockSize, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize, rowBuffer[i] / waterUVSize, (Math.max(waterY, 0) - waterY) / blockSize / waterUVSize - level.waterLevel[rowBuffer[i]] / waterUVSize, 1 / waterUVSize, (canvas.height - Math.max(waterY, 0)) / blockSize / waterUVSize);
+						let waterHeight = Math.min((level.rows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.max(waterY, 0));
+
+						if (waterY < canvas.height) {
+							//this.drawImage(this.getTexture(layers[getLayer(getRowY(level.rows, rowBuffer[i]))][0]), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
+							this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize, waterHeight, rowBuffer[i] / waterUVSize, ((Math.max(waterY, 0) - waterY) / blockSize - level.waterLevel[rowBuffer[i]]) / waterUVSize, 1 / waterUVSize, waterHeight / blockSize / waterUVSize);
+						};
 
 						let gradient = darknessCtx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
 						gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
@@ -759,12 +769,12 @@
 						darknessCtx.fillStyle = gradient;
 						darknessCtx.fillRect(rowBuffer[i] * blockSize - cameraX, waterY, blockSize, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
 					};
-				};/*
+				};
 				let darknessOpacity = (Math.max(Math.sin((gameTime - 300) / (300 / Math.PI)), 0) ** 2);
 				darknessCtx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.95, darknessOpacity)) + ")";
 				darknessCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-				if (timeTraveling) {
+				/*if (timeTraveling) {
 					ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
 					ctx.fillRect(0, (gameTime * 300) % canvas.height, canvas.width, 1);
 					ctx.fillStyle = "black";
@@ -779,7 +789,7 @@
 
 				ctx.globalAlpha = clamp(1 - (health / maxHealth) / 0.1, 0, 1);
 				images.blood.draw(0, 0, canvas.width, canvas.height);
-				ctx.globalAlpha = 1;
+				ctx.globalAlpha = 1;*/
 
 				darknessCtx.beginPath();
 				let circleLightX = playerX * blockSize - cameraX;
@@ -792,7 +802,7 @@
 				darknessCtx.arc(playerX * blockSize - cameraX, (playerY + 1) * -blockSize - cameraY, blockSize * 2, 0, Math.PI * 2);
 				darknessCtx.globalCompositeOperation = "destination-out";
 				darknessCtx.fill();
-				darknessCtx.restore();
+				darknessCtx.restore();/*
 
 				ctx.font = "30px arial";
 				ctx.fillStyle = "yellow";
@@ -913,7 +923,7 @@
 		var cameraSnapPending = true;
 		var onGround = false;
 		var layers = {
-			"-13": ["sun", 0.07, -0.03],
+			"-13": ["sun", 0.07, -0.0175],
 			"-12": ["mercury", 0.35, -0.012],
 			"-11": ["venus", 0.3, -0.01],
 			"-10": ["ice", 0.03, -0.012],
@@ -966,7 +976,7 @@
 		var facasd = false;
 		var shop = false;
 		var bootses = {
-			"sketchers": {bought: true, cost: 0},
+			"hondas": {bought: true, cost: 0},
 			"tennis rackets": {bought: false, cost: 30},
 			"running shoes": {bought: false, cost: 60},
 			"spring boots": {bought: false, cost: 90},
@@ -1004,7 +1014,7 @@
 			"anti gravity potion": {cost: 10, time: 0, duration: 10, howmany: 0},
 			"bird potion": {cost: 12, time: 0, duration: 10, howmany: 0}
 		};
-		var boots = "sketchers";
+		var boots = "hondas";
 		var health = 1;
 		var dead = false;
 		var ladders = 0;
@@ -1276,8 +1286,8 @@
 			} else if (e.key === "r" && developerMode) {
 				playerXV = 0;
 				playerYV = 0;
-				playerX = 1.5;
-				playerY = level.rows[1] ?? 0;
+				playerX = 0.5;
+				playerY = level.rows[0] ?? 0;
 				cameraSnapPending = true;
 				gameTime = 0;
 			} else if (e.key === "p" && developerMode) {
@@ -1543,7 +1553,7 @@
 		};
 		function getRowY(rows, x) {
 			x = Math.round(x);
-			if (x <= -5 && x > -20) {
+			if (x <= -5 && x > -25) {
 				return -2000000;
 			};
 			return (x >= 0 && x < rows.length) ? rows[x] : Math.round(getPerlinHeight(x));
@@ -1680,6 +1690,7 @@
 					gravity -= 0.012;
 				};
 				if (inWater) {
+					gravity = -0.001;
 					if (controls.up === controls.down) {
 						gravity = -0.001;
 					} else {
@@ -1689,7 +1700,6 @@
 							gravity = -0.01;
 						};
 					};
-					gravity = -0.001;
 				};
 				playerYV = potions["levitation potion"].time > 0 ? 0.1 : (playerYV + ((inLadder || flying) ? 0 : gravity * ((potions["anti gravity potion"].time > 0) ? 0.5 : 1)));
 

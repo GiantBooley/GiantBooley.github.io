@@ -409,8 +409,7 @@
 			}
 		</script>
 	</body>
-	<script src="https://webglfundamentals.org/webgl/resources/m4.js"></script>
-	<script src="./images_256x256.js"></script>
+	<script src="./m4.js"></script>
 	<script>
 		const canvas = document.getElementById("canvas");
 		canvas.width = innerWidth;
@@ -485,10 +484,7 @@
 				];
 				this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this.texcoords), this.gl.STATIC_DRAW);
 
-				this.defaultTexture = this.loadImageAndCreateTextureInfo("data:image/png;base64,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");
-				for (let texture in textures_256x256) {
-					textures_256x256[texture] = this.loadImageAndCreateTextureInfo(textures_256x256[texture]);
-				};
+				this.defaultTexture = this.loadImageAndCreateTextureInfo("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAjSURBVBhXY/zP8J8BBhiBEAaYoDQGIF0CYSgQINtHNTsYGAA9/gQN0D1U/wAAAABJRU5ErkJggg==");
 				// errors
 				if (!this.gl.getShaderParameter(this.vertexShader, this.gl.COMPILE_STATUS)) console.log(this.gl.getShaderInfoLog(this.vertexShader));
 				if (!this.gl.getShaderParameter(this.fragmentShader, this.gl.COMPILE_STATUS)) console.log(this.gl.getShaderInfoLog(this.fragmentShader));
@@ -497,8 +493,13 @@
 				if (!this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS)) console.log(this.gl.getProgramInfoLog(this.program));
 			};
 
+			loadTextures() {
+				for (let texture in textures) {
+					textures[texture] = this.loadImageAndCreateTextureInfo(textures[texture]);
+				};
+			};
 			getTexture(texture) {
-				return (typeof textures_256x256 !== "undefined") ? textures_256x256[texture] : this.defaultTexture;
+				return (typeof textures !== "undefined") ? textures[texture] : this.defaultTexture;
 			};
 			loadImageAndCreateTextureInfo(url) {
 				var tex = this.gl.createTexture();
@@ -963,7 +964,7 @@
 					this.height = this.image.height;
 					imagesLoaded++;
 				};
-				this.image.src = src;
+				//this.image.src = src;
 			};
 			draw(sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
 				if (this.image.src !== this.url) {
@@ -999,6 +1000,9 @@
 				return this.loaded ? this.image : new ImageData(new Uint8ClampedArray([255, 255, 255, 255], 1, 1));
 			};
 		};
+		function cot(x) {
+			return 1 / Math.tan(x);
+		};
 		class Joystick {
 			constructor(element) {
 				this.angle = 0;
@@ -1015,10 +1019,31 @@
 					let rect = this.element.getBoundingClientRect();
 					let xy = this.coordinates(rect.x, rect.y);
 					if (this.isMouseDown) {
-						this.angle = Math.atan2(coords[0], coords[1]) * 180 / Math.PI;
+						this.angle = Math.atan2(coords[0], coords[1]);
 						this.strength = clamp(Math.sqrt((coords[0] - (xy[0] + rect.width / 2)) ** 2 + (coords[1] - (xy[1] + rect.height / 2)) ** 2) / 100, 0, 1);
 					};
 					this.updateCircle();
+				};
+			};
+			getAmplitudes() {
+				let x = clamp(Math.tan(this.angle), -1, 1);
+				let y = clamp(cot(this.angle), -1, 1);
+				if (this.angle > -Math.PI && this.angle < -Math.PI / 2) {
+					x *= -1;
+					gems = 0;
+				};
+				if (this.angle > Math.PI / 2 && this.angle < Math.PI) {
+					x *= -1;
+					y *= -1;
+					gems = 1
+				};
+				if (this.angle > 0 && this.angle < Math.PI / 2) {
+					y *= -1;
+					gems = 3;
+				};
+				return {
+					"x": x * this.strength,
+					"y": y * this.strength
 				};
 			};
 			mouseUp(e) {
@@ -1046,7 +1071,7 @@
 				return [x - (rect.x + rect.width / 2), y - (rect.y + rect.height / 2)];
 			};
 			updateCircle() {
-				document.getElementById("circle-thing").style.transform = "translate(" + (Math.sin(this.angle * Math.PI / 180) * this.strength * 100) + "px, " + (Math.cos(this.angle * Math.PI / 180) * this.strength * 100) + "px)";
+				document.getElementById("circle-thing").style.transform = "translate(" + (Math.sin(this.angle) * this.strength * 100) + "px, " + (Math.cos(this.angle) * this.strength * 100) + "px)";
 			};
 		};
 		Math.mod = function(a, b) {
@@ -1253,9 +1278,6 @@
 		var notificationTime = 0;
 		var gameTime = 0;
 		var developerMode = true;
-		var macro = [];
-		var macroTime = 0;
-		var macroPlaying = false;
 		var dybbukTime = 0;
 		var crouching = false;
 		var obeliskShop = false;
@@ -1507,10 +1529,6 @@
 				playerX = 1.5;
 				playerY = level.rows[1] ?? 0;
 				gameTime = 0;
-			} else if (e.key === "m" && developerMode) {
-				macro = prompt("what macro").split(",");
-				macroTime = 0;
-				macroPlaying = false;
 			} else if (e.key === "p" && developerMode) {
 				spawnMob(prompt("what mob"), playerX - 3, level.rows[Math.floor(playerX - 3)] ?? 0);
 			} else if (e.key === "e") {
@@ -1773,17 +1791,37 @@
 
 		function tick() {
 			document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
-			controls.up = isDown("ArrowUp") || isDown("w") || (joystick.strength > 0.5 && (joystick.angle > 112.5 || joystick.angle < -112.5)) || (macroPlaying && parseInt(macro[macroTime][0]));
-			controls.down = isDown("ArrowDown") || isDown("s") || (joystick.strength > 0.5 && (joystick.angle > -67.5 && joystick.angle < 67.5)) || (macroPlaying && parseInt(macro[macroTime][1]));
-			controls.left = isDown("ArrowLeft") || isDown("a") || (joystick.strength > 0.5 && (joystick.angle > -157.5 && joystick.angle < -22.5)) || (macroPlaying && parseInt(macro[macroTime][2]));
-			controls.right = isDown("ArrowRight") || isDown("d") || (joystick.strength > 0.5 && (joystick.angle > 22.5 && joystick.angle < 157.5)) || (macroPlaying && parseInt(macro[macroTime][3]));
-			if (macroPlaying) {
-				macroTime++;
+			let magnitudes = {
+				"keyboard": {
+					"up": (isDown("ArrowUp") || isDown("w")) * 1,
+					"down": (isDown("ArrowDown") || isDown("s")) * 1,
+					"left": (isDown("ArrowLeft") || isDown("a")) * 1,
+					"right": (isDown("ArrowRight") || isDown("d")) * 1
+				},
+				"joystick": {
+					"up": Math.max(joystick.getAmplitudes().y, 0),
+					"down": Math.max(-joystick.getAmplitudes().y, 0),
+					"left": Math.max(-joystick.getAmplitudes().x, 0),
+					"right": Math.max(joystick.getAmplitudes().x, 0)
+				},
+				"gamepad": {
+					"up": 0,
+					"down": 0,
+					"left": 0,
+					"right": 0
+				}
 			};
-			if (macroTime >= macro.length) {
-				//macroPlaying = false;
-				macroTime = 0;
+			if (navigator.getGamepads().length > 0) {
+				let gamePad = navigator.getGamepads()[0];
+				magnitudes.gamepad.up = Math.max(-gamePad.axes[1], 0);
+				magnitudes.gamepad.down = Math.max(gamePad.axes[1], 0);
+				magnitudes.gamepad.left = Math.max(-gamePad.axes[0], 0);
+				magnitudes.gamepad.right = Math.max(gamePad.axes[0], 0);
 			};
+			controls.up = clamp(magnitudes.keyboard.up + magnitudes.joystick.up + magnitudes.gamepad.up, 0, 1);
+			controls.down = clamp(magnitudes.keyboard.down + magnitudes.joystick.down + magnitudes.gamepad.down, 0, 1);
+			controls.left = clamp(magnitudes.keyboard.left + magnitudes.joystick.left + magnitudes.gamepad.left, 0, 1);
+			controls.right = clamp(magnitudes.keyboard.right + magnitudes.joystick.right + magnitudes.gamepad.right, 0, 1);
 			if (!shop && !dead && !obeliskShop && playing) {
 				if (playerX >= level.rows.length) { // playerx >=
 					generateLevel();
@@ -1830,7 +1868,7 @@
 					//move
 					let sign = controls.right - controls.left;
 					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : inLadderSpeed) : (flying ? (sign * basePlayerSpeed * 1.5) : (sign * playerSpeed)));
-					playerXV = lerp(maxXV, playerXV, onGround ? 1 - groundFriction : 0.15) + (sign * 0.04 * (controls.up && onGround && !inWater));
+					playerXV = lerp(maxXV, playerXV, onGround ? 1 - groundFriction : 0.15) + (sign * 0.04 * (controls.up > 0.5 && onGround && !inWater));
 				} else {
 					//friction
 					playerXV *= inLadder ? 0 : (onGround ? 1 - groundFriction : 0.99);
@@ -1872,7 +1910,7 @@
 					playerYV *= 0.99;
 				} else if (!trampoline) {
 					let jumpHeight = baseJumpHeight + (boots === "spring boots") * 0.06 + (potions["jumping potion"].time > 0) * 0.08;
-					playerYV += controls.up * onGround * !inWater * (jumpHeight + Math.abs(playerXV) * 0.15);
+					playerYV += (controls.up > 0.5) * onGround * !inWater * (jumpHeight + Math.abs(playerXV) * 0.15);
 				};
 
 				//gravity
@@ -1885,12 +1923,13 @@
 					if (controls.up === controls.down) {
 						gravity = -0.001;
 					} else {
-						if (controls.up) {
+						if (controls.up > 0.5) {
 							gravity = 0.01;
-						} else if (controls.down) {
+						} else if (controls.down > 0.5) {
 							gravity = -0.01;
 						};
 					};
+					gravity = -0.001;
 				};
 				playerYV = potions["levitation potion"].time > 0 ? 0.1 : (playerYV + ((inLadder || flying) ? 0 : gravity * ((potions["anti gravity potion"].time > 0) ? 0.5 : 1)));
 
@@ -2333,7 +2372,13 @@
 			requestAnimationFrame(loop);
 		};
 		loop();
+		window.addEventListener("gamepadconnected", (e) => {
+			console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+			e.gamepad.index, e.gamepad.id,
+			e.gamepad.buttons.length, e.gamepad.axes.length);
+		});
 		//ctx.font = "100px arial";
 		//ctx.fillText("loading textures", 100, 100);
 	</script>
+	<script src="./textures_varying.js"></script>
 </html>

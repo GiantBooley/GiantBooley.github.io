@@ -56,6 +56,7 @@
 				width: 80%;
 				height: calc(100% - 100px);
 				overflow: auto;
+				font-family: Arial, Helvetica, sans-serif;
 			}
 			#stats {
 				margin: 0;
@@ -135,6 +136,7 @@
 				width: 100%;
 				text-align: center;
 				text-shadow: 0px 0px 3px black;
+				pointer-events: none;
 			}
 			#obelisk-shop {
 				display: none;
@@ -224,7 +226,7 @@
 				right: 10px;
 				width: 300px;
 				height: 100px;
-				display: flex;
+				display: none;
 				flex-direction: column;
 			}
 			.arrow-key {
@@ -260,13 +262,35 @@
 			}
 			#cursor {
 				position: absolute;
-				width: 10px;
-				height: 10px;
+				width: 30px;
+				height: 30px;
 				left: 0px;
 				top: 0px;
-				transform: translate(-0.5, -0.5);
-				background-color: black;
 				pointer-events: none;
+				display: block;
+			}
+			#cursor-horizontal,#cursor-vertical,#cursor-center {
+				position: absolute;
+				background-color: black;
+			}
+			#cursor-horizontal {
+				width: 30px;
+				height: 3px;
+				left: 0px;
+				top: 13.5px;
+			}
+			#cursor-vertical {
+				width: 3px;
+				height: 30px;
+				left: 13.5px;
+				top: 0px;
+			}
+			#cursor-center {
+				width: 3px;
+				height: 3px;
+				left: 13.5px;
+				top: 13.5px;
+				background-color: white;
 			}
 		</style>
 	</head>
@@ -301,17 +325,15 @@
 			<div id="shop">
 				<h1>shop</h1>
 				<div id="saves">
-					<select id="save-slot-selector">
-						<option value="0" selected>slot 0</option>
-						<option value="1">slot 1</option>
-						<option value="2">slot 2</option>
-					</select>
-					<button onclick="saveSlot(document.getElementById('save-slot-selector').value);">save</button>
-					<button onclick="loadSlot(document.getElementById('save-slot-selector').value);">load</button>
+					<button id="save-slot-selector" onclick="saveSlotSelectorButton();">slot 0 (click to change)</button><br>
+					<button onclick="saveSlot(saveSlotNumber);">save</button>
+					<button onclick="loadSlot(saveSlotNumber);">load</button>
 				</div>
 				<hr>
 				<input type="checkbox" id="joystick-checkbox"><label for="joystick-checkbox">joystick</label><br>
-				<input type="checkbox" id="animations-checkbox"><label for="animations-checkbox">animations</label>
+				<input type="checkbox" id="animations-checkbox"><label for="animations-checkbox">animations</label><br>
+				<button onclick="blockSize = clamp(blockSize * 1.5, 6.584362139917697, 168.75);">zoom in</button>
+				<button onclick="blockSize = clamp(blockSize / 1.5, 6.584362139917697, 168.75);">zoom out</button>
 				<div id="shop-coins">
 					<div id="boots">
 						<h3>boots</h3>
@@ -385,16 +407,18 @@
 					<option value="mecha golem">mecha golem</option>
 				</select><button onclick="placeGolem(document.getElementById('spawn-golem-type').value, playerX);">spawn</button><br>
 			</div>
-			<div id="notification">
-
-			</div>
-			<div id="cursor">
-
-			</div>
 		</div>
 		<div id="menu">
 			<h1 id="menu-title">forest simulator 3d</h1>
 			<button id="menu-button" onclick="playButton();">PLAY</button>
+		</div>
+		<div id="notification">
+
+		</div>
+		<div id="cursor">
+			<div id="cursor-horizontal"></div>
+			<div id="cursor-vertical"></div>
+			<div id="cursor-center"></div>
 		</div>
 		<script id="vertex" type="x-shader/x-vertex">
 			attribute vec4 a_position;
@@ -644,7 +668,7 @@
 								this.drawImage(this.getTexture("pitfall"), (rowBuffer[i] - cameraX) * blockSize, rowY, blockSize, blockSize * 0.5);
 								break;
 							case 10:
-								this.drawImage(this.getTexture("dybbukBox"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+								this.drawImage(this.getTexture("dybbukBox"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize, 0.205, 0.216, 0.262, 0.433);
 								break;
 							case 11:
 								this.drawImage(this.getTexture("dybbukBoxOpen"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
@@ -753,7 +777,7 @@
 								};
 								break;
 							case "leprechaun":
-								this.drawImage(this.getTexture("leprechaun"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y - 1.5 - cameraY) * -blockSize, blockSize, blockSize * 1.5);
+								this.drawImage(this.getTexture("leprechaun"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1.5 - cameraY) * -blockSize, blockSize, blockSize * 1.5);
 								break;
 							default:
 								this.drawImage(this.getTexture("error"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y - 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
@@ -769,14 +793,14 @@
 
 						if (waterY < canvas.height) {
 							//this.drawImage(this.getTexture(layers[getLayer(getRowY(level.rows, rowBuffer[i]))][0]), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
-							this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, ((Math.max(waterY, 0) - waterY) / blockSize - level.waterLevel[rowBuffer[i]]) / waterUVSize + (level.rows[rowBuffer[i]] - cameraY * blockSize / waterUVSize), 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize);
+							this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, (((Math.max(waterY, 0) - waterY) / blockSize - level.waterLevel[rowBuffer[i]]) + level.rows[rowBuffer[i]]) / waterUVSize, 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize);
 						};
 
 						let gradient = darknessCtx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
 						gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
 						gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
 						darknessCtx.fillStyle = gradient;
-						darknessCtx.fillRect(rowBuffer[i] * blockSize - cameraX, waterY, blockSize, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
+						darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, waterY, blockSize, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
 					};
 				};
 				let darknessOpacity = (Math.max(Math.sin((gameTime - 300) / (300 / Math.PI)), 0) ** 2);
@@ -1108,8 +1132,9 @@
 		var divingSuit = false;
 		var oldGamePadMenuButtonPressed = false;
 		var oldGamePadAButtonPressed = false;
-		var cursorX = 0;
-		var cursorY = 0;
+		var cursorX = innerWidth / 2;
+		var cursorY = innerHeight / 2;
+		var saveSlotNumber = 0;
 
 		for (let i = 0; i < 25; i++) {
 			level.octaves.push(perlinNoise1D());
@@ -1139,6 +1164,9 @@
 			// round stuff and coins n gems
 			for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline
 				level.waterLevel[i] = 0;
+				if (Math.random() < 1 / 1000) {
+					level.waterLevel[i] = Math.floor(Math.random() * 100);
+				};
 				level.labels[i] = "0";
 				if (i === 300000000) {
 					let trenchDepth = 100;
@@ -1149,7 +1177,7 @@
 							level.labels[i + j] = Math.random();
 							level.rows[i + j] += heightOffset;
 							level.waterLevel[i + j] = -heightOffset;
-							//alert((i + j) + " " + heightOffset);
+							//notificate((i + j) + " " + heightOffset);
 						};
 					};
 					//level.waterLevel[i] = (trenchDepth * (trenchWidth * 2 + 1)) / 2;
@@ -1249,17 +1277,21 @@
 			if (shop = !shop) {
 				document.getElementById("shop").style.display = "block";
 				document.getElementById("save-slot-selector").focus();
+				document.getElementById("cursor").style.display = "block";
 			} else {
 				document.getElementById("shop").style.display = "none";
 				document.getElementById("canvas-wrapper").focus();
+				document.getElementById("cursor").style.display = "none";
 			};
 		};
 		function obeliskShopButton() {
 			if (obeliskShop = !obeliskShop) {
 				document.getElementById("obelisk-shop").style.display = "block";
+				document.getElementById("cursor").style.display = "block";
 			} else {
 				document.getElementById("obelisk-shop").style.display = "none";
 				document.getElementById("canvas-wrapper").focus();
+				document.getElementById("cursor").style.display = "none";
 			};
 		};
 		function clickShoeButton(button, bootsreal) {
@@ -1270,7 +1302,7 @@
 					bootses[bootsreal].bought = true;
 					coins -= bootses[bootsreal].cost;
 				} else {
-					alert("bankrupt");
+					notificate("bankrupt");
 				};
 			};
 		};
@@ -1279,7 +1311,7 @@
 				foods[food].howmany++;
 				coins -= foods[food].cost;
 			} else {
-				alert("bankrupt");
+				notificate("bankrupt");
 			};
 		};
 		function devourFood(food) {
@@ -1316,7 +1348,7 @@
 						level.features[ruinedObeliskRows[0]] = 0;
 						placeFeatureEntity("obelisk", ruinedObeliskRows[0], false);
 					} else {
-						alert("bankrupt");
+						notificate("bankrupt");
 					};
 				};
 				let timeMachineRows = getHittableRows(playerX).filter(it => level.features[it] === 17);
@@ -1325,7 +1357,7 @@
 						gems -= 100;
 						timeTraveling = true;
 					} else {
-						alert("bankrupt");
+						notificate("bankrupt");
 					};
 				};
 			} else if (e.key === " " && developerMode) {
@@ -1337,7 +1369,7 @@
 				coins -= 10;
 				ladders++;
 			} else {
-				alert("bankrupt");
+				notificate("bankrupt");
 			};
 		};
 		function placeLadder() {
@@ -1351,7 +1383,7 @@
 				coins -= 25;
 				tallLadders++;
 			} else {
-				alert("bankrupt");
+				notificate("bankrupt");
 			};
 		};
 		function placeTallLadder() {
@@ -1365,7 +1397,7 @@
 				potions[potion].howmany++;
 				gems -= potions[potion].cost;
 			} else {
-				alert("bankrupt");
+				notificate("bankrupt");
 			};
 		};
 		function chugPotion(potion) {
@@ -1401,20 +1433,23 @@
 				score,
 				baseStepHeight,
 				oxygen,
-				trampolines
+				trampolines,
+				cameraX,
+				cameraY
 			});
 			localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 		};
 		function loadSlot(slot) {
 			let saveCode = localStorage.getItem("forestSimulator3DSaveSlot" + slot);
 			if (saveCode === null) {
-				alert("save slot " + slot + " empty, to create a new save slot reload and press save in the new one you want to create")
+				notificate("save slot " + slot + " empty, to create a new save slot reload and press save in the new one you want to create")
 			} else {
 				saveCode = JSON.parse(saveCode);
 				level = saveCode.level ?? level;
 				playerX = saveCode.playerX ?? playerX;
 				playerY = saveCode.playerY ?? playerY;
-				playerXV = saveCode.playerYV ?? playerXV;
+				playerXV = saveCode.playerXV ?? playerXV;
+				playerYV = saveCode.playerYV ?? playerYV;
 				coins = saveCode.coins ?? coins;
 				gems = saveCode.gems ?? gems;
 				ladders = saveCode.ladders ?? ladders;
@@ -1436,6 +1471,8 @@
 				baseStepHeight = saveCode.baseStepHeight ?? baseStepHeight;
 				oxygen = saveCode.oxygen ?? oxygen;
 				trampolines = saveCode.trampolines ?? trampolines;
+				cameraX = saveCode.cameraX ?? cameraX;
+				cameraY = saveCode.cameraY ?? cameraY;
 			};
 		};
 		function clearSlot(slot) {
@@ -1490,33 +1527,33 @@
 						if (maxHealth < 2) {
 							maxHealth = Math.min(maxHealth + 0.1, 2);
 						} else {
-							alert("upgrade maxed");
+							notificate("upgrade maxed");
 						};
 						break;
 					case "speed":
 						if (basePlayerSpeed < 0.35) {
 							basePlayerSpeed = Math.min(basePlayerSpeed + 0.02, 0.35);
 						} else {
-							alert("upgrade maxed");
+							notificate("upgrade maxed");
 						};
 						break;
 					case "jump":
 						if (baseJumpHeight < 0.5) {
 							baseJumpHeight = Math.min(baseJumpHeight + 0.03, 0.5);
 						} else {
-							alert("upgrade maxed");
+							notificate("upgrade maxed");
 						};
 						break;
 					case "step":
 						if (baseStepHeight < 1.1) {
 							baseStepHeight = Math.min(baseStepHeight + 0.1, 1.1);
 						} else {
-							alert("upgrade maxed");
+							notificate("upgrade maxed");
 						};
 				};
 				totems--;
 			} else {
-				alert("bankrupt");
+				notificate("bankrupt");
 			};
 		};
 		function openHackerConsole() {
@@ -1533,13 +1570,14 @@
 					placeFeatureEntity("scaffolding", playerX, height);
 					coins -= height;
 				} else {
-					alert("bankrupt");
+					notificate("bankrupt");
 				};
 			};
 		};
 		function playButton() {
 			document.getElementById("menu").style.display = "none";
 			document.getElementById("canvas-wrapper").focus();
+			document.getElementById("cursor").style.display = "none";
 			playing = true;
 		};
 		function purchaseTrampoline() {
@@ -1547,7 +1585,7 @@
 				coins -= 45;
 				trampolines++;
 			} else {
-				alert("bankrupt");
+				notificate("bankrupt");
 			};
 		};
 		function placeTrampoline() {
@@ -1573,6 +1611,10 @@
 				return -2000000;
 			};
 			return (x >= 0 && x < rows.length) ? rows[x] : Math.round(getPerlinHeight(x));
+		};
+		function saveSlotSelectorButton() {
+			saveSlotNumber = (saveSlotNumber + 1) % 3;
+			document.getElementById("save-slot-selector").innerHTML = "slot " + saveSlotNumber + " (click to change)";
 		};
 
 		function tick() {
@@ -1610,11 +1652,14 @@
 				if (gamePad.buttons[9].pressed && !oldGamePadMenuButtonPressed) {
 					shopButton();
 				};
-				if (shop || obeliskShop) {
+				if (shop || obeliskShop || !playing) {
 					cursorX += gamePad.axes[0] * 3;
 					cursorY += gamePad.axes[1] * 3;
 					if (gamePad.buttons[0].pressed && !oldGamePadAButtonPressed) {
 						document.elementFromPoint(cursorX, cursorY).click();
+					};
+					if (shop) {
+						document.getElementById("shop").scrollBy(0, gamePad.axes[3] * 5);
 					};
 				};
 				oldGamePadMenuButtonPressed = gamePad.buttons[9].pressed;
@@ -1624,8 +1669,8 @@
 			controls.down = clamp(magnitudes.keyboard.down + magnitudes.joystick.down + magnitudes.gamepad.down, 0, 1);
 			controls.left = clamp(magnitudes.keyboard.left + magnitudes.joystick.left + magnitudes.gamepad.left, 0, 1);
 			controls.right = clamp(magnitudes.keyboard.right + magnitudes.joystick.right + magnitudes.gamepad.right, 0, 1);
-			document.getElementById("cursor").style.left = cursorX + "px";
-			document.getElementById("cursor").style.top = cursorY + "px";
+			document.getElementById("cursor").style.left = cursorX - 15 + "px";
+			document.getElementById("cursor").style.top = cursorY - 15 + "px";
 			if (!shop && !dead && !obeliskShop && playing) {
 				if (playerX >= level.rows.length) { // playerx >=
 					generateLevel();
@@ -1668,15 +1713,10 @@
 				
 				let playerSpeed = basePlayerSpeed + (boots === "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
 				let groundFriction = (boots === "spike boots") ? 0.9 : layers[getLayer(playerY)][1];
-				if (controls.right !== controls.left) {
-					//move
-					let sign = controls.right - controls.left;
-					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : inLadderSpeed) : (flying ? (sign * basePlayerSpeed * 1.5) : (sign * playerSpeed)));
-					playerXV = lerp(maxXV, playerXV, onGround ? 1 - groundFriction : 0.15) + (sign * 0.04 * (controls.up > 0.5 && onGround && !inWater));
-				} else {
-					//friction
-					playerXV *= inLadder ? 0 : (onGround ? 1 - groundFriction : 0.99);
-				};
+
+				let sign = controls.right - controls.left;
+				let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : inLadderSpeed) : (flying ? (sign * basePlayerSpeed * 1.5) : (sign * playerSpeed)));
+				playerXV = lerp(lerp(maxXV, playerXV, onGround ? 1 - groundFriction : 0.15) + (sign * 0.04 * (controls.up > 0.5 && onGround && !inWater)), playerXV * (inLadder ? 0 : (onGround ? 1 - groundFriction : 0.99)), 1 - Math.abs(sign));
 
 				if (inWater) {
 					playerXV *= 0.9;
@@ -2103,11 +2143,8 @@
 				};
 				oxygen = clamp(oxygen, 0, 1);
 				dead = health <= 0;
-				notificationTime = Math.max(0, notificationTime - 1);
-
-
-				// draw screen vv
 			};
+			notificationTime = Math.max(0, notificationTime - 1);
 		};
 		function drawScreen() {
 			if (canvas.width !== innerWidth) {
@@ -2145,7 +2182,7 @@
 			};
 			
 			let minutes = (gameTime + 450) * ((12 * 60) / 300);
-			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps + "<br>time: " + ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " am" : " pm") + "<br>water volume: " + level.waterLevel.reduce((a, b) => a + b, 0);// + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
+			document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps + "<br>time: " + ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " am" : " pm");// + "<br>water volume: " + level.waterLevel.reduce((a, b) => a + b, 0);// + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
 			document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 			for (let food in foods) {
 				document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
@@ -2162,7 +2199,7 @@
 				tick();
 				drawScreen();
 			//} catch (e) {
-			//	alert(e.stack);
+			//	notificate(e.stack);
 			//	return;
 			//};
 			frameCount++;

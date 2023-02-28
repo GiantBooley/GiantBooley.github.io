@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 	<head>
@@ -58,43 +57,47 @@
 				overflow: auto;
 				font-family: Arial, Helvetica, sans-serif;
 			}
-			#stats {
+			.gui-text {
 				margin: 0;
+				font-family: Arial, Helvetica, sans-serif;
+				color: #DDDDAA;
+				font-size: max(5px, 2.5vw);
+				text-shadow: -1px 1px 0px #000000, 1px 1px 0px #000000, -1px -1px 0px #000000, 1px -1px 0px #000000;
+			}
+			#stats {
 				position: absolute;
 				left: 10px;
 				top: 2px;
-				font-family: Arial, sans-serif;
-				color: yellow;
-				font-size: 30px;
-				text-shadow: 0px 0px 3px black;
 			}
 			h1,h2,h3,h4 {
 				margin: 0;
 			}
+			.bar {
+				width: 40%;
+				height: 40px;
+				background-color: black;
+				outline: 3px ridge #334455;
+				border-radius: 3px;
+				transform: skew(-45deg) translate(20px, 0px);
+			}
 			#health {
 				position: absolute;
-				bottom: 0px;
-				left: 0px;
-				width: 600px;
-				height: 50px;
-				background-color: black;
+				bottom: 3px;
+				left: 3px;
 			}
 			#health-inner {
-				width: 600px;
-				height: 50px;
+				width: 100%;
+				height: 40px;
 				background-color: rgb(0, 255, 0);
 			}
 			#oxygen {
 				position: absolute;
 				bottom: 50px;
 				left: 0px;
-				width: 600px;
-				height: 50px;
-				background-color: black;
 			}
 			#oxygen-inner {
-				width: 600px;
-				height: 50px;
+				width: 100%;
+				height: 40px;
 				background-color: rgb(0, 0, 255);
 			}
 			#joystick {
@@ -292,6 +295,12 @@
 				top: 13.5px;
 				background-color: white;
 			}
+			#score {
+				position: absolute;
+				top: 20px;
+				left: 50%;
+				transform: translate(-50%, -50%);
+			}
 		</style>
 	</head>
 	<body>
@@ -301,13 +310,14 @@
 					<canvas id="canvas"></canvas>
 					<canvas id="darkness"></canvas>
 				</div>
-				<div id="stats">score: -<br>coins: -</div>
+				<div id="stats" class="gui-text"></div>
+				<div id="score" class="gui-text"></div>
 				<button id="shop-button" onclick="shopButton();">SHOP</button>
 				<button id="obelisk-shop-button" onclick="obeliskShopButton();">OBELISK</button>
-				<div id="oxygen">
+				<div id="oxygen" class="bar">
 					<div id="oxygen-inner"></div>
 				</div>
-				<div id="health">
+				<div id="health" class="bar">
 					<div id="health-inner"></div>
 				</div>
 				<div id="joystick" onmousedown="joystick.mouseDown(event);" ontouchstart="joystick.mouseDown(event);"><div id="circle-thing"></div></div>
@@ -447,9 +457,9 @@
 			}
 		</script>
 		<script src="./m4.js"></script>
-		<script src="./seedrandom.js"></script>
+		<script src="./seedrandom.min.js"></script>
 		<script>
-			Math.seedrandom(123);
+			Math.seedrandom();
 
 			const canvas = document.getElementById("canvas");
 			canvas.width = innerWidth;
@@ -1148,7 +1158,7 @@
 			var notification = "";
 			var notificationTime = 0;
 			var gameTime = 0;
-			var developerMode = false;
+			var developerMode = true;
 			var dybbukTime = 0;
 			var crouching = false;
 			var obeliskShop = false;
@@ -2164,7 +2174,7 @@
 									mob.x = (mob.x > playerX ? Math.min : Math.max)(mob.x, mob.x + playerXV);
 									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)] ?? mob.y;
 									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
-										health -= 0.01;
+										health -= (Math.sin(gameTime * 20) + 0.1) * 0.03; // 0.01
 									};
 								} else if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1 && playerY + 2 > mob.y && dybbukTime <= 0) {
 									mob.mimicTimer = true;
@@ -2235,8 +2245,8 @@
 				let healthR = clamp(2 - healthPercent * 2, 0, 1) * 255;
 				let healthG = clamp(healthPercent * 2, 0, 1) * 255;
 				let healthB = (potions["regeneration potion"].time > 0) * 127;
-				document.getElementById("health").style.width = 600 * (maxHealth / 1) + "px";
-				document.getElementById("health-inner").style.width = 600 * health + "px";
+				document.getElementById("health").style.width = "calc(40% * " + (maxHealth / 1) + ")";
+				document.getElementById("health-inner").style.width = (100 * healthPercent) + "%";
 				document.getElementById("health-inner").style.backgroundColor = "rgb(" + healthR + ", " + healthG + ", " + healthB + ")";
 	
 				if (oxygen < 1) {
@@ -2245,15 +2255,17 @@
 					let oxygenR = clamp(2 - oxygenPercent * 2, 0, 1) * 255;
 					let oxygenG = 0;
 					let oxygenB = clamp(oxygenPercent * 2, 0, 1) * 255;
-					document.getElementById("oxygen").style.width = 600 + "px";
-					document.getElementById("oxygen-inner").style.width = 600 * oxygen + "px";
+					document.getElementById("oxygen").style.width = 40 + "%";
+					document.getElementById("oxygen-inner").style.width = 100 * oxygen + "%";
 					document.getElementById("oxygen-inner").style.backgroundColor = "rgb(" + oxygenR + ", " + oxygenG + ", " + oxygenB + ")";
 				} else {
 					document.getElementById("oxygen").style.display = "none";
 				};
 				
 				let minutes = (gameTime + 450) * ((12 * 60) / 300);
-				document.getElementById("stats").innerHTML = "score: " + score + "<br>elevation: " + Math.floor(playerY) + "<br>coins: " + coins + "<br>gems: " + gems + "<br>totems: " + totems + "<br>boots: " + boots + "<br>fps: " + fps + "<br>time: " + ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " am" : " pm");// + "<br>water volume: " + level.waterLevel.reduce((a, b) => a + b, 0);// + "<br>net player speed: " + (playerX - 1.5) / (gameTime * 60);
+				let timeText = ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " AM" : " PM");
+				document.getElementById("stats").innerHTML = "altitude: " + Math.floor(playerY) + "m<br>🪙 " + coins + "<br>💎 " + gems + "<br>🗿 " + totems + "<br>boots: " + boots + "<br>" + timeText;
+				document.getElementById("score").innerHTML = "◄ " + score + "m ►";
 				document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 				for (let food in foods) {
 					document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
@@ -2266,13 +2278,13 @@
 				document.getElementById("trampoline-howmany").innerHTML = "(" + trampolines + ")";
 			};
 			function loop() {
-				//try {
+				try {
 					tick();
 					drawScreen();
-				//} catch (e) {
-				//	notificate(e.stack);
-				//	return;
-				//};
+				} catch (e) {
+					alert(e.stack);
+					return;
+				};
 				frameCount++;
 				let now = performance.now();
 				if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

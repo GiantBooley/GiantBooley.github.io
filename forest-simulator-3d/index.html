@@ -626,9 +626,9 @@
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
 						if (level.terrainFeatures[rowBuffer[i]] === "rainbow") {
 							let rainbowSize = 100;
-							this.drawImage(this.getTexture("rainbow"), (i - cameraX) * blockSize, (level.rows[i] + rainbowSize / 2 - cameraY) * -blockSize, blockSize * rainbowSize, blockSize * rainbowSize, 0, 0, 1, 1);
+							this.drawImage(this.getTexture("rainbow"), (rowBuffer[i] - cameraX) * blockSize, (level.rows[i] + rainbowSize / 2 - cameraY) * -blockSize, blockSize * rainbowSize, blockSize * rainbowSize, 0, 0, 1, 1);
 						} else if (level.terrainFeatures[rowBuffer[i]] === "tree1") {
-							this.drawImage(this.getTexture("tree1"), (i - 2.5 - cameraX) * blockSize, (level.rows[i] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1);
+							this.drawImage(this.getTexture("tree1"), (rowBuffer[i] - 2.5 - cameraX) * blockSize, (level.rows[rowBuffer[i]] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1);
 						};
 					};
 	
@@ -1301,7 +1301,7 @@
 					if (Math.random() < 1 / 5000) {
 						spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
 					};
-					if (Math.random() < 1 / 3000) {
+					if (Math.random() < 1 / 30.00) {
 						level.terrainFeatures[i] = "tree1";
 					};
 					if (Math.random() < 1 / 4212133121320.00) {
@@ -2187,7 +2187,7 @@
 									if (level.features[Math.floor(mob.x)] === 0) {
 										level.features[Math.floor(mob.x)] = {"coin": 1, "gem": 2}[mob.mimicTarget];
 									};
-									level.mobs.splice(level.mobs.indexOf(mob));
+									level.mobs.splice(level.mobs.indexOf(mob), 1);
 								};
 								break;
 							case "leprechaun":

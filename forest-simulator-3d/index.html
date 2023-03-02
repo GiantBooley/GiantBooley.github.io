@@ -459,8 +459,6 @@
 		<script src="./m4.js"></script>
 		<script src="./seedrandom.min.js"></script>
 		<script>
-			Math.seedrandom();
-
 			const canvas = document.getElementById("canvas");
 			canvas.width = innerWidth;
 			canvas.height = innerHeight;
@@ -613,7 +611,8 @@
 					//	images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
 					//	images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
 					//};
-					this.drawImage(this.getTexture("skyDay"), 0, 0, canvas.width, canvas.height, 0, 1, 1);
+					let skyImage = ((getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight");
+					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 1, 1);
 					let stoneBackgroundScroll = 1 / 4;
 					let stoneBackgroundOffset = Math.max((750 - cameraY) * -blockSize * stoneBackgroundScroll, 0);
 					//this.drawImage(this.getTexture("stoneBackground"), 0, stoneBackgroundOffset, canvas.width, canvas.height - stoneBackgroundOffset, cameraX / (canvas.width / blockSize / stoneBackgroundScroll), (-cameraY * stoneBackgroundScroll) / canvas.height, 1, (canvas.height - stoneBackgroundOffset) / canvas.height / 4);
@@ -789,6 +788,9 @@
 								case "leprechaun":
 									this.drawImage(this.getTexture("leprechaun"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1.5 - cameraY) * -blockSize, blockSize, blockSize * 1.5);
 									break;
+								case "possessed doll":
+									this.drawImage(this.getTexture(mob.possessed ? "possessedDollStanding" : "possessedDollSitting"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1.5 - cameraY) * -blockSize, blockSize, blockSize * 1.5);
+									break;
 								default:
 									this.drawImage(this.getTexture("error"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y - 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
 							};
@@ -813,7 +815,7 @@
 							darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, waterY, blockSize * deltaRow, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
 						};
 					};
-					let darknessOpacity = (Math.max(Math.sin((gameTime - 300) / (300 / Math.PI)), 0) ** 2);
+					let darknessOpacity = getDarkness(gameTime);
 					darknessCtx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.95, darknessOpacity)) + ")";
 					darknessCtx.fillRect(0, 0, canvas.width, canvas.height);
 	
@@ -1090,8 +1092,10 @@
 				terrainFeatures: [],
 				waterLevel: [],
 				golems: [],
-				perlinOffset: 0
+				perlinOffset: 0,
+				seed: "doll at spawn"
 			};
+			Math.seedrandom(level.seed);
 			var coins = 0;
 			var gems = 0;
 			var totems = 0;
@@ -1301,7 +1305,10 @@
 					if (Math.random() < 1 / 5000) {
 						spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
 					};
-					if (Math.random() < 1 / 30.00) {
+					if (Math.random() < 1 / 50.00) {
+						spawnMob("possessed doll", i + 0.5, level.rows[i]);
+					};
+					if (Math.random() < 1 / 3000) {
 						level.terrainFeatures[i] = "tree1";
 					};
 					if (Math.random() < 1 / 4212133121320.00) {
@@ -1574,6 +1581,8 @@
 					mob.mimicTimer = false;
 					mob.mimicking = true;
 					mob.mimicSpawnAge = 0;
+				} else if (type === "possessedDoll") {
+					mob.possessed = false;
 				};
 				level.mobs.push(mob);
 			};
@@ -1696,6 +1705,9 @@
 			function saveSlotSelectorButton() {
 				saveSlotNumber = (saveSlotNumber + 1) % 3;
 				document.getElementById("save-slot-selector").innerHTML = "slot " + saveSlotNumber + " (click to change)";
+			};
+			function getDarkness(time) {
+				return Math.max(Math.sin((time - 300) / (300 / Math.PI)), 0) ** 2;
 			};
 	
 			function tick() {
@@ -2198,6 +2210,15 @@
 									level.terrainFeatures[Math.floor(mob.x - rainbowSize)] = "rainbow";
 									level.features[Math.floor(mob.x - rainbowSize)] = 14;
 									level.mobs.splice(level.mobs.indexOf(mob));
+								};
+								break;
+							case "possessed doll":
+								mob.possessed = gameTime % 600 >= 450 && gameTime % 600 < 550;
+								if (mob.possessed) {
+									if (Math.abs(mob.x - playerX) > 13) {
+										mob.x += 0.01;
+									};
+									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
 								};
 						};
 						mob.age++;

@@ -1093,9 +1093,9 @@
 				waterLevel: [],
 				golems: [],
 				perlinOffset: 0,
-				seed: "doll at spawn"
+				levelRNG: new Math.seedrandom(0.7482667),
+				featureRNG: new Math.seedrandom(0.7482667)
 			};
-			Math.seedrandom(level.seed);
 			var coins = 0;
 			var gems = 0;
 			var totems = 0;
@@ -1225,6 +1225,7 @@
 			var cursorX = innerWidth / 2;
 			var cursorY = innerHeight / 2;
 			var saveSlotNumber = 0;
+			var possessionTime = 0;
 	
 			for (let i = 0; i < 25; i++) {
 				level.octaves.push(perlinNoise1D());
@@ -1254,8 +1255,8 @@
 				// round stuff and coins n gems
 				for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline
 					level.waterLevel[i] = 0;
-					if (Math.random() < 1 / 1000) {
-						level.waterLevel[i] = Math.floor(Math.random() * 100);
+					if (level.featureRNG() < 1 / 1000) {
+						level.waterLevel[i] = Math.floor(level.featureRNG() * 100);
 					};
 					if (i === 300000000) {
 						let trenchDepth = 100;
@@ -1272,46 +1273,46 @@
 					};
 					level.rows[i] = Math.round(level.rows[i]);
 					let pool = [];
-					if (Math.random() < 1 / 20) pool.push(1);
-					if (Math.random() < 1 / 200) pool.push(2);
-					if (Math.random() < 1 / 5000) pool.push(5);
-					if (Math.random() < 1 / 1000) pool.push(6);
-					if (Math.random() < 1 / 4000) pool.push(7);
-					if (Math.random() < 1 / 2000) pool.push(10);
-					if (Math.random() < 1 / 8000) pool.push(12);
-					if (Math.random() < 1 / 25000) pool.push(13);
-					if (Math.random() < 1 / 4000) pool.push(15);
-					if (Math.random() < 1 / 20000) pool.push(16);
-					if (Math.random() < 1 / 20213123123123.000) pool.push(17);
-					if (Math.random() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
-					level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(Math.random() * pool.length)];
+					if (level.featureRNG() < 1 / 20) pool.push(1);
+					if (level.featureRNG() < 1 / 200) pool.push(2);
+					if (level.featureRNG() < 1 / 5000) pool.push(5);
+					if (level.featureRNG() < 1 / 1000) pool.push(6);
+					if (level.featureRNG() < 1 / 4000) pool.push(7);
+					if (level.featureRNG() < 1 / 2000) pool.push(10);
+					if (level.featureRNG() < 1 / 8000) pool.push(12);
+					if (level.featureRNG() < 1 / 25000) pool.push(13);
+					if (level.featureRNG() < 1 / 4000) pool.push(15);
+					if (level.featureRNG() < 1 / 20000) pool.push(16);
+					if (level.featureRNG() < 1 / 20213123123123.000) pool.push(17);
+					if (level.featureRNG() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
+					level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(level.featureRNG() * pool.length)];
 	
-					if (Math.random() < 1 / 5000) {
+					if (level.featureRNG() < 1 / 5000) {
 						placeGolem("golem", i, false);
 					};
-					if (Math.random() < 1 / 10000) {
+					if (level.featureRNG() < 1 / 10000) {
 						placeGolem("russet golem", i, false);
 					};
-					if (Math.random() < 1 / 12000) {
+					if (level.featureRNG() < 1 / 12000) {
 						placeGolem("aqua golem", i, false);
 					};
-					if (Math.random() < 1 / 17000) {
+					if (level.featureRNG() < 1 / 17000) {
 						placeGolem("mecha golem", i, false);
 					};
-					if (Math.random() < 1 / 52000) {
+					if (level.featureRNG() < 1 / 52000) {
 						placeGolem("celestial golem", i, false);
 					};
 	
-					if (Math.random() < 1 / 5000) {
-						spawnMob("mimic", i + 0.5 + (Math.random() - 0.5) * 1.5, level.rows[i] + (Math.random() - 0.5) * 1.5);
+					if (level.featureRNG() < 1 / 5000) {
+						spawnMob("mimic", i + 0.5 + (level.featureRNG() - 0.5) * 1.5, level.rows[i] + (level.featureRNG() - 0.5) * 1.5);
 					};
-					if (Math.random() < 1 / 50.00) {
+					if (level.featureRNG() < 1 / 50.00) {
 						spawnMob("possessed doll", i + 0.5, level.rows[i]);
 					};
-					if (Math.random() < 1 / 3000) {
+					if (level.featureRNG() < 1 / 3000) {
 						level.terrainFeatures[i] = "tree1";
 					};
-					if (Math.random() < 1 / 4212133121320.00) {
+					if (level.featureRNG() < 1 / 4212133121320.00) {
 						level.terrainFeatures[i] = "rainbow";
 					};
 				};
@@ -1347,7 +1348,7 @@
 				let MAX_VERTICES = 1024;
 				let r = [];
 				for (let i = 0; i < MAX_VERTICES; ++i) {
-					r.push(Math.random());
+					r.push(level.levelRNG());
 				};
 				return {MAX_VERTICES, r};
 			};
@@ -1523,14 +1524,15 @@
 					oxygen,
 					trampolines,
 					cameraX,
-					cameraY
+					cameraY,
+					possessionTime
 				});
 				localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 			};
 			function loadSlot(slot) {
 				let saveCode = localStorage.getItem("forestSimulator3DSaveSlot" + slot);
 				if (saveCode === null) {
-					notificate("save slot " + slot + " empty, to create a new save slot reload and press save in the new one you want to create")
+					notificate("save slot " + slot + " empty, to create a new save slot reload and press save in the new one you want to create");
 				} else {
 					saveCode = JSON.parse(saveCode);
 					level = saveCode.level ?? level;
@@ -1561,6 +1563,7 @@
 					trampolines = saveCode.trampolines ?? trampolines;
 					cameraX = saveCode.cameraX ?? cameraX;
 					cameraY = saveCode.cameraY ?? cameraY;
+					possessionTime = saveCode.possessionTime ?? possessionTime;
 				};
 			};
 			function clearSlot(slot) {
@@ -1730,6 +1733,12 @@
 						"down": 0,
 						"left": 0,
 						"right": 0
+					},
+					"possession": {
+						"up": Math.random() * (possessionTime > 0),
+						"down": Math.random() * (possessionTime > 0),
+						"left": Math.random() * (possessionTime > 0),
+						"right": Math.random() * (possessionTime > 0)
 					}
 				};
 				cameraPanX = 0;
@@ -1758,10 +1767,10 @@
 					oldGamePadMenuButtonPressed = gamePad.buttons[9].pressed;
 					oldGamePadAButtonPressed = gamePad.buttons[0].pressed;
 				};
-				controls.up = clamp(magnitudes.keyboard.up + magnitudes.joystick.up + magnitudes.gamepad.up, 0, 1);
-				controls.down = clamp(magnitudes.keyboard.down + magnitudes.joystick.down + magnitudes.gamepad.down, 0, 1);
-				controls.left = clamp(magnitudes.keyboard.left + magnitudes.joystick.left + magnitudes.gamepad.left, 0, 1);
-				controls.right = clamp(magnitudes.keyboard.right + magnitudes.joystick.right + magnitudes.gamepad.right, 0, 1);
+				controls.up = clamp((magnitudes.keyboard.up + magnitudes.joystick.up + magnitudes.gamepad.up) * (possessionTime <= 0) + magnitudes.possession.up, 0, 1);
+				controls.down = clamp((magnitudes.keyboard.down + magnitudes.joystick.down + magnitudes.gamepad.down) * (possessionTime <= 0) + magnitudes.possession.down, 0, 1);
+				controls.left = clamp((magnitudes.keyboard.left + magnitudes.joystick.left + magnitudes.gamepad.left) * (possessionTime <= 0) + magnitudes.possession.left, 0, 1);
+				controls.right = clamp((magnitudes.keyboard.right + magnitudes.joystick.right + magnitudes.gamepad.right) * (possessionTime <= 0) + magnitudes.possession.right, 0, 1);
 				document.getElementById("cursor").style.left = cursorX - 15 + "px";
 				document.getElementById("cursor").style.top = cursorY - 15 + "px";
 				if (!shop && !dead && !obeliskShop && playing) {
@@ -1795,6 +1804,7 @@
 					};
 	
 					gameTime += 1 / 60;
+					possessionTime = Math.max(possessionTime - 1 / 60, 0);
 	
 					for (let potion in potions) {
 						potions[potion].time = Math.max(potions[potion].time - (1 / 60), 0);
@@ -2215,10 +2225,11 @@
 							case "possessed doll":
 								mob.possessed = gameTime % 600 >= 450 && gameTime % 600 < 550;
 								if (mob.possessed) {
-									if (Math.abs(mob.x - playerX) > 13) {
-										mob.x += 0.01;
-									};
+									mob.x += Math.abs(playerXV * (0.05 / 0.2)) * (health / maxHealth);
 									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1.5 && playerY + 2 > mob.y) {
+										possessionTime = 15;
+									};
 								};
 						};
 						mob.age++;

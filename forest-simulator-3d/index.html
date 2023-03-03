@@ -631,6 +631,7 @@
 						};
 					};
 	
+					let bakedRows = getBakedRows();
 					// grass
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
 						//let layer = getLayer(level.rows[rowBuffer[i]]);
@@ -638,15 +639,16 @@
 						//let groundImage = ice ? images.packedSnow : layers[getLayer(level.rows[rowBuffer[i]])][0];
 						//let blockUVSize = groundImage.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
 						let rowY = (getRowY(level.rows, rowBuffer[i]) - cameraY) * -blockSize;
+						let bakedRowY = (getRowY(bakedRows, rowBuffer[i]) - cameraY) * -blockSize;
 						let groundUVSize = 25;
 						if (rowY < canvas.height) {
 							this.drawImage(this.getTexture(layers[getLayer(getRowY(level.rows, rowBuffer[i]))][0]), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize * deltaRow, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
 						};
-						let gradient = darknessCtx.createLinearGradient(0, rowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize, 0, (rowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize) + blockSize * 15);
+						let gradient = darknessCtx.createLinearGradient(0, bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize, 0, (bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize) + blockSize * 15);
 						gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
 						gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
 						darknessCtx.fillStyle = gradient;
-						darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, rowY, blockSize * deltaRow, canvas.height - rowY)
+						darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, bakedRowY, blockSize * deltaRow, canvas.height - bakedRowY)
 						
 						if (rowBuffer[i] >= 0 && rowBuffer[i] < level.rows.length) {
 							switch (level.features[rowBuffer[i]]) {
@@ -717,6 +719,28 @@
 										break;
 									case "scaffolding":
 										this.drawImage(this.getTexture("scaffolding"), (rowBuffer[i] - cameraX) * blockSize, rowY - featureEntity.height * blockSize, blockSize, featureEntity.height * blockSize);
+										break;
+									case "sentry house":
+										switch (featureEntity.variant) {
+											case 1:
+												this.drawImage(this.getTexture("sentryHouse1"), (rowBuffer[i] - 0.5 - cameraX) * blockSize, rowY - blockSize * 3, blockSize * 2, blockSize * 3, 0, 0.25, 0.7, 0.4);
+												break;
+											case 2:
+												this.drawImage(this.getTexture("sentryHouse2"), (rowBuffer[i] - 0.5 - cameraX) * blockSize, rowY - blockSize * 3, blockSize * 2, blockSize * 3, 0, 0, 1, 1);
+												break;
+											case 3:
+												this.drawImage(this.getTexture("sentryHouse3"), (rowBuffer[i] - 0.5 - cameraX) * blockSize, rowY - blockSize * 3, blockSize * 2, blockSize * 3, 0, 0, 1, 1);
+												break;
+											case 4:
+												this.drawImage(this.getTexture("sentryHouse4"), (rowBuffer[i] - 0.5 - cameraX) * blockSize, rowY - blockSize * 3, blockSize * 2, blockSize * 3, 0, 0, 1, 1);
+												break;
+											case 5:
+												this.drawImage(this.getTexture("sentryHouse5"), (rowBuffer[i] - 0.5 - cameraX) * blockSize, rowY - blockSize * 3, blockSize * 2, blockSize * 3, 0, 0, 1, 1);
+												break;
+										};
+										break;
+									case "sentry well":
+										this.drawImage(this.getTexture("sentryWell"), (rowBuffer[i] - cameraX) * blockSize, (Math.max(getRowY(level.rows, rowBuffer[i]), getRowY(level.rows, rowBuffer[i] - 1), getRowY(level.rows, rowBuffer[i] + 1)) - cameraY) * -blockSize - blockSize * 3, blockSize, blockSize * 3, 0, 0, 1, 1);
 										break;
 									default:
 										this.drawImage(this.getTexture("error"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
@@ -1226,6 +1250,7 @@
 			var cursorY = innerHeight / 2;
 			var saveSlotNumber = 0;
 			var possessionTime = 0;
+			var possessionDoll = null;
 	
 			for (let i = 0; i < 25; i++) {
 				level.octaves.push(perlinNoise1D());
@@ -1287,6 +1312,23 @@
 					if (level.featureRNG() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
 					level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(level.featureRNG() * pool.length)];
 	
+					if (level.featureRNG() < 1 / 60.000) {
+						let rowRange = range(Math.max(i - 10, 0), i + 10);
+						let rowRangeMean = Math.round(rowRange.map(it => level.rows[it]).mean());
+						for (let j of rowRange) {
+							level.rows[j] = rowRangeMean;
+						};
+						placeFeatureEntity("sentry house", i - 4, 1);
+						placeFeatureEntity("sentry house", i - 8, 2);
+						placeFeatureEntity("sentry well", i);
+						level.features[i] = 12;
+						level.rows[i] -= 100;
+						level.waterLevel[i] += 90
+						placeFeatureEntity("sentry house", i + 4, 3);
+						placeFeatureEntity("sentry house", i + 8, 4);
+						placeFeatureEntity("sentry house", i + 10, 5);
+					};
+
 					if (level.featureRNG() < 1 / 5000) {
 						placeGolem("golem", i, false);
 					};
@@ -1306,7 +1348,7 @@
 					if (level.featureRNG() < 1 / 5000) {
 						spawnMob("mimic", i + 0.5 + (level.featureRNG() - 0.5) * 1.5, level.rows[i] + (level.featureRNG() - 0.5) * 1.5);
 					};
-					if (level.featureRNG() < 1 / 50.00) {
+					if (level.featureRNG() < 1 / 3000) {
 						spawnMob("possessed doll", i + 0.5, level.rows[i]);
 					};
 					if (level.featureRNG() < 1 / 3000) {
@@ -1449,8 +1491,6 @@
 							notificate("bankrupt");
 						};
 					};
-				} else if (e.key === " " && developerMode) {
-					playerX *= 2;
 				};
 			};
 			function purchaseLadder() {
@@ -1525,7 +1565,8 @@
 					trampolines,
 					cameraX,
 					cameraY,
-					possessionTime
+					possessionTime,
+					possessionDoll
 				});
 				localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 			};
@@ -1564,6 +1605,7 @@
 					cameraX = saveCode.cameraX ?? cameraX;
 					cameraY = saveCode.cameraY ?? cameraY;
 					possessionTime = saveCode.possessionTime ?? possessionTime;
+					possessionDoll = saveCode.possessionDoll ?? possessionDoll;
 				};
 			};
 			function clearSlot(slot) {
@@ -1584,7 +1626,7 @@
 					mob.mimicTimer = false;
 					mob.mimicking = true;
 					mob.mimicSpawnAge = 0;
-				} else if (type === "possessedDoll") {
+				} else if (type === "possessed doll") {
 					mob.possessed = false;
 				};
 				level.mobs.push(mob);
@@ -1602,6 +1644,9 @@
 					featureEntity.riseSpeed = arguments[2] ? 0.005 : 0;
 				} else if (type === "scaffolding") {
 					featureEntity.height = arguments[2];
+				} else if (type === "sentry house") {
+					featureEntity.variant = arguments[2];
+					featureEntity.sentries = 54;
 				};
 				level.featureEntities[Math.floor(x)] = featureEntity;
 			};
@@ -1712,6 +1757,33 @@
 			function getDarkness(time) {
 				return Math.max(Math.sin((time - 300) / (300 / Math.PI)), 0) ** 2;
 			};
+			function getBakedRows() {
+				let bakedRows = [...level.rows];
+				for (let i = 0; i < bakedRows.length; i++) {
+					bakedRows[i] += (level.features[i] === 5) * 5;
+					if (level.golems[i] && level.golems[i].type === "golem") {
+						let height = level.golems[i].yOffset + 3;
+						bakedRows[i] = level.rows[i] + height;
+					} else if (level.golems[i] && level.golems[i].type === "russet golem") {
+						let height = level.golems[i].yOffset + 6;
+						bakedRows[i] = level.rows[i]+ height;
+					} else if (level.golems[i] && level.golems[i].type === "aqua golem") {
+						let height = level.golems[i].yOffset + 9;
+						bakedRows[i] = level.rows[i] + height;
+					} else if (level.golems[i] && level.golems[i].type === "mecha golem") {
+						let height = level.golems[i].yOffset + 12;
+						bakedRows[i - 1] = level.rows[i] + height;
+						bakedRows[i] = level.rows[i] + height;
+						bakedRows[i + 1] = level.rows[i] + height;
+					} else if (level.golems[i] && level.golems[i].type === "celestial golem") {
+						let height = level.golems[i].yOffset + 100;
+						bakedRows[i] = level.rows[i] + height;
+					} else if (level.features[i] === 18) {
+						bakedRows[i] = level.rows[i] + 1;
+					};
+				};
+				return bakedRows;
+			};
 	
 			function tick() {
 				document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
@@ -1778,30 +1850,7 @@
 						generateLevel();
 					};
 	
-					let bakedRows = [...level.rows];
-					for (let i = 0; i < bakedRows.length; i++) {
-						bakedRows[i] += (level.features[i] === 5) * 5;
-						if (level.golems[i] && level.golems[i].type === "golem") {
-							let height = level.golems[i].yOffset + 3;
-							bakedRows[i] = level.rows[i] + height;
-						} else if (level.golems[i] && level.golems[i].type === "russet golem") {
-							let height = level.golems[i].yOffset + 6;
-							bakedRows[i] = level.rows[i]+ height;
-						} else if (level.golems[i] && level.golems[i].type === "aqua golem") {
-							let height = level.golems[i].yOffset + 9;
-							bakedRows[i] = level.rows[i] + height;
-						} else if (level.golems[i] && level.golems[i].type === "mecha golem") {
-							let height = level.golems[i].yOffset + 12;
-							bakedRows[i - 1] = level.rows[i] + height;
-							bakedRows[i] = level.rows[i] + height;
-							bakedRows[i + 1] = level.rows[i] + height;
-						} else if (level.golems[i] && level.golems[i].type === "celestial golem") {
-							let height = level.golems[i].yOffset + 100;
-							bakedRows[i] = level.rows[i] + height;
-						} else if (level.features[i] === 18) {
-							bakedRows[i] = level.rows[i] + 1;
-						};
-					};
+					let bakedRows = getBakedRows();
 	
 					gameTime += 1 / 60;
 					possessionTime = Math.max(possessionTime - 1 / 60, 0);
@@ -1979,7 +2028,7 @@
 													gems += specific;
 													break;
 												case "nothing":
-													if (Math.random() < 1/100) {
+													if (Math.random() < 1 / 100) {
 														specific = "spawned 1000 sentries";
 														for (let i = 0; i < 1000; i++) {
 															spawnMob("sentry", Math.random() * level.rows.length, 0);
@@ -2223,13 +2272,18 @@
 								};
 								break;
 							case "possessed doll":
-								mob.possessed = gameTime % 600 >= 450 && gameTime % 600 < 550;
+								mob.possessed = (possessionDoll !== mob) && (gameTime % 600 >= 450 && gameTime % 600 < 550);
+								if (!mob.possessed && possessionTime <= 0 && possessionDoll === mob) {
+									mob.possessed = true;
+									possessionDoll = null;
+								};
 								if (mob.possessed) {
-									mob.x += Math.abs(playerXV * (0.05 / 0.2)) * (health / maxHealth);
-									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
 									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1.5 && playerY + 2 > mob.y) {
 										possessionTime = 15;
+										possessionDoll = mob;
 									};
+									mob.x += Math.abs(playerXV * (0.05 / 0.2)) * (health / maxHealth) * Math.sign(playerX - mob.x);
+									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
 								};
 						};
 						mob.age++;
@@ -2296,7 +2350,7 @@
 				
 				let minutes = (gameTime + 450) * ((12 * 60) / 300);
 				let timeText = ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " AM" : " PM");
-				document.getElementById("stats").innerHTML = "altitude: " + Math.floor(playerY) + "m<br>🪙 " + coins + "<br>💎 " + gems + "<br>🗿 " + totems + "<br>boots: " + boots + "<br>" + timeText;
+				document.getElementById("stats").innerHTML = "altitude: " + Math.floor(playerY) + "m<br>🪙 " + coins + "<br>💎 " + gems + "<br>🗿 " + totems + "<br>boots: " + boots + "<br>" + timeText + "<br>fps: " + fps;
 				document.getElementById("score").innerHTML = "◄ " + score + "m ►";
 				document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 				for (let food in foods) {

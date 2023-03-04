@@ -440,7 +440,7 @@
 			varying vec2 v_texcoord;
 
 			void main() {
-				gl_Position = u_matrix * a_position * vec4(1, 1, 1, 1);
+				gl_Position = (u_matrix * a_position);
 				v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
 			}
 		</script>
@@ -648,7 +648,7 @@
 						gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
 						gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
 						darknessCtx.fillStyle = gradient;
-						darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, bakedRowY, blockSize * deltaRow, canvas.height - bakedRowY)
+						darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, bakedRowY, blockSize * deltaRow, canvas.height - bakedRowY);
 						
 						if (rowBuffer[i] >= 0 && rowBuffer[i] < level.rows.length) {
 							switch (level.features[rowBuffer[i]]) {
@@ -740,7 +740,7 @@
 										};
 										break;
 									case "sentry well":
-										this.drawImage(this.getTexture("sentryWell"), (rowBuffer[i] - cameraX) * blockSize, (Math.max(getRowY(level.rows, rowBuffer[i]), getRowY(level.rows, rowBuffer[i] - 1), getRowY(level.rows, rowBuffer[i] + 1)) - cameraY) * -blockSize - blockSize * 3, blockSize, blockSize * 3, 0, 0, 1, 1);
+										this.drawImage(this.getTexture("sentryWell"), (rowBuffer[i] - cameraX) * blockSize, (Math.min(getRowY(level.rows, rowBuffer[i] - 1), getRowY(level.rows, rowBuffer[i] + 1)) - cameraY) * -blockSize - blockSize * 3, blockSize, blockSize * 3, 0, 0, 1, 1);
 										break;
 									default:
 										this.drawImage(this.getTexture("error"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
@@ -774,8 +774,8 @@
 						this.drawImage(this.getTexture("dybbuk"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
 					};
 					let grimReaperX = lerp(playerX - 1, playerX - 100, health / maxHealth);
-					this.drawImage(this.getTexture("grimReaper"), (grimReaperX - 0.5 - cameraX) * blockSize, (level.rows[getHittableRows(grimReaperX).reduce((a, b) => level.rows[a] > level.rows[b] ? a : b)] + 3 - cameraY) * -blockSize, blockSize, blockSize * 3);
-	
+					this.drawImage(this.getTexture("grimReaper"), (grimReaperX - 0.5 - cameraX) * blockSize, (getRowY(level.rows, getHittableRows(grimReaperX).reduce((a, b) => level.rows[a] > level.rows[b] ? a : b)) + 3 - cameraY) * -blockSize, blockSize, blockSize * 3);
+
 					for (let mob of level.mobs) {
 						if ((mob.x + 0.5 - cameraX) * blockSize > 0 && (mob.x - 0.5 - cameraX) * blockSize < canvas.width) {
 							switch (mob.type) {
@@ -1117,8 +1117,8 @@
 				waterLevel: [],
 				golems: [],
 				perlinOffset: 0,
-				levelRNG: new Math.seedrandom(0.7482667),
-				featureRNG: new Math.seedrandom(0.7482667)
+				levelRNG: new Math.seedrandom("sentad"),
+				featureRNG: new Math.seedrandom("sentad")
 			};
 			var coins = 0;
 			var gems = 0;
@@ -1312,21 +1312,26 @@
 					if (level.featureRNG() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
 					level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(level.featureRNG() * pool.length)];
 	
-					if (level.featureRNG() < 1 / 60.000) {
-						let rowRange = range(Math.max(i - 10, 0), i + 10);
+					if (level.featureRNG() < 1 / 100.000) {
+						let rowRange = range(Math.max(i - 40, 0), Math.min(i + 40, level.rows.length - 1));
 						let rowRangeMean = Math.round(rowRange.map(it => level.rows[it]).mean());
 						for (let j of rowRange) {
-							level.rows[j] = rowRangeMean;
+							let rowHeight = Math.round((level.rows[j] - rowRangeMean) * 0.05 + rowRangeMean);
+							let flatness = clamp(40 - Math.abs(j - i), 0, 10) / 10;
+							if (flatness < 1) {
+								level.rows[j] = Math.round(lerp(level.rows[j], rowHeight, flatness));
+							} else {
+								level.rows[j] = rowHeight;
+							};
 						};
-						placeFeatureEntity("sentry house", i - 4, 1);
-						placeFeatureEntity("sentry house", i - 8, 2);
 						placeFeatureEntity("sentry well", i);
 						level.features[i] = 12;
 						level.rows[i] -= 100;
-						level.waterLevel[i] += 90
-						placeFeatureEntity("sentry house", i + 4, 3);
-						placeFeatureEntity("sentry house", i + 8, 4);
-						placeFeatureEntity("sentry house", i + 10, 5);
+						level.waterLevel[i] += 90;
+						let houses = Math.floor(Math.random() * 3 + 2);
+						for (let j = 0; j < houses; j++) {
+							placeFeatureEntity("sentry house", i + Math.floor(Math.random() * 40 - 20), Math.floor(Math.random() * 5 + 1));
+						};
 					};
 
 					if (level.featureRNG() < 1 / 5000) {
@@ -1646,7 +1651,7 @@
 					featureEntity.height = arguments[2];
 				} else if (type === "sentry house") {
 					featureEntity.variant = arguments[2];
-					featureEntity.sentries = 54;
+					featureEntity.sentries = Math.floor(Math.random() * 3);
 				};
 				level.featureEntities[Math.floor(x)] = featureEntity;
 			};
@@ -1975,14 +1980,16 @@
 						level.waterLevel[x] = averageHeight - bakedRows[x];
 						if (waterRight) level.waterLevel[x + 1] = averageHeight - bakedRows[x + 1];
 					};
-					for (let i = 0; i < level.rows.length; i++) {
-						if (i >= 1 && i < bakedRows.length - 1 && level.waterLevel[i] > 0) {
-							waterTick(i);
+					for (let j = 0; j < 3; j++) {
+						for (let i = 0; i < level.rows.length; i++) {
+							if (i >= 1 && i < bakedRows.length - 1 && level.waterLevel[i] > 0) {
+								waterTick(i);
+							};
 						};
-					};
-					for (let i = level.rows.length - 1; i <= 0; i--) {
-						if (i >= 1 && i < bakedRows.length - 1 && level.waterLevel[i] > 0) {
-							waterTick(i);
+						for (let i = level.rows.length - 1; i <= 0; i--) {
+							if (i >= 1 && i < bakedRows.length - 1 && level.waterLevel[i] > 0) {
+								waterTick(i);
+							};
 						};
 					};
 					for (let i = 0; i < level.rows.length; i++) {
@@ -2125,6 +2132,12 @@
 										document.getElementById("obelisk-shop-button").style.display = "block";
 									};
 									break;
+								case "sentry house":
+									if (playerX + 0.5 > i - 0.5 && playerX - 0.5 < i + 1.5 && playerY < level.rows[i] + 3 && level.featureEntities[i].sentries > 0) {
+										spawnMob("sentry", i + 0.5, level.rows[i]);
+										level.featureEntities[i].sentries--;
+									};
+									level.featureEntities[i];
 							};
 						};
 						if (level.golems[i]) {
@@ -2331,7 +2344,7 @@
 				let healthR = clamp(2 - healthPercent * 2, 0, 1) * 255;
 				let healthG = clamp(healthPercent * 2, 0, 1) * 255;
 				let healthB = (potions["regeneration potion"].time > 0) * 127;
-				document.getElementById("health").style.width = "calc(40% * " + (maxHealth / 1) + ")";
+				document.getElementById("health").style.width = "min(calc(40% * " + (maxHealth / 1) + "), calc(100% - 40px))";
 				document.getElementById("health-inner").style.width = (100 * healthPercent) + "%";
 				document.getElementById("health-inner").style.backgroundColor = "rgb(" + healthR + ", " + healthG + ", " + healthB + ")";
 	
@@ -2363,21 +2376,24 @@
 				document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
 				document.getElementById("trampoline-howmany").innerHTML = "(" + trampolines + ")";
 			};
+			var oldfpsTime = 0;
 			function loop() {
-				try {
+				//try {
 					tick();
 					drawScreen();
-				} catch (e) {
-					alert(e.stack);
-					return;
-				};
-				frameCount++;
-				let now = performance.now();
-				if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {
-					fpsUpdateTime = now;
-					fps = frameCount;
-					frameCount = 0;
-				};
+				//} catch (e) {
+				//	alert(e.stack);
+				//	return;
+				//};
+				//frameCount++;
+				//let now = performance.now();
+				//if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {
+				//	fpsUpdateTime = now;
+				//	fps = frameCount;
+				//	frameCount = 0;
+				//};
+				fps = Math.round(1 / ((performance.now() - oldfpsTime) / 1000));
+				oldfpsTime = performance.now();
 				requestAnimationFrame(loop);
 			};
 			loop();

@@ -822,7 +822,7 @@
 					};
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
 						if (level.waterLevel[rowBuffer[i]] > 0) {
-							let waveOffset = Math.max(Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25, -level.waterLevel[rowBuffer[i]]);
+							let waveOffset = Math.max(Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25 + Math.sin(gameTime * 4 + rowBuffer[i] / 5) * 0.125, -level.waterLevel[rowBuffer[i]]);
 							let waterUVSize = 25;
 							let waterY = (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset - cameraY) * -blockSize;
 							let waterHeight = Math.min((level.rows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.max(waterY, 0));
@@ -1313,25 +1313,28 @@
 					level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(level.featureRNG() * pool.length)];
 	
 					if (level.featureRNG() < 1 / 100.000) {
-						let rowRange = range(Math.max(i - 40, 0), Math.min(i + 40, level.rows.length - 1));
+						let villageWidth = 35;
+						let villageFalloff = 10;
+						let rowRange = range(Math.max(i - villageWidth, 0), Math.min(i + villageWidth, level.rows.length - 1));
 						let rowRangeMean = Math.round(rowRange.map(it => level.rows[it]).mean());
 						for (let j of rowRange) {
 							let rowHeight = Math.round((level.rows[j] - rowRangeMean) * 0.05 + rowRangeMean);
-							let flatness = clamp(40 - Math.abs(j - i), 0, 10) / 10;
+							let flatness = clamp(villageWidth - Math.abs(j - i), 0, villageFalloff) / villageFalloff;
 							if (flatness < 1) {
 								level.rows[j] = Math.round(lerp(level.rows[j], rowHeight, flatness));
 							} else {
 								level.rows[j] = rowHeight;
 							};
 						};
+						for (let j = -(villageWidth - villageFalloff); j < villageWidth - villageFalloff; j += 5) {
+							if (Math.random() < 0.9) {
+								placeFeatureEntity("sentry house", i + j, Math.floor(Math.random() * 5 + 1));
+							};
+						};
 						placeFeatureEntity("sentry well", i);
 						level.features[i] = 12;
 						level.rows[i] -= 100;
 						level.waterLevel[i] += 90;
-						let houses = Math.floor(Math.random() * 3 + 2);
-						for (let j = 0; j < houses; j++) {
-							placeFeatureEntity("sentry house", i + Math.floor(Math.random() * 40 - 20), Math.floor(Math.random() * 5 + 1));
-						};
 					};
 
 					if (level.featureRNG() < 1 / 5000) {

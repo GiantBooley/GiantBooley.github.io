@@ -16,6 +16,7 @@
 			body {
 				margin: 0;
 				overflow: hidden;
+				overscroll-behavior: none;
 			}
 			#canvas-wrapper,#game,#thing {
 				width: 100%;
@@ -196,8 +197,10 @@
 				padding: 50px;
 			}
 			#menu-title {
-				font-family: Arial, Helvetica, sans-serif;
 				font-size: 60px;
+			}
+			.menu-text {
+				font-family: Arial, Helvetica, sans-serif;
 				color: white;
 				text-shadow: 3px 3px 5px black;
 			}
@@ -208,6 +211,28 @@
 				border: 3px solid black;
 				border-radius: 10px;
 				box-shadow: 3px 3px 10px black;
+			}
+			#seed-wrapper label {
+				font-size: 30px;
+				font-family: Arial, Helvetica, sans-serif;
+				color: white;
+			}
+			#seed-wrapper div {
+				display: inline-block;
+			}
+			#seed-wrapper p {
+				color: white;
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 15px;
+				margin: 0px;
+			}
+			#seed {
+				font-size: 30px;
+				width: 20vw;
+				font-family: "Consolas", "Courier New", monospace;
+			}
+			#seed-as-number-checkbox {
+				transform: scale(2);
 			}
 			#menu-button:hover {
 				box-shadow: inset 3px 3px 10px black;
@@ -301,6 +326,21 @@
 				left: 50%;
 				transform: translate(-50%, -50%);
 			}
+			#death-screen {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 100%;
+				height: 100%;
+				background-image: linear-gradient(to bottom, rgba(255, 0, 0, 1), rgba(0, 0, 0, 0));
+				display: none;
+				font-family: 'Times New Roman', Times, serif;
+				font-weight: bold;
+				font-size: 75px;
+				color: #550000;
+				align-items: center;
+				justify-content: center;
+			}
 		</style>
 	</head>
 	<body>
@@ -309,6 +349,9 @@
 				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);" onkeyup="keysDown[event.key] = false;">
 					<canvas id="canvas"></canvas>
 					<canvas id="darkness"></canvas>
+				</div>
+				<div id="death-screen">
+					YOU DIED
 				</div>
 				<div id="stats" class="gui-text"></div>
 				<div id="score" class="gui-text"></div>
@@ -419,8 +462,17 @@
 			</div>
 		</div>
 		<div id="menu">
-			<h1 id="menu-title">forest simulator 3d</h1>
+			<h1 id="menu-title" class="menu-text">forest simulator 3d</h1>
 			<button id="menu-button" onclick="playButton();">PLAY</button>
+			<div id="seed-wrapper">
+				<label for="seed" class="menu-text">Seed:</label>
+				<div>
+					<p class="menu-text">(Leave blank for random seed)</p>
+					<input type="text" value="" id="seed" placeholder="Enter seed...">
+				</div>
+				<input type="checkbox" id="seed-as-number-checkbox">
+				<label for="seed-as-number-checkbox" class="menu-text">As number</label>
+			</div>
 		</div>
 		<div id="notification">
 
@@ -452,11 +504,11 @@
 			uniform sampler2D u_texture;
 
 			void main() {
-				gl_FragColor = texture2D(u_texture, v_texcoord);
-				float alpha = gl_FragColor.a;
-				gl_FragColor.r *= alpha;
-				gl_FragColor.g *= alpha;
-				gl_FragColor.b *= alpha;
+				vec4 color = texture2D(u_texture, v_texcoord);
+				if (color.a < 0.5) {
+					discard;
+				};
+				gl_FragColor = color;
 			}
 		</script>
 		<script src="./m4.js"></script>
@@ -604,23 +656,14 @@
 	
 					// vertices
 					darknessCtx.clearRect(0, 0, canvas.width, canvas.height);
-	
-					//images[((gameTime % 600 < 300 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight")].draw(0, 0, canvas.width, canvas.height);
 					
-					//if (cameraY > 750 * -blockSize) {
-					//	images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
-					//	images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4,					canvas.width, canvas.height);
-					//	images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4,					Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
-					//	images.stoneBackground.draw(Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	Math.mod(-cameraY, canvas.height * 4) / 4 - canvas.height,	canvas.width, canvas.height);
-					//};
 					let skyImage = ((getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight");
 					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 1, 1);
 					let stoneBackgroundScroll = 1 / 4;
-					let stoneBackgroundOffset = Math.max((750 - cameraY) * -blockSize * stoneBackgroundScroll, 0);
-					//this.drawImage(this.getTexture("stoneBackground"), 0, stoneBackgroundOffset, canvas.width, canvas.height - stoneBackgroundOffset, cameraX / (canvas.width / blockSize / stoneBackgroundScroll), (-cameraY * stoneBackgroundScroll) / canvas.height, 1, (canvas.height - stoneBackgroundOffset) / canvas.height / 4);
+					let stoneBackgroundOffset = (750 - cameraY) * -blockSize * stoneBackgroundScroll;
+					this.drawImage(this.getTexture("stoneBackground"), 0, Math.max(stoneBackgroundOffset, 0), canvas.width, canvas.height - Math.max(stoneBackgroundOffset, 0), cameraX / (canvas.width / blockSize / stoneBackgroundScroll), (Math.max(stoneBackgroundOffset, 0) - stoneBackgroundOffset) * stoneBackgroundScroll / canvas.height, 1, (canvas.height - Math.max(stoneBackgroundOffset, 0)) / canvas.height / 4);
 	
-					//images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4,					(750 * -blockSize - cameraY) / 4, canvas.width, canvas.height);
-					//images.hills.draw(0, 200, images.hills.width, images.hills.height - 200, Math.mod(-cameraX, canvas.width * 4) / 4 - canvas.width,	(750 * -blockSize - cameraY) / 4, canvas.width, canvas.height);
+					this.drawImage(this.getTexture("hills"), 0, stoneBackgroundOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / stoneBackgroundScroll), 0.225, 1, 0.775);
 	
 					let rowBuffer = range(Math.floor(cameraX), Math.floor(cameraX + canvas.width / blockSize));
 					let deltaRow = Math.floor(Math.max(1 / blockSize, 1));
@@ -636,15 +679,15 @@
 					let bakedRows = getBakedRows();
 					// grass
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
-						//let layer = getLayer(level.rows[rowBuffer[i]]);
-						//let ice = (layer === 9) && Math.round((level.rows[rowBuffer[i]] - 900) * 1000) / 1000 <= Math.round((level.originalRows[rowBuffer[i]] - 900) * 0.9 * 1000) / 1000;
-						//let groundImage = ice ? images.packedSnow : layers[getLayer(level.rows[rowBuffer[i]])][0];
-						//let blockUVSize = groundImage.width / (25 * (resizeGroundUV ? (50 / blockSize) : 1));
+						let layer = getLayer(getRowY(level.rows, rowBuffer[i]));
+						let ice = (layer === 9) && Math.round((getRowY(level.rows, rowBuffer[i]) - 900) * 1000) / 1000 <= Math.round((getRowY(level.originalRows, rowBuffer[i]) - 900) * 0.9 * 1000) / 1000;
+						let groundImage = ice ? "snowMegaFootprinty" : layers[layer][0];
+
 						let rowY = (getRowY(level.rows, rowBuffer[i]) - cameraY) * -blockSize;
 						let bakedRowY = (getRowY(bakedRows, rowBuffer[i]) - cameraY) * -blockSize;
 						let groundUVSize = 25;
 						if (rowY < canvas.height) {
-							this.drawImage(this.getTexture(layers[getLayer(getRowY(level.rows, rowBuffer[i]))][0]), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize * deltaRow, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
+							this.drawImage(this.getTexture(groundImage), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize * deltaRow, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
 						};
 						let gradient = darknessCtx.createLinearGradient(0, bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize, 0, (bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize) + blockSize * 15);
 						gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
@@ -670,6 +713,7 @@
 									break;
 								case 5:
 									this.drawImage(this.getTexture("wall"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 5, blockSize, blockSize * 5, 0, 0, 1, 5);
+									this.drawImage(this.getTexture("stone"), (rowBuffer[i] - 0.1 - cameraX) * blockSize, rowY - blockSize * 5, blockSize * 1.2, blockSize * 0.2, 0, 0, 1.2, 0.2);
 									break;
 								case 6:
 									this.drawImage(this.getTexture("mysteryCrate"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
@@ -742,7 +786,9 @@
 										};
 										break;
 									case "sentry well":
-										this.drawImage(this.getTexture("sentryWell"), (rowBuffer[i] - cameraX) * blockSize, (Math.min(getRowY(level.rows, rowBuffer[i] - 1), getRowY(level.rows, rowBuffer[i] + 1)) - cameraY) * -blockSize - blockSize * 3, blockSize, blockSize * 3, 0, 0, 1, 1);
+										let wellY = (Math.min(getRowY(level.rows, rowBuffer[i] - 1), getRowY(level.rows, rowBuffer[i] + 1)) - cameraY) * -blockSize;
+										this.drawImage(this.getTexture("sentryWell"), (rowBuffer[i] - cameraX) * blockSize, wellY - blockSize * 3, blockSize, blockSize * 3, 0, 0, 1, 1);
+										this.drawImage(this.getTexture("sentryWellPipe"), (rowBuffer[i] - cameraX) * blockSize, wellY, blockSize, canvas.height - wellY, 0, 0, 1, (canvas.height - wellY) / blockSize);
 										break;
 									default:
 										this.drawImage(this.getTexture("error"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
@@ -776,7 +822,7 @@
 						this.drawImage(this.getTexture("dybbuk"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
 					};
 					let grimReaperX = lerp(playerX - 1, playerX - 100, health / maxHealth);
-					this.drawImage(this.getTexture("grimReaper"), (grimReaperX - 0.5 - cameraX) * blockSize, (getRowY(level.rows, getHittableRows(grimReaperX).reduce((a, b) => level.rows[a] > level.rows[b] ? a : b)) + 3 - cameraY) * -blockSize, blockSize, blockSize * 3);
+					this.drawImage(this.getTexture("grimReaper"), (grimReaperX - 0.5 - cameraX) * blockSize, (getRowY(bakedRows, getHittableRows(grimReaperX).reduce((a, b) => level.rows[a] > level.rows[b] ? a : b)) + 3 - cameraY) * -blockSize, blockSize, blockSize * 3);
 
 					for (let mob of level.mobs) {
 						if ((mob.x + 0.5 - cameraX) * blockSize > 0 && (mob.x - 0.5 - cameraX) * blockSize < canvas.width) {
@@ -826,11 +872,11 @@
 						if (level.waterLevel[rowBuffer[i]] > 0) {
 							let waveOffset = Math.max(Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25 + Math.sin(gameTime * 4 + rowBuffer[i] / 5) * 0.125, -level.waterLevel[rowBuffer[i]]);
 							let waterUVSize = 25;
-							let waterY = (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset - cameraY) * -blockSize;
-							let waterHeight = Math.min((level.rows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.min(waterY, 0));
+							let waterY = (bakedRows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset - cameraY) * -blockSize;
+							let waterHeight = Math.min((bakedRows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.min(waterY, 0));
 	
 							if (waterY < canvas.height) {
-								this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize * deltaRow, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, (((Math.max(waterY, 0) - waterY) / blockSize - level.waterLevel[rowBuffer[i]]) + level.rows[rowBuffer[i]]) / waterUVSize, 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize);
+								this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize * deltaRow, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, (Math.max(waterY, 0) - waterY) / blockSize / waterUVSize, 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize);
 							};
 	
 							let gradient = darknessCtx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
@@ -855,11 +901,11 @@
 						for (let i = 0; i < howManyNoises; i++) {
 							ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() + 1, Math.random() + 1);
 						};
-					};
+					};*/
 	
-					ctx.globalAlpha = clamp(1 - (health / maxHealth) / 0.1, 0, 1);
-					images.blood.draw(0, 0, canvas.width, canvas.height);
-					ctx.globalAlpha = 1;*/
+					if (health / maxHealth < 0.05) {
+						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height);
+					};
 					
 					try {
 						darknessCtx.beginPath();
@@ -876,26 +922,7 @@
 						darknessCtx.restore();
 					} catch (e) {
 						console.warn("guy brightness circle negative radius not drawing");
-					};/*
-	
-					ctx.font = "30px arial";
-					ctx.fillStyle = "yellow";
-					if (facasd) {
-						ctx.fillText("Marina silva is a brazilian politician and an activist for deforestation and other things.", 0, 300);
-						ctx.fillText("She was a rubber tapper and found that land was being invaded by rubber tappers and she", 0, 325);
-						ctx.fillText("started protecting thousands of hectares of land.", 0, 350);
 					};
-					canvas.style.filter = ((playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && !divingSuit) ? "blur(5px) " : "") + (timeTraveling ? ("sepia(100%) brightness(" + (Math.random() * 0.1 + (1 - 0.1 / 2)) + ") ") : "");
-					if (dead) {
-						let gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-						gradient.addColorStop(0, "red");
-						gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-						ctx.fillStyle = gradient;
-						ctx.fillRect(0, 0, canvas.width, canvas.height);
-						ctx.font = "100px arial";
-						ctx.fillStyle = "red";
-						ctx.fillText("you died", 200, 200);
-					};*/
 				};
 			};
 			const renderer = new WebGLRenderer();
@@ -1118,8 +1145,8 @@
 				waterLevel: [],
 				golems: [],
 				perlinOffset: 0,
-				levelRNG: new Math.seedrandom("sentad"),
-				featureRNG: new Math.seedrandom("sentad")
+				levelRNG: new Math.seedrandom(),
+				featureRNG: new Math.seedrandom()
 			};
 			var coins = 0;
 			var gems = 0;
@@ -1253,8 +1280,19 @@
 			var possessionTime = 0;
 			var possessionDoll = null;
 	
-			for (let i = 0; i < 25; i++) {
-				level.octaves.push(perlinNoise1D());
+			function generateOctaves() {
+				// octaves
+				level.octaves = [];
+				for (let i = 0; i < 25; i++) {
+					level.octaves.push(perlinNoise1D());
+				};
+				
+				// perin offset
+				var tempRows = [];
+				for (let i = 0; i < 50000; i++) {
+					tempRows[i] = getPerlinHeight(i);
+				};
+				level.perlinOffset = parseInt(Object.keys(tempRows).sort((a, b) => Math.abs(tempRows[a] - 750) - Math.abs(tempRows[b] - 750))[0]);
 			};
 			function getPerlinHeight(x) {
 				let perlinHeight = 0;
@@ -1265,11 +1303,6 @@
 				};
 				return perlinHeight;
 			};
-			var tempRows = [];
-			for (let i = 0; i < 50000; i++) {
-				tempRows[i] = getPerlinHeight(i);
-			};
-			level.perlinOffset = parseInt(Object.keys(tempRows).sort((a, b) => Math.abs(tempRows[a] - 750) - Math.abs(tempRows[b] - 750))[0]);
 			function generateLevel() {
 				let oldLength = level.rows.length;//rows.length === 0 ? -1 : rows.length;
 				for (let i = oldLength; i < oldLength + 5000; i++) {
@@ -1298,22 +1331,24 @@
 						//level.waterLevel[i] = (trenchDepth * (trenchWidth * 2 + 1)) / 2;
 					};
 					level.rows[i] = Math.round(level.rows[i]);
-					let pool = [];
-					if (level.featureRNG() < 1 / 20) pool.push(1);
-					if (level.featureRNG() < 1 / 200) pool.push(2);
-					if (level.featureRNG() < 1 / 5000) pool.push(5);
-					if (level.featureRNG() < 1 / 1000) pool.push(6);
-					if (level.featureRNG() < 1 / 4000) pool.push(7);
-					if (level.featureRNG() < 1 / 2000) pool.push(10);
-					if (level.featureRNG() < 1 / 8000) pool.push(12);
-					if (level.featureRNG() < 1 / 25000) pool.push(13);
-					if (level.featureRNG() < 1 / 4000) pool.push(15);
-					if (level.featureRNG() < 1 / 20000) pool.push(16);
-					if (level.featureRNG() < 1 / 20213123123123.000) pool.push(17);
-					if (level.featureRNG() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
-					level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(level.featureRNG() * pool.length)];
+					if (level.features[i] === undefined) {
+						let pool = [];
+						if (level.featureRNG() < 1 / 20) pool.push(1);
+						if (level.featureRNG() < 1 / 200) pool.push(2);
+						if (level.featureRNG() < 1 / 5000) pool.push(5);
+						if (level.featureRNG() < 1 / 1000) pool.push(6);
+						if (level.featureRNG() < 1 / 4000) pool.push(7);
+						if (level.featureRNG() < 1 / 2000) pool.push(10);
+						if (level.featureRNG() < 1 / 8000) pool.push(12);
+						if (level.featureRNG() < 1 / 25000) pool.push(13);
+						if (level.featureRNG() < 1 / 4000) pool.push(15);
+						if (level.featureRNG() < 1 / 20000) pool.push(16);
+						if (level.featureRNG() < 1 / 20213123123123.000) pool.push(17);
+						if (level.featureRNG() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
+						level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(level.featureRNG() * pool.length)];
+					};
 	
-					if (level.featureRNG() < 1 / 100.000) {
+					if (level.featureRNG() < 1 / 30000) {
 						let villageWidth = 35;
 						let villageFalloff = 10;
 						let rowRange = range(Math.max(i - villageWidth, 0), Math.min(i + villageWidth, level.rows.length - 1));
@@ -1327,15 +1362,20 @@
 								level.rows[j] = rowHeight;
 							};
 						};
-						for (let j = -(villageWidth - villageFalloff); j < villageWidth - villageFalloff; j += 5) {
-							if (Math.random() < 0.9) {
-								placeFeatureEntity("sentry house", i + j, Math.floor(Math.random() * 5 + 1));
+						for (let j = -(villageWidth - villageFalloff - 5); j < villageWidth - villageFalloff - 5; j += 5) {
+							if (level.featureRNG() < 0.9) {
+								placeFeatureEntity("sentry house", i + j, Math.floor(level.featureRNG() * 5 + 1));
 							};
 						};
 						placeFeatureEntity("sentry well", i);
 						level.features[i] = 12;
 						level.rows[i] -= 100;
 						level.waterLevel[i] += 90;
+						level.features[i - (villageWidth - villageFalloff - 1)] = 5;
+						level.features[i + (villageWidth - villageFalloff - 1)] = 5;
+						if (level.featureRNG() < 0.5) {
+							level.features[i + (villageWidth - villageFalloff - 2)] = 4;
+						};
 					};
 
 					if (level.featureRNG() < 1 / 5000) {
@@ -1369,8 +1409,6 @@
 				};
 				level.originalRows = [...level.rows];
 			};
-			generateLevel();
-			playerY = level.rows[0];
 			function getHittableRows(x) {
 				hittableRows = [];
 				if (Math.mod(x, 1) < 0.5) {
@@ -1475,7 +1513,7 @@
 					playerXV = 0;
 					playerYV = 0;
 					playerX = 0.5;
-					playerY = level.rows[0] ?? 0;
+					playerY = getRowY(level.rows, 0) ?? 0;
 					cameraSnapPending = true;
 					gameTime = 0;
 				} else if (e.key === "p" && developerMode) {
@@ -1725,6 +1763,19 @@
 				document.getElementById("menu").style.display = "none";
 				document.getElementById("canvas-wrapper").focus();
 				document.getElementById("cursor").style.display = "none";
+				let seed = document.getElementById("seed").value;
+				if (seed.length > 0) {
+					if (document.getElementById("seed-as-number-checkbox").checked && !Number.isNaN(parseFloat(seed))) {
+						seed = parseFloat(seed);
+					};
+					level.featureRNG = new Math.seedrandom(seed);
+					level.levelRNG = new Math.seedrandom(seed);
+				} else {
+					level.featureRNG = new Math.seedrandom();
+					level.levelRNG = new Math.seedrandom();
+				};
+				generateOctaves();
+				playerY = getRowY(level.rows, 0);
 				playing = true;
 			};
 			function purchaseTrampoline() {
@@ -2320,7 +2371,7 @@
 						health -= 0.003;
 					};
 					health = clamp(health, 0, maxHealth);
-					if (playerY + 1.5 < level.rows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && !divingSuit) {
+					if (playerY + 1.5 < bakedRows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && !divingSuit) {
 						oxygen -= 0.005;
 					} else {
 						oxygen += 0.005;
@@ -2343,7 +2394,7 @@
 				renderer.draw();
 	
 				
-	
+				document.getElementById("death-screen").style.display = dead ? "flex" : "none";
 				let healthPercent = health / maxHealth
 				let healthR = clamp(2 - healthPercent * 2, 0, 1) * 255;
 				let healthG = clamp(healthPercent * 2, 0, 1) * 255;
@@ -2382,13 +2433,13 @@
 			};
 			var oldfpsTime = 0;
 			function loop() {
-				//try {
+				try {
 					tick();
 					drawScreen();
-				//} catch (e) {
-				//	alert(e.stack);
-				//	return;
-				//};
+				} catch (e) {
+					alert(e.stack);
+					return;
+				};
 				//frameCount++;
 				//let now = performance.now();
 				//if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

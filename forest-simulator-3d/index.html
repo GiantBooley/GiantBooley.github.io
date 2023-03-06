@@ -453,7 +453,10 @@
 
 			void main() {
 				gl_FragColor = texture2D(u_texture, v_texcoord);
-				gl_FragColor.rgb *= gl_FragColor.a;
+				float alpha = gl_FragColor.a;
+				gl_FragColor.r *= alpha;
+				gl_FragColor.g *= alpha;
+				gl_FragColor.b *= alpha;
 			}
 		</script>
 		<script src="./m4.js"></script>
@@ -462,7 +465,6 @@
 			const canvas = document.getElementById("canvas");
 			canvas.width = innerWidth;
 			canvas.height = innerHeight;
-			//const ctx = canvas.getContext("2d");
 	
 			const darkness = document.getElementById("darkness");
 			darkness.width = innerWidth;
@@ -552,15 +554,15 @@
 				loadImageAndCreateTextureInfo(url, color) {
 					var tex = this.gl.createTexture();
 					this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
-					this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 255, 255]));
+					this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 0, 255, 255]));
 					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
 					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
 					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
 					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
 	
 					var textureInfo = {
-						width: 1,	 // we don't know the size until it loads
-						height: 1,
+						width: 2,
+						height: 2,
 						texture: tex,
 					};
 					var img = new Image();
@@ -625,7 +627,7 @@
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
 						if (level.terrainFeatures[rowBuffer[i]] === "rainbow") {
 							let rainbowSize = 100;
-							this.drawImage(this.getTexture("rainbow"), (rowBuffer[i] - cameraX) * blockSize, (level.rows[i] + rainbowSize / 2 - cameraY) * -blockSize, blockSize * rainbowSize, blockSize * rainbowSize, 0, 0, 1, 1);
+							this.drawImage(this.getTexture("rainbow"), (rowBuffer[i] - cameraX) * blockSize, (level.rows[rowBuffer[i]] + rainbowSize / 2 - cameraY) * -blockSize, blockSize * rainbowSize, blockSize * rainbowSize, 0, 0, 1, 1);
 						} else if (level.terrainFeatures[rowBuffer[i]] === "tree1") {
 							this.drawImage(this.getTexture("tree1"), (rowBuffer[i] - 2.5 - cameraX) * blockSize, (level.rows[rowBuffer[i]] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1);
 						};
@@ -667,7 +669,7 @@
 									this.drawImage(this.getTexture("ladder"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 6, blockSize, blockSize * 6);
 									break;
 								case 5:
-									this.drawImage(this.getTexture("stones"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 5, blockSize, blockSize * 5);
+									this.drawImage(this.getTexture("wall"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 5, blockSize, blockSize * 5, 0, 0, 1, 5);
 									break;
 								case 6:
 									this.drawImage(this.getTexture("mysteryCrate"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
@@ -825,10 +827,9 @@
 							let waveOffset = Math.max(Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25 + Math.sin(gameTime * 4 + rowBuffer[i] / 5) * 0.125, -level.waterLevel[rowBuffer[i]]);
 							let waterUVSize = 25;
 							let waterY = (level.rows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset - cameraY) * -blockSize;
-							let waterHeight = Math.min((level.rows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.max(waterY, 0));
+							let waterHeight = Math.min((level.rows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.min(waterY, 0));
 	
 							if (waterY < canvas.height) {
-								//this.drawImage(this.getTexture(layers[getLayer(getRowY(level.rows, rowBuffer[i]))][0]), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
 								this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize * deltaRow, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, (((Math.max(waterY, 0) - waterY) / blockSize - level.waterLevel[rowBuffer[i]]) + level.rows[rowBuffer[i]]) / waterUVSize, 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize);
 							};
 	

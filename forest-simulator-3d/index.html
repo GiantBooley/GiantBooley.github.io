@@ -344,9 +344,9 @@
 		</style>
 	</head>
 	<body>
-		<div id="thing" tabindex="0" onkeydown="if (event.key === 'Escape') {shopButton()} else if (event.key === 'h' && developerMode) {openHackerConsole()}">
+		<div id="thing" tabindex="0" onkeydown="if (event.key === 'Escape') {shopButton()} else if (event.key === 'h' && developerMode) {openHackerConsole()}" onkeyup="keysDown[event.key] = false;">
 			<div id="game" tabindex="0" onmouseup="joystick.mouseUp(event);" ontouchend="joystick.mouseUp(event);" onmousemove="joystick.mouseMove(event);" ontouchmove="joystick.mouseMove(event);" oncontextmenu="return false;">
-				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);" onkeyup="keysDown[event.key] = false;">
+				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);">
 					<canvas id="canvas"></canvas>
 					<canvas id="darkness"></canvas>
 				</div>
@@ -512,7 +512,6 @@
 			}
 		</script>
 		<script src="./m4.js"></script>
-		<script src="./seedrandom.min.js"></script>
 		<script>
 			const canvas = document.getElementById("canvas");
 			canvas.width = innerWidth;
@@ -527,6 +526,53 @@
 	
 			var blockSize = 50;
 	
+			const cyrb53 = (str, seed = 0) => {
+				let h1 = 0xdeadbeef ^ seed,
+					h2 = 0x41c6ce57 ^ seed;
+				for (let i = 0, ch; i < str.length; i++) {
+					ch = str.charCodeAt(i);
+					h1 = Math.imul(h1 ^ ch, 2654435761);
+					h2 = Math.imul(h2 ^ ch, 1597334677);
+				};
+				
+				h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+				h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+				
+				return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+			};
+			const mb32 = {
+				new: function(a=Math.floor(Math.random() * 0x80000000), randoms=0) {
+					var generator = {};
+					generator.seed = a;
+					if (typeof a === "string") {
+						a = cyrb53(a);
+					};
+					generator.seedNumber = a;
+					generator.a = a;
+					generator.randoms = randoms;
+					for (let i = 0; i < randoms; i++) {
+						generator.a |= 0;
+						generator.a += 0x6D2B79F5 | 0;
+					};
+					return generator;
+				},
+				rng: function(generator) {
+					generator.a |= 0;
+					generator.a += 0x6D2B79F5 | 0;
+					var t = Math.imul(generator.a ^ generator.a >>> 15, 1 | generator.a);
+					t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+					generator.randoms++;
+					return ((t ^ t >>> 14) >>> 0) / 4294967296;
+				},
+				setRandoms: function(generator, howmany) {
+					generator.randoms = howmany;
+					generator.a = generator.seedNumber;
+					for (let i = 0; i < howmany; i++) {
+						generator.a |= 0;
+						generator.a += 0x6D2B79F5 | 0;
+					};
+				}
+			};
 			class WebGLRenderer {
 				constructor() {
 					this.gl = canvas.getContext("webgl");
@@ -680,8 +726,9 @@
 					// grass
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
 						let layer = getLayer(getRowY(level.rows, rowBuffer[i]));
+						let footprinty = (layer === 9) && getRowY(level.rows, rowBuffer[i]) < getRowY(level.originalRows, rowBuffer[i]);
 						let ice = (layer === 9) && Math.round((getRowY(level.rows, rowBuffer[i]) - 900) * 1000) / 1000 <= Math.round((getRowY(level.originalRows, rowBuffer[i]) - 900) * 0.9 * 1000) / 1000;
-						let groundImage = ice ? "snowMegaFootprinty" : layers[layer][0];
+						let groundImage = footprinty ? (ice ? "snowMegaFootprinty" : "snowFootprinty") : layers[layer][0];
 
 						let rowY = (getRowY(level.rows, rowBuffer[i]) - cameraY) * -blockSize;
 						let bakedRowY = (getRowY(bakedRows, rowBuffer[i]) - cameraY) * -blockSize;
@@ -870,7 +917,7 @@
 					};
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
 						if (level.waterLevel[rowBuffer[i]] > 0) {
-							let waveOffset = Math.max(Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25 + Math.sin(gameTime * 4 + rowBuffer[i] / 5) * 0.125, -level.waterLevel[rowBuffer[i]]);
+							let waveOffset = Math.max(Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25, -level.waterLevel[rowBuffer[i]]);
 							let waterUVSize = 25;
 							let waterY = (bakedRows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset - cameraY) * -blockSize;
 							let waterHeight = Math.min((bakedRows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.min(waterY, 0));
@@ -1145,8 +1192,8 @@
 				waterLevel: [],
 				golems: [],
 				perlinOffset: 0,
-				levelRNG: new Math.seedrandom(),
-				featureRNG: new Math.seedrandom()
+				levelRNG: mb32.new(),
+				featureRNG: mb32.new()
 			};
 			var coins = 0;
 			var gems = 0;
@@ -1314,8 +1361,8 @@
 				// round stuff and coins n gems
 				for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline
 					level.waterLevel[i] = 0;
-					if (level.featureRNG() < 1 / 1000) {
-						level.waterLevel[i] = Math.floor(level.featureRNG() * 100);
+					if (mb32.rng(level.featureRNG) < 1 / 1000) {
+						level.waterLevel[i] = Math.floor(mb32.rng(level.featureRNG) * 100);
 					};
 					if (i === 300000000) {
 						let trenchDepth = 100;
@@ -1333,22 +1380,21 @@
 					level.rows[i] = Math.round(level.rows[i]);
 					if (level.features[i] === undefined) {
 						let pool = [];
-						if (level.featureRNG() < 1 / 20) pool.push(1);
-						if (level.featureRNG() < 1 / 200) pool.push(2);
-						if (level.featureRNG() < 1 / 5000) pool.push(5);
-						if (level.featureRNG() < 1 / 1000) pool.push(6);
-						if (level.featureRNG() < 1 / 4000) pool.push(7);
-						if (level.featureRNG() < 1 / 2000) pool.push(10);
-						if (level.featureRNG() < 1 / 8000) pool.push(12);
-						if (level.featureRNG() < 1 / 25000) pool.push(13);
-						if (level.featureRNG() < 1 / 4000) pool.push(15);
-						if (level.featureRNG() < 1 / 20000) pool.push(16);
-						if (level.featureRNG() < 1 / 20213123123123.000) pool.push(17);
-						if (level.featureRNG() < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
-						level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(level.featureRNG() * pool.length)];
+						if (mb32.rng(level.featureRNG) < 1 / 20) pool.push(1);
+						if (mb32.rng(level.featureRNG) < 1 / 200) pool.push(2);
+						if (mb32.rng(level.featureRNG) < 1 / 5000) pool.push(5);
+						if (mb32.rng(level.featureRNG) < 1 / 4000) pool.push(7);
+						if (mb32.rng(level.featureRNG) < 1 / 2000) pool.push(10);
+						if (mb32.rng(level.featureRNG) < 1 / 8000) pool.push(12);
+						if (mb32.rng(level.featureRNG) < 1 / 25000) pool.push(13);
+						if (mb32.rng(level.featureRNG) < 1 / 4000) pool.push(15);
+						if (mb32.rng(level.featureRNG) < 1 / 20000) pool.push(16);
+						if (mb32.rng(level.featureRNG) < 1 / 20213123123123.000) pool.push(17);
+						if (mb32.rng(level.featureRNG) < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
+						level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(mb32.rng(level.featureRNG) * pool.length)];
 					};
 	
-					if (level.featureRNG() < 1 / 30000) {
+					if (mb32.rng(level.featureRNG) < 1 / 30000) {
 						let villageWidth = 35;
 						let villageFalloff = 10;
 						let rowRange = range(Math.max(i - villageWidth, 0), Math.min(i + villageWidth, level.rows.length - 1));
@@ -1363,8 +1409,8 @@
 							};
 						};
 						for (let j = -(villageWidth - villageFalloff - 5); j < villageWidth - villageFalloff - 5; j += 5) {
-							if (level.featureRNG() < 0.9) {
-								placeFeatureEntity("sentry house", i + j, Math.floor(level.featureRNG() * 5 + 1));
+							if (mb32.rng(level.featureRNG) < 0.9) {
+								placeFeatureEntity("sentry house", i + j, Math.floor(mb32.rng(level.featureRNG) * 5 + 1));
 							};
 						};
 						placeFeatureEntity("sentry well", i);
@@ -1373,39 +1419,41 @@
 						level.waterLevel[i] += 90;
 						level.features[i - (villageWidth - villageFalloff - 1)] = 5;
 						level.features[i + (villageWidth - villageFalloff - 1)] = 5;
-						if (level.featureRNG() < 0.5) {
+						if (mb32.rng(level.featureRNG) < 0.5) {
 							level.features[i + (villageWidth - villageFalloff - 2)] = 4;
 						};
 					};
 
-					if (level.featureRNG() < 1 / 5000) {
+					if (mb32.rng(level.featureRNG) < 1 / 5000) {
 						placeGolem("golem", i, false);
 					};
-					if (level.featureRNG() < 1 / 10000) {
+					if (mb32.rng(level.featureRNG) < 1 / 10000) {
 						placeGolem("russet golem", i, false);
 					};
-					if (level.featureRNG() < 1 / 12000) {
+					if (mb32.rng(level.featureRNG) < 1 / 12000) {
 						placeGolem("aqua golem", i, false);
 					};
-					if (level.featureRNG() < 1 / 17000) {
+					if (mb32.rng(level.featureRNG) < 1 / 17000) {
 						placeGolem("mecha golem", i, false);
 					};
-					if (level.featureRNG() < 1 / 52000) {
+					if (mb32.rng(level.featureRNG) < 1 / 52000) {
 						placeGolem("celestial golem", i, false);
 					};
 	
-					if (level.featureRNG() < 1 / 5000) {
-						spawnMob("mimic", i + 0.5 + (level.featureRNG() - 0.5) * 1.5, level.rows[i] + (level.featureRNG() - 0.5) * 1.5);
+					if (mb32.rng(level.featureRNG) < 1 / 5000) {
+						spawnMob("mimic", i + 0.5 + (mb32.rng(level.featureRNG) - 0.5) * 1.5, level.rows[i] + (mb32.rng(level.featureRNG) - 0.5) * 1.5);
 					};
-					if (level.featureRNG() < 1 / 3000) {
+					if (mb32.rng(level.featureRNG) < 1 / 3000) {
 						spawnMob("possessed doll", i + 0.5, level.rows[i]);
 					};
-					if (level.featureRNG() < 1 / 3000) {
+					if (mb32.rng(level.featureRNG) < 1 / 3000) {
 						level.terrainFeatures[i] = "tree1";
 					};
-					if (level.featureRNG() < 1 / 4212133121320.00) {
+					if (mb32.rng(level.featureRNG) < 1 / 4212133121320.00) {
 						level.terrainFeatures[i] = "rainbow";
 					};
+
+					if (mb32.rng(level.featureRNG) < 1 / 1000) placeFeatureEntity("mystery crate", i);
 				};
 				level.originalRows = [...level.rows];
 			};
@@ -1437,7 +1485,7 @@
 				let MAX_VERTICES = 1024;
 				let r = [];
 				for (let i = 0; i < MAX_VERTICES; ++i) {
-					r.push(level.levelRNG());
+					r.push(mb32.rng(level.levelRNG));
 				};
 				return {MAX_VERTICES, r};
 			};
@@ -1447,12 +1495,6 @@
 				let xMin = Math.floor(x) & (generator.MAX_VERTICES - 1);
 				let xMax = (xMin + 1) & (generator.MAX_VERTICES - 1);
 				return lerp(generator.r[xMin], generator.r[xMax], tRemapSmoothstep);
-			};
-			function mulberry32(a) {
-				let t = a += 0x6D2B79F5;
-				t = Math.imul(t ^ t >>> 15, t | 1);
-				t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-				return ((t ^ t >>> 14) >>> 0) / 4294967296;
 			};
 			function shopButton() {
 				if (shop = !shop) {
@@ -1694,6 +1736,36 @@
 				} else if (type === "sentry house") {
 					featureEntity.variant = arguments[2];
 					featureEntity.sentries = Math.floor(Math.random() * 3);
+				} else if (type === "mystery crate") {
+					let crateOption = ["food", "potion", "ladder", "coins", "gems", "nothing"];
+					crateOption = Math.floor(mb32.rng(level.featureRNG) * crateOption.length);
+					let specific = null;
+					switch (crateOption) {
+						case "food":
+							specific = Object.keys(foods).random();
+							break;
+						case "potion":
+							specific = Object.keys(potions).random();
+							break;
+						case "ladder":
+							specific = ["ladder", "tall ladder"][Math.floor(mb32.rng(level.featureRNG) * 2)];
+							break;
+						case "coins":
+							specific = Math.floor(mb32.rng(level.featureRNG) * 19 + 1);
+							break;
+						case "gems":
+							specific = Math.floor(mb32.rng(level.featureRNG) * 3 + 1);
+							break;
+						case "nothing":
+							if (mb32.rng(level.featureRNG) < 1 / 100) {
+								specific = ["spawned 1000 sentries", []];
+								for (let i = 0; i < 1000; i++) {
+									specific[1].push(mb32.rng(level.featureRNG) * level.rows.length);
+								};
+							} else {
+								specific = ["get better"];
+							};
+					};
 				};
 				level.featureEntities[Math.floor(x)] = featureEntity;
 			};
@@ -1768,12 +1840,11 @@
 					if (document.getElementById("seed-as-number-checkbox").checked && !Number.isNaN(parseFloat(seed))) {
 						seed = parseFloat(seed);
 					};
-					level.featureRNG = new Math.seedrandom(seed);
-					level.levelRNG = new Math.seedrandom(seed);
 				} else {
-					level.featureRNG = new Math.seedrandom();
-					level.levelRNG = new Math.seedrandom();
+					seed = Math.floor(Math.random() * 0x80000000);
 				};
+				level.featureRNG = mb32.new(seed);
+				level.levelRNG = mb32.new(seed);
 				generateOctaves();
 				playerY = getRowY(level.rows, 0);
 				playing = true;
@@ -2193,6 +2264,43 @@
 										level.featureEntities[i].sentries--;
 									};
 									level.featureEntities[i];
+								case 6:
+									if (dybbukTime <= 0) {
+										let crateOption = level.featureEntities[i].crateOption;
+										let specific = level.featureEntities[i].specific;
+										switch (crateOption) {
+											case "food":
+												foods[specific].howmany++;
+												break;
+											case "potion":
+												potions[specific].howmany++;
+												break;
+											case "ladder":
+												switch (specific) {
+													case "ladder":
+														ladders++;
+														break;
+													case "tall ladder":
+														tallLadders++;
+												};
+												break;
+											case "coins":
+												coins += specific;
+												break;
+											case "gems":
+												gems += specific;
+												break;
+											case "nothing":
+												if (specific[0] === "spawned 1000 sentries") {
+													for (let i = 0; i < specific[1].length; i++) {
+														spawnMob("sentry", specific[1][i], 0);
+													};
+												};
+										};
+										notificate("mystery crate opened! item: " + crateOption + " (" + specific + ")");
+									};
+									level.featureEntities[i] = null;
+									break;
 							};
 						};
 						if (level.golems[i]) {

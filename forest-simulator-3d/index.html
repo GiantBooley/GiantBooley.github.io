@@ -762,9 +762,6 @@
 									this.drawImage(this.getTexture("wall"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 5, blockSize, blockSize * 5, 0, 0, 1, 5);
 									this.drawImage(this.getTexture("stone"), (rowBuffer[i] - 0.1 - cameraX) * blockSize, rowY - blockSize * 5, blockSize * 1.2, blockSize * 0.2, 0, 0, 1.2, 0.2);
 									break;
-								case 6:
-									this.drawImage(this.getTexture("mysteryCrate"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
-									break;
 								case 7:
 									this.drawImage(this.getTexture("sentryBarracks"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 3, blockSize, blockSize * 3);
 									break;
@@ -836,6 +833,9 @@
 										let wellY = (Math.min(getRowY(level.rows, rowBuffer[i] - 1), getRowY(level.rows, rowBuffer[i] + 1)) - cameraY) * -blockSize;
 										this.drawImage(this.getTexture("sentryWell"), (rowBuffer[i] - cameraX) * blockSize, wellY - blockSize * 3, blockSize, blockSize * 3, 0, 0, 1, 1);
 										this.drawImage(this.getTexture("sentryWellPipe"), (rowBuffer[i] - cameraX) * blockSize, wellY, blockSize, canvas.height - wellY, 0, 0, 1, (canvas.height - wellY) / blockSize);
+										break;
+									case "mystery crate":
+										this.drawImage(this.getTexture("mysteryCrate"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
 										break;
 									default:
 										this.drawImage(this.getTexture("error"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
@@ -1711,7 +1711,7 @@
 					age: 0
 				};
 				if (type === "mimic") {
-					mob.mimicTarget = ["coin", "gem"].random();
+					mob.mimicTarget = ["coin", "gem"][Math.floor(mb32.rng(level.featureRNG) * 2)];
 					mob.mimicTimer = false;
 					mob.mimicking = true;
 					mob.mimicSpawnAge = 0;
@@ -1735,17 +1735,18 @@
 					featureEntity.height = arguments[2];
 				} else if (type === "sentry house") {
 					featureEntity.variant = arguments[2];
-					featureEntity.sentries = Math.floor(Math.random() * 3);
+					featureEntity.sentries = Math.floor(mb32.rng(level.featureRNG) * 3);
 				} else if (type === "mystery crate") {
+					let random = arr => arr[Math.floor(mb32.rng(level.featureRNG) * arr.length)];
 					let crateOption = ["food", "potion", "ladder", "coins", "gems", "nothing"];
-					crateOption = Math.floor(mb32.rng(level.featureRNG) * crateOption.length);
+					crateOption = crateOption[Math.floor(mb32.rng(level.featureRNG) * crateOption.length)];
 					let specific = null;
 					switch (crateOption) {
 						case "food":
-							specific = Object.keys(foods).random();
+							specific = random(Object.keys(foods));
 							break;
 						case "potion":
-							specific = Object.keys(potions).random();
+							specific = random(Object.keys(potions));
 							break;
 						case "ladder":
 							specific = ["ladder", "tall ladder"][Math.floor(mb32.rng(level.featureRNG) * 2)];
@@ -1766,6 +1767,8 @@
 								specific = ["get better"];
 							};
 					};
+					featureEntity.crateOption = crateOption;
+					featureEntity.specific = specific;
 				};
 				level.featureEntities[Math.floor(x)] = featureEntity;
 			};
@@ -2129,51 +2132,6 @@
 										};
 										level.features[i] = 0;
 										break;
-									case 6:
-										if (dybbukTime <= 0) {
-											let crateOption = ["food", "potion", "ladder", "coins", "gems", "nothing"].random();
-											let specific = null;
-											switch (crateOption) {
-												case "food":
-													specific = Object.keys(foods).random();
-													foods[specific].howmany++;
-													break;
-												case "potion":
-													specific = Object.keys(potions).random();
-													potions[specific].howmany++;
-													break;
-												case "ladder":
-													specific = ["ladder", "tall ladder"].random();
-													switch (specific) {
-														case "ladder":
-															ladders++;
-															break;
-														case "tall ladder":
-															tallLadders++;
-													};
-													break;
-												case "coins":
-													specific = Math.floor(Math.random() * 19 + 1);
-													coins += specific;
-													break;
-												case "gems":
-													specific = Math.floor(Math.random() * 3 + 1);
-													gems += specific;
-													break;
-												case "nothing":
-													if (Math.random() < 1 / 100) {
-														specific = "spawned 1000 sentries";
-														for (let i = 0; i < 1000; i++) {
-															spawnMob("sentry", Math.random() * level.rows.length, 0);
-														};
-													} else {
-														specific = "get better";
-													};
-											};
-											notificate("mystery crate opened! item: " + crateOption + " (" + specific + ")");
-										};
-										level.features[i] = 0;
-										break;
 									case 10:
 										dybbukTime = 1200;
 										level.features[i] = 11;
@@ -2264,42 +2222,44 @@
 										level.featureEntities[i].sentries--;
 									};
 									level.featureEntities[i];
-								case 6:
-									if (dybbukTime <= 0) {
-										let crateOption = level.featureEntities[i].crateOption;
-										let specific = level.featureEntities[i].specific;
-										switch (crateOption) {
-											case "food":
-												foods[specific].howmany++;
-												break;
-											case "potion":
-												potions[specific].howmany++;
-												break;
-											case "ladder":
-												switch (specific) {
-													case "ladder":
-														ladders++;
-														break;
-													case "tall ladder":
-														tallLadders++;
-												};
-												break;
-											case "coins":
-												coins += specific;
-												break;
-											case "gems":
-												gems += specific;
-												break;
-											case "nothing":
-												if (specific[0] === "spawned 1000 sentries") {
-													for (let i = 0; i < specific[1].length; i++) {
-														spawnMob("sentry", specific[1][i], 0);
+								case "mystery crate":
+									if (playerX + 0.5 > i && playerX - 0.5 < i + 1 && playerY < level.rows[i] + 1) {
+										if (dybbukTime <= 0) {
+											let crateOption = level.featureEntities[i].crateOption;
+											let specific = level.featureEntities[i].specific;
+											switch (crateOption) {
+												case "food":
+													foods[specific].howmany++;
+													break;
+												case "potion":
+													potions[specific].howmany++;
+													break;
+												case "ladder":
+													switch (specific) {
+														case "ladder":
+															ladders++;
+															break;
+														case "tall ladder":
+															tallLadders++;
 													};
-												};
+													break;
+												case "coins":
+													coins += specific;
+													break;
+												case "gems":
+													gems += specific;
+													break;
+												case "nothing":
+													if (specific[0] === "spawned 1000 sentries") {
+														for (let i = 0; i < specific[1].length; i++) {
+															spawnMob("sentry", specific[1][i], 0);
+														};
+													};
+											};
+											notificate("mystery crate opened! item: " + crateOption + " (" + specific + ")");
 										};
-										notificate("mystery crate opened! item: " + crateOption + " (" + specific + ")");
+										level.featureEntities[i] = null;
 									};
-									level.featureEntities[i] = null;
 									break;
 							};
 						};

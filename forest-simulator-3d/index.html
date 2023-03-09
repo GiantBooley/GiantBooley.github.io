@@ -699,11 +699,9 @@
 				};
 				draw() {
 					this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-	
-					// vertices
 					darknessCtx.clearRect(0, 0, canvas.width, canvas.height);
 					
-					let skyImage = ((getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight");
+					let skyImage = (getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight";
 					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 1, 1);
 					let stoneBackgroundScroll = 1 / 4;
 					let stoneBackgroundOffset = (750 - cameraY) * -blockSize * stoneBackgroundScroll;
@@ -713,12 +711,13 @@
 	
 					let rowBuffer = range(Math.floor(cameraX), Math.floor(cameraX + canvas.width / blockSize));
 					let deltaRow = Math.floor(Math.max(1 / blockSize, 1));
-					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
-						if (level.terrainFeatures[rowBuffer[i]] === "rainbow") {
+					for (let i = 0; i < level.terrainFeatures.length; i += deltaRow) {
+						if (level.terrainFeatures[i] === null) continue;
+						if (level.terrainFeatures[i] === "rainbow") {
 							let rainbowSize = 100;
-							this.drawImage(this.getTexture("rainbow"), (rowBuffer[i] - cameraX) * blockSize, (level.rows[rowBuffer[i]] + rainbowSize / 2 - cameraY) * -blockSize, blockSize * rainbowSize, blockSize * rainbowSize, 0, 0, 1, 1);
-						} else if (level.terrainFeatures[rowBuffer[i]] === "tree1") {
-							this.drawImage(this.getTexture("tree1"), (rowBuffer[i] - 2.5 - cameraX) * blockSize, (level.rows[rowBuffer[i]] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1);
+							this.drawImage(this.getTexture("rainbow"), (i - cameraX) * blockSize, (level.rows[i] + rainbowSize / 2 - cameraY) * -blockSize, blockSize * rainbowSize, blockSize * rainbowSize, 0, 0, 1, 1);
+						} else if (level.terrainFeatures[i] === "tree1") {
+							this.drawImage(this.getTexture("tree1"), (i - 2.5 - cameraX) * blockSize, (level.rows[i] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1);
 						};
 					};
 	
@@ -737,8 +736,8 @@
 							this.drawImage(this.getTexture(groundImage), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize * deltaRow, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
 						};
 						let gradient = darknessCtx.createLinearGradient(0, bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize, 0, (bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize) + blockSize * 15);
-						gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-						gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+						gradient.addColorStop(0, darknessAlpha(0));
+						gradient.addColorStop(1, darknessAlpha(1));
 						darknessCtx.fillStyle = gradient;
 						darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, bakedRowY, blockSize * deltaRow, canvas.height - bakedRowY);
 						
@@ -779,15 +778,6 @@
 									break;
 								case 12:
 									this.drawImage(this.getTexture("totem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
-									break;
-								case 13:
-									this.drawImage(this.getTexture("fourLeafClover"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
-									break;
-								case 14:
-									this.drawImage(this.getTexture("potOfGold"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
-									break;
-								case 15:
-									this.drawImage(this.getTexture("burlapSack"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
 									break;
 								case 16:
 									this.drawImage(this.getTexture("ruinedObelisk"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 4, blockSize, blockSize * 4);
@@ -836,6 +826,15 @@
 										break;
 									case "mystery crate":
 										this.drawImage(this.getTexture("mysteryCrate"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+										break;
+									case "burlap sack":
+										this.drawImage(this.getTexture("burlapSack"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+										break;
+									case "pot of gold":
+										this.drawImage(this.getTexture("potOfGold"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
+										break;
+									case "four leaf clover":
+										this.drawImage(this.getTexture("fourLeafClover"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
 										break;
 									default:
 										this.drawImage(this.getTexture("error"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
@@ -927,14 +926,14 @@
 							};
 	
 							let gradient = darknessCtx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
-							gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
-							gradient.addColorStop(1, "rgba(0, 0, 0, 1)");
+							gradient.addColorStop(0, darknessAlpha(0));
+							gradient.addColorStop(1, darknessAlpha(1));
 							darknessCtx.fillStyle = gradient;
 							darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, waterY, blockSize * deltaRow, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
 						};
 					};
 					let darknessOpacity = getDarkness(gameTime);
-					darknessCtx.fillStyle = "rgba(0, " + (potions["night vision potion"].time > 0) * 255 + ", 0, " + ((potions["night vision potion"].time > 0) ? lerp(0.2, 0.6, darknessOpacity) : lerp(0, 0.95, darknessOpacity)) + ")";
+					darknessCtx.fillStyle = darknessAlpha((potions["night vision potion"].time > 0) ? lerp(0.2, 0.95, darknessOpacity) : lerp(0, 0.95, darknessOpacity));
 					darknessCtx.fillRect(0, 0, canvas.width, canvas.height);
 	
 					/*if (timeTraveling) {
@@ -954,22 +953,18 @@
 						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height);
 					};
 					
-					try {
-						darknessCtx.beginPath();
-						let circleLightX = playerX * blockSize - cameraX;
-						let circleLightY = (playerY + 1) * -blockSize - cameraY;
-						let gradient = darknessCtx.createRadialGradient(circleLightX, circleLightY, 0, circleLightX, circleLightY, blockSize * 2);
-						gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
-						gradient.addColorStop(0.5, "rgba(0, 0, 0, 0.5)");
-						darknessCtx.fillStyle = gradient;
-						darknessCtx.save();
-						darknessCtx.arc(playerX * blockSize - cameraX, (playerY + 1) * -blockSize - cameraY, blockSize * 2, 0, Math.PI * 2);
-						darknessCtx.globalCompositeOperation = "destination-out";
-						darknessCtx.fill();
-						darknessCtx.restore();
-					} catch (e) {
-						console.warn("guy brightness circle negative radius not drawing");
-					};
+					darknessCtx.save();
+					let circleLightX = (playerX - cameraX) * blockSize;
+					let circleLightY = ((playerY + 1) - cameraY) * -blockSize;
+					let gradient = darknessCtx.createRadialGradient(circleLightX, circleLightY, 0, circleLightX, circleLightY, Math.abs(blockSize * 2));
+					gradient.addColorStop(1, darknessAlpha(0));
+					gradient.addColorStop(0, darknessAlpha(1));
+					darknessCtx.fillStyle = gradient;
+					darknessCtx.beginPath();
+					darknessCtx.arc(circleLightX, circleLightY, blockSize * 2, 0, Math.PI * 2);
+					darknessCtx.globalCompositeOperation = "destination-out";
+					darknessCtx.fill();
+					darknessCtx.restore();
 				};
 			};
 			const renderer = new WebGLRenderer();
@@ -1386,8 +1381,6 @@
 						if (mb32.rng(level.featureRNG) < 1 / 4000) pool.push(7);
 						if (mb32.rng(level.featureRNG) < 1 / 2000) pool.push(10);
 						if (mb32.rng(level.featureRNG) < 1 / 8000) pool.push(12);
-						if (mb32.rng(level.featureRNG) < 1 / 25000) pool.push(13);
-						if (mb32.rng(level.featureRNG) < 1 / 4000) pool.push(15);
 						if (mb32.rng(level.featureRNG) < 1 / 20000) pool.push(16);
 						if (mb32.rng(level.featureRNG) < 1 / 20213123123123.000) pool.push(17);
 						if (mb32.rng(level.featureRNG) < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
@@ -1454,6 +1447,8 @@
 					};
 
 					if (mb32.rng(level.featureRNG) < 1 / 1000) placeFeatureEntity("mystery crate", i);
+					if (mb32.rng(level.featureRNG) < 1 / 4000) placeFeatureEntity("burlap sack", i);
+					if (mb32.rng(level.featureRNG) < 1 / 25000) placeFeatureEntity("four leaf clover", i);
 				};
 				level.originalRows = [...level.rows];
 			};
@@ -1715,6 +1710,8 @@
 					mob.mimicTimer = false;
 					mob.mimicking = true;
 					mob.mimicSpawnAge = 0;
+				} else if (type === "leprechaun") {
+					mob.coins = arguments[3];
 				} else if (type === "possessed doll") {
 					mob.possessed = false;
 				};
@@ -1769,6 +1766,13 @@
 					};
 					featureEntity.crateOption = crateOption;
 					featureEntity.specific = specific;
+				} else if (type === "burlap sack") {
+					let foodsKeys = Object.keys(foods);
+					featureEntity.food = foodsKeys[Math.floor(mb32.rng(level.featureRNG) * foodsKeys.length)];
+				} else if (type === "four leaf clover") {
+					featureEntity.coins = Math.round(mb32.rng(level.featureRNG) * 50 + 50);
+				} else if (type === "pot of gold") {
+					featureEntity.coins = arguments[2];
 				};
 				level.featureEntities[Math.floor(x)] = featureEntity;
 			};
@@ -1917,6 +1921,11 @@
 					};
 				};
 				return bakedRows;
+			};
+			function darknessAlpha(a) {
+				let g = (potions["night vision potion"].time > 0) * 255;
+				let nightVision = potions["night vision potion"].time > 0;
+				return "rgba(0, " + g + ", 0, " + (a * (nightVision ? 0.85 : 1)) + ")";
 			};
 	
 			function tick() {
@@ -2080,10 +2089,21 @@
 					trampoline = level.features[max] === 18 && onGround;
 					if (onGround && !trampoline) {
 						if (getLayer(level.rows[max]) === 9 && level.rows[max] - 900 > (level.originalRows[max] - 900) * 0.9 && boots !== "tennis rackets") {
-							level.rows[max] -= 0.005;
-							if (level.rows[max] - 200 < (level.originalRows[max] - 200) * 0.9) {
-								level.rows[max] = (level.originalRows[max] - 200) * 0.9 + 200;
+							let howmany = 0;
+							let left = getLayer(getRowY(level.rows, max - 1)) == 9;
+							let right = getLayer(getRowY(level.rows, max + 1)) == 9;
+							if (left) {
+								howmany += 0.0025;
+								level.rows[max - 1] += 0.0025;
 							};
+							if (right) {
+								howmany += 0.0025;
+								level.rows[max + 1] += 0.0025;
+							};// down by 0.0025 * howmany
+							level.rows[max] -= howmany;
+							//if (level.rows[max] - 200 < (level.originalRows[max] - 200) * 0.9) {
+							//	level.rows[max] = (level.originalRows[max] - 200) * 0.9 + 200;
+							//};
 						};
 						playerY = getRowY(bakedRows, max);
 						playerYV = 0;
@@ -2139,24 +2159,6 @@
 									case 12:
 										if (dybbukTime <= 0) {
 											totems++;
-										};
-										level.features[i] = 0;
-										break;
-									case 13:
-										spawnMob("leprechaun", i + 2.5, bakedRows[i]);
-										level.features[i] = 0;
-										break;
-									case 14:
-										let coinAmount = Math.round(Math.random() * 50 + 50);
-										coins += coinAmount;
-										notificate("pot of gold contains " + coinAmount + " coins");
-										level.features[i] = 0;
-										break;
-									case 15:
-										if (dybbukTime <= 0) {
-											let food = Object.keys(foods).random();
-											foods[food].howmany++;
-											notificate("burlap sack contains " + food);
 										};
 										level.features[i] = 0;
 										break;
@@ -2258,6 +2260,28 @@
 											};
 											notificate("mystery crate opened! item: " + crateOption + " (" + specific + ")");
 										};
+										level.featureEntities[i] = null;
+									};
+									break;
+								case "burlap sack":
+									if (playerX + 0.5 > i && playerX - 0.5 < i + 1 && playerY < level.rows[i] + 1) {
+										if (dybbukTime <= 0) {
+											foods[level.featureEntities[i].food].howmany++;
+											notificate("burlap sack contains " + level.featureEntities[i].food);
+										};
+										level.featureEntities[i] = null;
+									};
+									break;
+								case "four leaf clover":
+									if (playerX + 0.5 > i && playerX - 0.5 < i + 1 && playerY < level.rows[i] + 1) {
+										spawnMob("leprechaun", i + 2.5, bakedRows[i], level.featureEntities[i].coins);
+										level.featureEntities[i] = null;
+									};
+									break;
+								case "pot of gold":
+									if (playerX + 0.5 > i && playerX - 0.5 < i + 1 && playerY < level.rows[i] + 1) {
+										coins += level.featureEntities[i].coins;
+										notificate("pot of gold contains " + level.featureEntities[i].coins + " coins");
 										level.featureEntities[i] = null;
 									};
 									break;
@@ -2403,7 +2427,7 @@
 								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1.5 && playerY + 2 > mob.y) {
 									let rainbowSize = 100;
 									level.terrainFeatures[Math.floor(mob.x - rainbowSize)] = "rainbow";
-									level.features[Math.floor(mob.x - rainbowSize)] = 14;
+									placeFeatureEntity("pot of gold", Math.floor(mob.x - rainbowSize), mob.coins);
 									level.mobs.splice(level.mobs.indexOf(mob));
 								};
 								break;

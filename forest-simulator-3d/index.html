@@ -341,6 +341,16 @@
 				align-items: center;
 				justify-content: center;
 			}
+			.emoji {
+				width: 30px;
+				height: 30px;
+				display: inline-block;
+				background-size: contain;
+				outline: 2px solid black;
+			}
+			#totem-emoji {
+				background-image: url("https://m.media-amazon.com/images/I/41yYu0ji5GL._AC_UF894,1000_QL80_.jpg");
+			};
 		</style>
 	</head>
 	<body>
@@ -704,11 +714,15 @@
 					
 					let skyImage = (getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight";
 					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 1, 1);
+
 					let stoneBackgroundScroll = 1 / 4;
 					let stoneBackgroundOffset = (750 - cameraY) * -blockSize * stoneBackgroundScroll;
+					let cloudsScroll = 1 / 8;
+					let cloudsOffset = (850 - cameraY) * -blockSize * cloudsScroll;
 					this.drawImage(this.getTexture("stoneBackground"), 0, Math.max(stoneBackgroundOffset, 0), canvas.width, canvas.height - Math.max(stoneBackgroundOffset, 0), cameraX / (canvas.width / blockSize / stoneBackgroundScroll), (Math.max(stoneBackgroundOffset, 0) - stoneBackgroundOffset) * stoneBackgroundScroll / canvas.height, 1, (canvas.height - Math.max(stoneBackgroundOffset, 0)) / canvas.height / 4);
-	
-					this.drawImage(this.getTexture("hills"), 0, stoneBackgroundOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / stoneBackgroundScroll), 0.225, 1, 0.775);
+					
+					this.drawImage(this.getTexture("clouds"), 0, cloudsOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / cloudsScroll), 0, 1, 1);
+					this.drawImage(this.getTexture("hills"), 0, stoneBackgroundOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / stoneBackgroundScroll), 0.325, 1, 0.675);
 	
 					let rowBuffer = range(Math.floor(cameraX), Math.floor(cameraX + canvas.width / blockSize));
 					let deltaRow = Math.floor(Math.max(1 / blockSize, 1));
@@ -1928,6 +1942,10 @@
 				let nightVision = potions["night vision potion"].time > 0;
 				return "rgba(0, " + g + ", 0, " + (a * (nightVision ? 0.85 : 1)) + ")";
 			};
+			function clockEmoji(time=gameTime) {
+				var clocks = ["🕛", "🕧", "🕐", "🕜", "🕑", "🕝", "🕒", "🕞", "🕓", "🕟", "🕔", "🕠", "🕕", "🕡", "🕖", "🕢", "🕗", "🕣", "🕘", "🕤", "🕙", "🕥", "🕚", "🕦"];
+				return clocks[Math.floor(Math.mod((time - 150), 300) / 12.5)];
+			};
 	
 			function tick() {
 				document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
@@ -2227,7 +2245,7 @@
 									level.featureEntities[i];
 									break;
 								case "mystery crate":
-									if (playerX + 0.5 > i && playerX - 0.5 < i + 1 && playerY < level.rows[i] + 1) {
+									if ((playerX + 0.5 > i && playerX - 0.5 < i + 1 && (playerY < level.rows[i] + 1 || (boots === "magnet boots" && (level.featureEntities[i].crateOption === "coins" || level.featureEntities[i].crateOption === "ladder"))))) {
 										if (dybbukTime <= 0) {
 											let crateOption = level.featureEntities[i].crateOption;
 											let specific = level.featureEntities[i].specific;
@@ -2281,7 +2299,7 @@
 									};
 									break;
 								case "pot of gold":
-									if (playerX + 0.5 > i && playerX - 0.5 < i + 1 && playerY < level.rows[i] + 1) {
+									if (playerX + 0.5 > i && playerX - 0.5 < i + 1 && (playerY < level.rows[i] + 1 || boots === "magnet boots")) {
 										coins += level.featureEntities[i].coins;
 										notificate("pot of gold contains " + level.featureEntities[i].coins + " coins");
 										level.featureEntities[i] = null;
@@ -2447,6 +2465,7 @@
 									mob.x += Math.abs(playerXV * (0.05 / 0.2)) * (health / maxHealth) * Math.sign(playerX - mob.x);
 									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
 								};
+								break;
 						};
 						mob.age++;
 					};
@@ -2512,7 +2531,7 @@
 				
 				let minutes = (gameTime + 450) * ((12 * 60) / 300);
 				let timeText = ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " AM" : " PM");
-				document.getElementById("stats").innerHTML = "altitude: " + Math.floor(playerY) + "m<br>🪙 " + coins + "<br>💎 " + gems + "<br>🗿 " + totems + "<br>boots: " + boots + "<br>" + timeText + "<br>fps: " + fps;
+				document.getElementById("stats").innerHTML = "altitude: " + Math.floor(playerY) + "m<br>fps: " + fps + "<br>🪙 " + coins + "<br>💎 " + gems + "<br><div class=\"emoji\" id=\"totem-emoji\"></div> " + totems + "<br>🥾 " + boots + "<br>" + clockEmoji(gameTime) + " " + timeText;
 				document.getElementById("score").innerHTML = "◄ " + score + "m ►";
 				document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 				for (let food in foods) {
@@ -2534,15 +2553,15 @@
 					alert(e.stack);
 					return;
 				};
-				//frameCount++;
-				//let now = performance.now();
-				//if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {
-				//	fpsUpdateTime = now;
-				//	fps = frameCount;
-				//	frameCount = 0;
-				//};
-				fps = Math.round(1 / ((performance.now() - oldfpsTime) / 1000));
-				oldfpsTime = performance.now();
+				frameCount++;
+				let now = performance.now();
+				if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {
+					fpsUpdateTime = now;
+					fps = frameCount;
+					frameCount = 0;
+				};
+				//fps = Math.round(1 / ((performance.now() - oldfpsTime) / 1000));
+				//oldfpsTime = performance.now();
 				requestAnimationFrame(loop);
 			};
 			loop();

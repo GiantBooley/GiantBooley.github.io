@@ -381,6 +381,7 @@
 					<button id="save-slot-selector" onclick="saveSlotSelectorButton();">slot 0 (click to change)</button><br>
 					<button onclick="saveSlot(saveSlotNumber);">save</button>
 					<button onclick="loadSlot(saveSlotNumber);">load</button>
+					<button onclick="alert(level.featureRNG.seed);">get seed</button>
 				</div>
 				<hr>
 				<input type="checkbox" id="joystick-checkbox"><label for="joystick-checkbox">joystick</label><br>
@@ -512,7 +513,7 @@
 			}
 		</script>
 		<script src="./m4.js"></script>
-		<script>
+		<script type="application/javascript">
 			const canvas = document.getElementById("canvas");
 			canvas.width = innerWidth;
 			canvas.height = innerHeight;
@@ -1408,8 +1409,8 @@
 						};
 						placeFeatureEntity("sentry well", i);
 						level.features[i] = 12;
-						level.rows[i] -= 100;
-						level.waterLevel[i] += 90;
+						level.rows[i] -= 80;
+						level.waterLevel[i] += 75;
 						level.features[i - (villageWidth - villageFalloff - 1)] = 5;
 						level.features[i + (villageWidth - villageFalloff - 1)] = 5;
 						if (mb32.rng(level.featureRNG) < 0.5) {
@@ -1981,7 +1982,7 @@
 					};
 					oldGamePadMenuButtonPressed = gamePad.buttons[9].pressed;
 					oldGamePadAButtonPressed = gamePad.buttons[0].pressed;
-				};
+				}
 				controls.up = clamp((magnitudes.keyboard.up + magnitudes.joystick.up + magnitudes.gamepad.up) * (possessionTime <= 0) + magnitudes.possession.up, 0, 1);
 				controls.down = clamp((magnitudes.keyboard.down + magnitudes.joystick.down + magnitudes.gamepad.down) * (possessionTime <= 0) + magnitudes.possession.down, 0, 1);
 				controls.left = clamp((magnitudes.keyboard.left + magnitudes.joystick.left + magnitudes.gamepad.left) * (possessionTime <= 0) + magnitudes.possession.left, 0, 1);
@@ -2224,6 +2225,7 @@
 										level.featureEntities[i].sentries--;
 									};
 									level.featureEntities[i];
+									break;
 								case "mystery crate":
 									if (playerX + 0.5 > i && playerX - 0.5 < i + 1 && playerY < level.rows[i] + 1) {
 										if (dybbukTime <= 0) {

@@ -508,17 +508,70 @@
 			}
 		</script>
 		<script id="fragment" type="x-shader/x-fragment">
-			precision mediump float;
+			precision highp float;
 
 			varying vec2 v_texcoord;
 
 			uniform sampler2D u_texture;
 
+			uniform vec2 u_playerPos;
+			uniform vec2 u_blockPos;
+			uniform vec2 u_portal1;
+			uniform vec2 u_portal2;
+			uniform vec2 u_screenSize;
+
+			bool rectIntersection(vec2 p1, vec2 p2, vec2 b1, vec2 b2) {
+				float t = 0.0;
+				if ((p1.x >= b1.x && p1.x <= b2.x && p1.y >= b1.y && p1.y <= b2.y) || (p2.x >= b1.x && p2.x <= b2.x && p2.y >= b1.y && p2.y <= b2.y)) {
+					return true;
+				}
+				if (p1.x < b1.x && p2.x >= b1.x) { // Left edge
+					t = p1.y + (p2.y - p1.y) * (b1.x - p1.x) / (p2.x - p1.x);
+					if (t > b1.y && t <= b2.y) {
+						return true;
+					}
+				} else if (p1.x > b2.x && p2.x <= b2.x) { // Right edge
+					t = p1.y + (p2.y - p1.y) * (b2.x - p1.x) / (p2.x - p1.x);
+					if (t >= b1.y && t <= b2.y) {
+						return true;
+					}
+				}
+				if (p1.y < b1.y && p2.y >= b1.y) { // Top edge
+					t = p1.x + (p2.x - p1.x) * (b1.y - p1.y) / (p2.y - p1.y);
+					if (t >= b1.x && t <= b2.x) {
+						return true;
+					}
+				} else if (p1.y > b2.y && p2.y <= b2.y) {	// Bottom edge
+					t = p1.x + (p2.x - p1.x) * (b2.y - p1.y) / (p2.y - p1.y);
+					if (t >= b1.x && t <= b2.x) {
+						return true;
+					}
+				}
+				return false;
+			}
+			bool lineIntersection(vec2 p1, vec2 p2, vec2 p3, vec2 p4) {
+				float det = (p2.x - p1.x) * (p4.y - p3.y) - (p4.x - p3.x) * (p2.y - p1.y);
+				if (det == 0.0) {
+					return false;
+				} else {
+					float lambda = ((p4.y - p3.y) * (p4.x - p1.x) + (p3.x - p4.x) * (p4.y - p1.y)) / det;
+					float gamma = ((p1.y - p2.y) * (p4.x - p1.x) + (p2.x - p1.x) * (p4.y - p1.y)) / det;
+					return (0.0 < lambda && lambda < 1.0) && (0.0 < gamma && gamma < 1.0);
+				}
+			}
 			void main() {
 				vec4 color = texture2D(u_texture, v_texcoord);
-				if (color.a < 0.5) {
-					discard;
-				};
+
+				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
+
+				float darkness = 1.0;
+				if (lineIntersection(pixelCoord, u_playerPos, u_portal1, u_portal2) || lineIntersection(pixelCoord, u_playerPos, vec2(u_portal1.x + 100.0, u_portal1.y), vec2(u_portal2.x + 100.0, u_portal2.y))) {
+					color.r = 1.0 - color.r;
+					color.g = 1.0 - color.g;
+					color.b = 1.0 - color.b;
+				}
+				
+				color.rgb *= darkness;
 				gl_FragColor = color;
 			}
 		</script>
@@ -592,6 +645,8 @@
 					this.gl.viewport(0, 0, canvas.width, canvas.height);
 					this.gl.clearColor(0, 0, 0, 1);
 					this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+					this.gl.enable(this.gl.BLEND);
+					this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 				
 					// get shader code
 					this.vertexCode = document.getElementById("vertex").firstChild.nodeValue;
@@ -618,6 +673,10 @@
 					this.matrixLocation = this.gl.getUniformLocation(this.program, "u_matrix");
 					this.textureMatrixLocation = this.gl.getUniformLocation(this.program, "u_textureMatrix");
 					this.textureLocation = this.gl.getUniformLocation(this.program, "u_texture");
+					this.playerPosLocation = this.gl.getUniformLocation(this.program, "u_playerPos");
+					this.portal1Location = this.gl.getUniformLocation(this.program, "u_portal1");
+					this.portal2Location = this.gl.getUniformLocation(this.program, "u_portal2");
+					this.screenSizeLocation = this.gl.getUniformLocation(this.program, "u_screenSize");
 	
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -645,11 +704,11 @@
 	
 					this.defaultTexture = this.loadImageAndCreateTextureInfo("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAjSURBVBhXY/zP8J8BBhiBEAaYoDQGIF0CYSgQINtHNTsYGAA9/gQN0D1U/wAAAABJRU5ErkJggg==");
 					// errors
-					if (!this.gl.getShaderParameter(this.vertexShader, this.gl.COMPILE_STATUS)) console.log(this.gl.getShaderInfoLog(this.vertexShader));
-					if (!this.gl.getShaderParameter(this.fragmentShader, this.gl.COMPILE_STATUS)) console.log(this.gl.getShaderInfoLog(this.fragmentShader));
-					if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) console.log(this.gl.getProgramInfoLog(this.program));
+					if (!this.gl.getShaderParameter(this.vertexShader, this.gl.COMPILE_STATUS)) alert(this.gl.getShaderInfoLog(this.vertexShader));
+					if (!this.gl.getShaderParameter(this.fragmentShader, this.gl.COMPILE_STATUS)) alert(this.gl.getShaderInfoLog(this.fragmentShader));
+					if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) alert(this.gl.getProgramInfoLog(this.program));
 					this.gl.validateProgram(this.program);
-					if (!this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS)) console.log(this.gl.getProgramInfoLog(this.program));
+					if (!this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS)) alert(this.gl.getProgramInfoLog(this.program));
 				};
 	
 				loadTextures() {
@@ -690,6 +749,12 @@
 					uvY *= texInfo.height;
 					uvWidth *= texInfo.width;
 					uvHeight *= texInfo.height;
+
+					this.gl.uniform2fv(this.playerPosLocation, [(playerX - cameraX) * blockSize, (playerY + 1 - cameraY) * blockSize + canvas.height]);
+					this.gl.uniform2fv(this.portal1Location, [(10 - cameraX) * blockSize, (750 - cameraY) * blockSize + canvas.height]);
+					this.gl.uniform2fv(this.portal2Location, [(10 - cameraX) * blockSize, (754 - cameraY) * blockSize + canvas.height]);
+					this.gl.uniform2fv(this.screenSizeLocation, [this.gl.canvas.width, this.gl.canvas.height]);
+
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 					this.gl.useProgram(this.program);
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -1201,6 +1266,7 @@
 				terrainFeatures: [],
 				waterLevel: [],
 				golems: [],
+				portals: [],
 				perlinOffset: 0,
 				levelRNG: mb32.new(),
 				featureRNG: mb32.new()
@@ -1336,6 +1402,7 @@
 			var saveSlotNumber = 0;
 			var possessionTime = 0;
 			var possessionDoll = null;
+			var dimension = "normal";
 	
 			function generateOctaves() {
 				// octaves
@@ -1367,6 +1434,7 @@
 					level.featureEntities[i] = null;
 					level.golems[i] = null;
 				};
+				level.portals.push(5);
 	
 				// round stuff and coins n gems
 				for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline
@@ -1665,7 +1733,8 @@
 					cameraX,
 					cameraY,
 					possessionTime,
-					possessionDoll
+					possessionDoll,
+					dimension
 				});
 				localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 			};
@@ -1705,6 +1774,7 @@
 					cameraY = saveCode.cameraY ?? cameraY;
 					possessionTime = saveCode.possessionTime ?? possessionTime;
 					possessionDoll = saveCode.possessionDoll ?? possessionDoll;
+					dimension = saveCode.dimension ?? dimension;
 				};
 			};
 			function clearSlot(slot) {
@@ -1946,6 +2016,45 @@
 				var clocks = ["🕛", "🕧", "🕐", "🕜", "🕑", "🕝", "🕒", "🕞", "🕓", "🕟", "🕔", "🕠", "🕕", "🕡", "🕖", "🕢", "🕗", "🕣", "🕘", "🕤", "🕙", "🕥", "🕚", "🕦"];
 				return clocks[Math.floor(Math.mod((time - 150), 300) / 12.5)];
 			};
+			function rectIntersection(p1, p2, b1, b2) {
+				var t = 0;
+				if ((p1.x >= b1.x && p1.x <= b2.x && p1.y >= b1.y && p1.y <= b2.y) || (p2.x >= b1.x && p2.x <= b2.x && p2.y >= b1.y && p2.y <= b2.y)) {
+					return true;
+				};
+				if (p1.x < b1.x && p2.x >= b1.x) { // Left edge
+					t = p1.y + (p2.y - p1.y) * (b1.x - p1.x) / (p2.x - p1.x);
+					if (t > b1.y && t <= b2.y) {
+						return true;
+					};
+				} else if (p1.x > b2.x && p2.x <= b2.x) { // Right edge
+					t = p1.y + (p2.y - p1.y) * (b2.x - p1.x) / (p2.x - p1.x);
+					if (t >= b1.y && t <= b2.y) {
+						return true;
+					};
+				};
+				if (p1.y < b1.y && p2.y >= b1.y) { // Top edge
+					t = p1.x + (p2.x - p1.x) * (b1.y - p1.y) / (p2.y - p1.y);
+					if (t >= b1.x && t <= b2.x) {
+						return true;
+					};
+				} else if (p1.y > b2.y && p2.y <= b2.y) {	// Bottom edge
+					t = p1.x + (p2.x - p1.x) * (b2.y - p1.y) / (p2.y - p1.y);
+					if (t >= b1.x && t <= b2.x) {
+						return true;
+					};
+				};
+				return false;
+			};
+			function lineIntersection(p1, p2, p3, p4) {
+				var det = (p2.x - p1.x) * (p4.y - p3.y) - (p4.x - p3.x) * (p2.y - p1.y);
+				if (det === 0) {
+					return false;
+				} else {
+					let lambda = ((p4.y - p3.y) * (p4.x - p1.x) + (p3.x - p4.x) * (p4.y - p1.y)) / det;
+					let gamma = ((p1.y - p2.y) * (p4.x - p1.x) + (p2.x - p1.x) * (p4.y - p1.y)) / det;
+					return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+				};
+			};
 	
 			function tick() {
 				document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
@@ -2023,6 +2132,8 @@
 					flying = potions["bird potion"].time > 0;
 					inWater = playerY < bakedRows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && level.waterLevel[Math.floor(playerX)] > 0.75;
 	
+					let oldPlayerX = playerX;
+					let oldPlayerY = playerY;
 					// X MOVEMENT //
 					
 					let playerSpeed = basePlayerSpeed + (boots === "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
@@ -2132,6 +2243,10 @@
 					};
 					playerY += playerYV;
 	
+					if (level.portals.some(portalX => lineIntersection({x: oldPlayerX, y: oldPlayerY + 1}, {x: playerX, y: playerY + 1}, {x: portalX, y: getRowY(level.rows, portalX)}, {x: portalX, y: getRowY(level.rows, portalX) + 4}))) {
+						dimension = (dimension === "normal") ? "upside down" : "normal";
+					};
+					document.getElementById("canvas").style.filter = (dimension === "upside down") ? "invert(100%)" : "none";
 					// ROW LOOP //
 	
 					let oldInLadder = inLadder;

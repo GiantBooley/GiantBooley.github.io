@@ -521,6 +521,7 @@
 			uniform vec2 u_portalPos;
 			uniform float u_blockSize;
 			uniform int u_dimension; // 0-normal 1-upsidedown
+			uniform float u_alpha;
 
 
 			bool rectIntersection(vec2 p1, vec2 p2, vec2 b1, vec2 b2) {
@@ -562,27 +563,29 @@
 					return (0.0 < lambda && lambda < 1.0) && (0.0 < gamma && gamma < 1.0);
 				}
 			}
-			vec4 invertColor(vec4 color, bool invertAlpha) {
-				vec4 newColor = vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a);
-				if (invertAlpha) {
-					newColor.a = 1.0 - newColor.a;
-				}
-				return newColor;
+			vec4 vec4Lerp(vec4 a, vec4 b, vec4 c) {
+				return a * (vec4(1.0) - c) + b * c;
+			}
+			vec4 invertColor(vec4 color, float factor) {
+				return vec4Lerp(color, vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a), vec4(factor));
 			}
 			void main() {
 				vec4 color = texture2D(u_texture, v_texcoord);
+				color.a *= u_alpha;
 
 				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
+
 				if (u_isThereAPortal == 1) {
 					bool filterPixel = lineIntersection(pixelCoord, u_playerPos, u_portalPos, vec2(u_portalPos.x, u_portalPos.y + 5.0 * u_blockSize));
 					if (u_dimension == 1) {
 						filterPixel = !filterPixel;
 					}
 					if (filterPixel) {
-						color = invertColor(color, false);
+						color = invertColor(color, 1.0);
 					}
 				}
-				
+
+				color.rgb *= color.a;
 				gl_FragColor = color;
 			}
 		</script>
@@ -690,6 +693,7 @@
 					this.screenSizeLocation = this.gl.getUniformLocation(this.program, "u_screenSize");
 					this.blockSizeLocation = this.gl.getUniformLocation(this.program, "u_blockSize");
 					this.dimensionLocation = this.gl.getUniformLocation(this.program, "u_dimension");
+					this.alphaLocation = this.gl.getUniformLocation(this.program, "u_alpha");
 	
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -757,7 +761,7 @@
 					img.src = url;
 					return textureInfo;
 				};
-				drawImage(texInfo, dstX=0, dstY=0, dstWidth=blockSize, dstHeight=blockSize, uvX=0, uvY=0, uvWidth=1, uvHeight=1) {
+				drawImage(texInfo, dstX=0, dstY=0, dstWidth=blockSize, dstHeight=blockSize, uvX=0, uvY=0, uvWidth=1, uvHeight=1, alpha=1) {
 					uvX *= texInfo.width;
 					uvY *= texInfo.height;
 					uvWidth *= texInfo.width;
@@ -769,6 +773,7 @@
 					this.gl.uniform2fv(this.screenSizeLocation, [this.gl.canvas.width, this.gl.canvas.height]);
 					this.gl.uniform1f(this.blockSizeLocation, blockSize);
 					this.gl.uniform1i(this.dimensionLocation, ["normal", "upside down"].indexOf(dimension));
+					this.gl.uniform1f(this.alphaLocation, alpha);
 
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 					this.gl.useProgram(this.program);
@@ -1017,7 +1022,7 @@
 							let waterHeight = Math.min((bakedRows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.min(waterY, 0));
 	
 							if (waterY < canvas.height) {
-								this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize * deltaRow, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, (Math.max(waterY, 0) - waterY) / blockSize / waterUVSize, 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize);
+								this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize * deltaRow, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, (Math.max(waterY, 0) - waterY) / blockSize / waterUVSize, 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize, 0.5);
 							};
 	
 							let gradient = darknessCtx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
@@ -1044,8 +1049,8 @@
 						};
 					};*/
 	
-					if (health / maxHealth < 0.05) {
-						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height);
+					if (health / maxHealth < 0.1) {
+						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, clamp(1 - (health / maxHealth) / 0.1, 0, 1));
 					};
 					
 					darknessCtx.save();

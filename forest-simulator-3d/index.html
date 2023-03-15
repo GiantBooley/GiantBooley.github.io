@@ -527,6 +527,7 @@
 			uniform float u_alpha;
 			uniform float u_darknessMin;
 			uniform float u_darknessMax;
+			uniform float u_darkness;
 
 			bool rectIntersection(vec2 p1, vec2 p2, vec2 b1, vec2 b2) {
 				float t = 0.0;
@@ -573,6 +574,9 @@
 			float lerp(float a, float b, float c) {
 				return a * (1.0 - c) + b * c;
 			}
+			float inverseLerp(float a, float b, float t) {
+				return (t - a) / (b - a);
+			}
 			vec4 invertColor(vec4 color, float factor) {
 				return vec4Lerp(color, vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a), vec4(factor));
 			}
@@ -582,8 +586,9 @@
 
 				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
 
-				float darkness = clamp(((1.0 - v_texcoord.y / 1.0) - u_darknessMin) / (u_darknessMax - u_darknessMin), 0.0, 1.0);
+				float darkness = clamp(inverseLerp(u_darknessMin, u_darknessMax, pixelCoord.y), 0.0, 1.0) * u_darkness;
 				color.rgb *= 1.0 - darkness;
+				color.a += darkness;
 				if (u_isThereAPortal == 1) {
 					bool filterPixel = lineIntersection(pixelCoord, u_playerPos, u_portalPos, vec2(u_portalPos.x, u_portalPos.y + 5.0 * u_blockSize));
 					if (u_dimension == 1) {
@@ -704,6 +709,7 @@
 					this.alphaLocation = this.gl.getUniformLocation(this.program, "u_alpha");
 					this.darknessMinLocation = this.gl.getUniformLocation(this.program, "u_darknessMin");
 					this.darknessMaxLocation = this.gl.getUniformLocation(this.program, "u_darknessMax");
+					this.darknessLocation = this.gl.getUniformLocation(this.program, "u_darkness");
 					
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -772,7 +778,9 @@
 					return textureInfo;
 				};
 				drawImage(texInfo, dstX=0, dstY=0, dstWidth=blockSize, dstHeight=blockSize, uvX=0, uvY=0, uvWidth=1, uvHeight=1, settings={}) {
+					uvX %= 1;
 					uvX *= texInfo.width;
+					uvY %= 1;
 					uvY *= texInfo.height;
 					uvWidth *= texInfo.width;
 					uvHeight *= texInfo.height;
@@ -784,8 +792,9 @@
 					this.gl.uniform1f(this.blockSizeLocation, blockSize);
 					this.gl.uniform1i(this.dimensionLocation, ["normal", "upside down"].indexOf(dimension));
 					this.gl.uniform1f(this.alphaLocation, settings.alpha ?? 1);
-					this.gl.uniform1f(this.darknessMinLocation, 1.0);
-					this.gl.uniform1f(this.darknessMaxLocation, 0.0);
+					this.gl.uniform1f(this.darknessMinLocation, canvas.height - (dstY + (settings.darknessMin ?? 0) * dstHeight));
+					this.gl.uniform1f(this.darknessMaxLocation, canvas.height - (dstY + (settings.darknessMax ?? 1) * dstHeight));
+					this.gl.uniform1f(this.darknessLocation, settings.darkness ?? 0);
 
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 					this.gl.useProgram(this.program);
@@ -839,16 +848,30 @@
 					let bakedRows = getBakedRows();
 					// grass
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
-						let layer = getLayer(getRowY(level.rows, rowBuffer[i]));
-						let footprinty = (layer === 9) && getRowY(level.rows, rowBuffer[i]) < getRowY(level.originalRows, rowBuffer[i]);
-						let ice = (layer === 9) && Math.round((getRowY(level.rows, rowBuffer[i]) - 900) * 1000) / 1000 <= Math.round((getRowY(level.originalRows, rowBuffer[i]) - 900) * 0.9 * 1000) / 1000;
+						let rowYBlocks = getRowY(level.rows, rowBuffer[i])
+						let layer = getLayer(rowYBlocks);
+						let footprinty = (layer === 9) && rowYBlocks < getRowY(level.originalRows, rowBuffer[i]);
+						let ice = (layer === 9) && Math.round((rowYBlocks - 900) * 1000) / 1000 <= Math.round((getRowY(level.originalRows, rowBuffer[i]) - 900) * 0.9 * 1000) / 1000;
 						let groundImage = footprinty ? (ice ? "snowMegaFootprinty" : "snowFootprinty") : layers[layer][0];
 
-						let rowY = (getRowY(level.rows, rowBuffer[i]) - cameraY) * -blockSize;
-						let bakedRowY = (getRowY(bakedRows, rowBuffer[i]) - cameraY) * -blockSize;
+						let rowY = (rowYBlocks - cameraY) * -blockSize;
+						let bakedRowY = (rowYBlocks - cameraY) * -blockSize;
 						let groundUVSize = 25;
 						if (rowY < canvas.height) {
-							this.drawImage(this.getTexture(groundImage), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize * deltaRow, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
+							let height = canvas.height - Math.max(rowY, 0);
+							let darknessTop = height - (canvas.height - rowY);
+							this.drawImage(
+								this.getTexture(groundImage),
+								(rowBuffer[i] - cameraX) * blockSize,
+								Math.max(rowY, 0),
+								blockSize * deltaRow,
+								height,
+								rowBuffer[i] / groundUVSize,
+								((Math.max(rowY, 0) - rowY) / blockSize - rowYBlocks) / groundUVSize,
+								1 / groundUVSize,
+								(canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize,
+								{darkness: 1, darknessMin: darknessTop / height, darknessMax: (darknessTop + blockSize * 15) / height}
+							);
 						};
 						let gradient = darknessCtx.createLinearGradient(0, bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize, 0, (bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize) + blockSize * 15);
 						gradient.addColorStop(0, darknessAlpha(0));

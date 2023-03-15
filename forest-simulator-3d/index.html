@@ -31,6 +31,9 @@
 				width: 100%;
 				height: 100%;
 			}
+			#darkness {
+				display: none;
+			}
 			#shop-button {
 				position: absolute;
 				top: 10px;
@@ -522,7 +525,8 @@
 			uniform float u_blockSize;
 			uniform int u_dimension; // 0-normal 1-upsidedown
 			uniform float u_alpha;
-
+			uniform float u_darknessMin;
+			uniform float u_darknessMax;
 
 			bool rectIntersection(vec2 p1, vec2 p2, vec2 b1, vec2 b2) {
 				float t = 0.0;
@@ -566,6 +570,9 @@
 			vec4 vec4Lerp(vec4 a, vec4 b, vec4 c) {
 				return a * (vec4(1.0) - c) + b * c;
 			}
+			float lerp(float a, float b, float c) {
+				return a * (1.0 - c) + b * c;
+			}
 			vec4 invertColor(vec4 color, float factor) {
 				return vec4Lerp(color, vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a), vec4(factor));
 			}
@@ -575,6 +582,8 @@
 
 				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
 
+				float darkness = clamp(((1.0 - v_texcoord.y / 1.0) - u_darknessMin) / (u_darknessMax - u_darknessMin), 0.0, 1.0);
+				color.rgb *= 1.0 - darkness;
 				if (u_isThereAPortal == 1) {
 					bool filterPixel = lineIntersection(pixelCoord, u_playerPos, u_portalPos, vec2(u_portalPos.x, u_portalPos.y + 5.0 * u_blockSize));
 					if (u_dimension == 1) {
@@ -584,7 +593,6 @@
 						color = invertColor(color, 1.0);
 					}
 				}
-
 				color.rgb *= color.a;
 				gl_FragColor = color;
 			}
@@ -694,7 +702,9 @@
 					this.blockSizeLocation = this.gl.getUniformLocation(this.program, "u_blockSize");
 					this.dimensionLocation = this.gl.getUniformLocation(this.program, "u_dimension");
 					this.alphaLocation = this.gl.getUniformLocation(this.program, "u_alpha");
-	
+					this.darknessMinLocation = this.gl.getUniformLocation(this.program, "u_darknessMin");
+					this.darknessMaxLocation = this.gl.getUniformLocation(this.program, "u_darknessMax");
+					
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
 					this.positions = [
@@ -761,7 +771,7 @@
 					img.src = url;
 					return textureInfo;
 				};
-				drawImage(texInfo, dstX=0, dstY=0, dstWidth=blockSize, dstHeight=blockSize, uvX=0, uvY=0, uvWidth=1, uvHeight=1, alpha=1) {
+				drawImage(texInfo, dstX=0, dstY=0, dstWidth=blockSize, dstHeight=blockSize, uvX=0, uvY=0, uvWidth=1, uvHeight=1, settings={}) {
 					uvX *= texInfo.width;
 					uvY *= texInfo.height;
 					uvWidth *= texInfo.width;
@@ -773,16 +783,21 @@
 					this.gl.uniform2fv(this.screenSizeLocation, [this.gl.canvas.width, this.gl.canvas.height]);
 					this.gl.uniform1f(this.blockSizeLocation, blockSize);
 					this.gl.uniform1i(this.dimensionLocation, ["normal", "upside down"].indexOf(dimension));
-					this.gl.uniform1f(this.alphaLocation, alpha);
+					this.gl.uniform1f(this.alphaLocation, settings.alpha ?? 1);
+					this.gl.uniform1f(this.darknessMinLocation, 1.0);
+					this.gl.uniform1f(this.darknessMaxLocation, 0.0);
 
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 					this.gl.useProgram(this.program);
+
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
 					this.gl.enableVertexAttribArray(this.positionLocation);
-					this.gl.vertexAttribPointer(this.positionLocation, 2, this.gl.FLOAT, false, 0, 0);
+					this.gl.vertexAttribPointer(this.positionLocation, 2, this.gl.FLOAT, this.gl.FALSE, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
+
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texcoordBuffer);
 					this.gl.enableVertexAttribArray(this.texcoordLocation);
-					this.gl.vertexAttribPointer(this.texcoordLocation, 2, this.gl.FLOAT, false, 0, 0);
+					this.gl.vertexAttribPointer(this.texcoordLocation, 2, this.gl.FLOAT, this.gl.FALSE, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
+
 					var matrix = m4.orthographic(0, this.gl.canvas.width, this.gl.canvas.height, 0, -1, 1);
 					matrix = m4.translate(matrix, dstX, dstY, 0);
 					matrix = m4.scale(matrix, dstWidth, dstHeight, 1);
@@ -1022,7 +1037,7 @@
 							let waterHeight = Math.min((bakedRows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.min(waterY, 0));
 	
 							if (waterY < canvas.height) {
-								this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize * deltaRow, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, (Math.max(waterY, 0) - waterY) / blockSize / waterUVSize, 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize, 0.5);
+								this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize * deltaRow, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, (Math.max(waterY, 0) - waterY) / blockSize / waterUVSize, 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize, {alpha: 0.5});
 							};
 	
 							let gradient = darknessCtx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
@@ -1050,7 +1065,7 @@
 					};*/
 	
 					if (health / maxHealth < 0.1) {
-						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, clamp(1 - (health / maxHealth) / 0.1, 0, 1));
+						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {alpha: clamp(1 - (health / maxHealth) / 0.1, 0, 1)});
 					};
 					
 					darknessCtx.save();
@@ -1422,7 +1437,7 @@
 			var possessionTime = 0;
 			var possessionDoll = null;
 			var dimension = "normal";
-			var portalX = 5;
+			var portalX = 5132;
 			var isThereAPortal = true;
 	
 			function generateOctaves() {
@@ -2633,11 +2648,13 @@
 				notificationTime = Math.max(0, notificationTime - 1);
 			};
 			function drawScreen() {
-				if (canvas.width !== innerWidth) {
-					canvas.width = darkness.width = innerWidth;
+				let width = innerWidth;
+				let height = innerHeight;
+				if (canvas.width !== width) {
+					canvas.width = darkness.width = width;
 				};
-				if (canvas.height !== innerHeight) {
-					canvas.height = darkness.height = innerHeight;
+				if (canvas.height !== height) {
+					canvas.height = darkness.height = height;
 				};
 				canvasWidth = canvas.width / blockSize * 2;
 				canvasHeight = canvas.height / blockSize * 2;

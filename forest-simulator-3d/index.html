@@ -394,13 +394,15 @@
 					<button id="save-slot-selector" onclick="saveSlotSelectorButton();">slot 0 (click to change)</button><br>
 					<button onclick="saveSlot(saveSlotNumber);">save</button>
 					<button onclick="loadSlot(saveSlotNumber);">load</button>
+					<button onclick="exportSave();">export</button>
+					<button onclick="loadSlot();">import</button>
 					<button onclick="alert(level.featureRNG.seed);">get seed</button>
 				</div>
 				<hr>
 				<input type="checkbox" id="joystick-checkbox"><label for="joystick-checkbox">joystick</label><br>
 				<input type="checkbox" id="animations-checkbox"><label for="animations-checkbox">animations</label><br>
-				<button onclick="blockSize = clamp(blockSize * 1.5, 0.86707649579, 168.75);">zoom in</button>
-				<button onclick="blockSize = clamp(blockSize / 1.5, 0.86707649579, 168.75);">zoom out</button>
+				<button onclick="blockSize = clamp(blockSize * 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom in</button>
+				<button onclick="blockSize = clamp(blockSize / 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom out</button>
 				<div id="shop-coins">
 					<div id="boots">
 						<h3>boots</h3>
@@ -459,10 +461,14 @@
 			<div id="obelisk-shop">
 				<h1>obelisk</h1>
 				<hr>
+				<h2>Upgrades</h2>
 				<label>health</label><button onclick="obeliskShopUpgradeButton('health');">upgrade (1 totem)</button><br>
 				<label>speed</label><button onclick="obeliskShopUpgradeButton('speed');">upgrade (1 totem)</button><br>
 				<label>jump</label><button onclick="obeliskShopUpgradeButton('jump');">upgrade (1 totem)</button><br>
 				<label>step</label><button onclick="obeliskShopUpgradeButton('step');">upgrade (1 totem)</button><br>
+				<hr>
+				<h2>Stuff</h2>
+				<button onclick="openPortal();">Open portal (2 totems)</button>
 			</div>
 			<div id="hacker-console">
 				<h1>hacker console</h1>
@@ -507,7 +513,7 @@
 
 			void main() {
 				gl_Position = (u_matrix * a_position);
-				v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
+				v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0.0, 1.0)).xy;
 			}
 		</script>
 		<script id="fragment" type="x-shader/x-fragment">
@@ -520,7 +526,7 @@
 			uniform vec2 u_playerPos;
 			uniform vec2 u_blockPos;
 			uniform vec2 u_screenSize;
-			uniform int u_isThereAPortal;
+			uniform float u_portalTime;
 			uniform vec2 u_portalPos;
 			uniform float u_blockSize;
 			uniform int u_dimension; // 0-normal 1-upsidedown
@@ -528,6 +534,8 @@
 			uniform float u_darknessMin;
 			uniform float u_darknessMax;
 			uniform float u_darkness;
+			uniform float u_ambientDarkness;
+			uniform bool u_removeBlue;
 
 			bool rectIntersection(vec2 p1, vec2 p2, vec2 b1, vec2 b2) {
 				float t = 0.0;
@@ -586,19 +594,25 @@
 
 				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
 
-				float darkness = clamp(inverseLerp(u_darknessMin, u_darknessMax, pixelCoord.y), 0.0, 1.0) * u_darkness;
-				color.rgb *= 1.0 - darkness;
-				color.a += darkness;
-				if (u_isThereAPortal == 1) {
-					bool filterPixel = lineIntersection(pixelCoord, u_playerPos, u_portalPos, vec2(u_portalPos.x, u_portalPos.y + 5.0 * u_blockSize));
-					if (u_dimension == 1) {
-						filterPixel = !filterPixel;
-					}
-					if (filterPixel) {
-						color = invertColor(color, 1.0);
-					}
+				if (u_removeBlue) {
+					float blueness = clamp(color.b - (color.r + color.g) / 2.0, 0.0, 1.0);
+					color.a = blueness > 0.1 ? 0.0 : 1.0 - blueness;
 				}
-				color.rgb *= color.a;
+				float darkness = clamp(inverseLerp(u_darknessMin, u_darknessMax, pixelCoord.y) * u_darkness, 0.0, 1.0);
+				color.rgb *= 1.0 - darkness;
+				color.rgb *= 1.0 - u_ambientDarkness;
+				color.a += darkness + u_ambientDarkness;
+				bool invertPixel = false;
+				if (u_portalTime > 0.0) {
+					float portalHeight = clamp(u_portalTime / 120.0, 0.0, 5.0);
+					invertPixel = lineIntersection(pixelCoord, u_playerPos, vec2(u_portalPos.x, u_portalPos.y + (2.5 - portalHeight / 2.0) * u_blockSize), vec2(u_portalPos.x, u_portalPos.y + (2.5 + portalHeight / 2.0) * u_blockSize));
+				}
+				if (u_dimension == 1) {
+					invertPixel = !invertPixel;
+				}
+				if (invertPixel) {
+					color = invertColor(color, 1.0);
+				}
 				gl_FragColor = color;
 			}
 		</script>
@@ -666,7 +680,7 @@
 			};
 			class WebGLRenderer {
 				constructor() {
-					this.gl = canvas.getContext("webgl");
+					this.gl = canvas.getContext("webgl", {alpha: false});
 	
 					// init
 					this.gl.viewport(0, 0, canvas.width, canvas.height);
@@ -701,7 +715,7 @@
 					this.textureMatrixLocation = this.gl.getUniformLocation(this.program, "u_textureMatrix");
 					this.textureLocation = this.gl.getUniformLocation(this.program, "u_texture");
 					this.playerPosLocation = this.gl.getUniformLocation(this.program, "u_playerPos");
-					this.isThereAPortalLocation = this.gl.getUniformLocation(this.program, "u_isThereAPortal");
+					this.portalTimeLocation = this.gl.getUniformLocation(this.program, "u_portalTime");
 					this.portalPosLocation = this.gl.getUniformLocation(this.program, "u_portalPos");
 					this.screenSizeLocation = this.gl.getUniformLocation(this.program, "u_screenSize");
 					this.blockSizeLocation = this.gl.getUniformLocation(this.program, "u_blockSize");
@@ -710,6 +724,8 @@
 					this.darknessMinLocation = this.gl.getUniformLocation(this.program, "u_darknessMin");
 					this.darknessMaxLocation = this.gl.getUniformLocation(this.program, "u_darknessMax");
 					this.darknessLocation = this.gl.getUniformLocation(this.program, "u_darkness");
+					this.ambientDarknessLocation = this.gl.getUniformLocation(this.program, "u_ambientDarkness");
+					this.removeBlueLocation = this.gl.getUniformLocation(this.program, "u_removeBlue");
 					
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -786,7 +802,7 @@
 					uvHeight *= texInfo.height;
 
 					this.gl.uniform2fv(this.playerPosLocation, [(playerX - cameraX) * blockSize, (playerY + 1 - cameraY) * blockSize + canvas.height]);
-					this.gl.uniform1i(this.isThereAPortalLocation, isThereAPortal * 1);
+					this.gl.uniform1f(this.portalTimeLocation, portalTime);
 					this.gl.uniform2fv(this.portalPosLocation, [(portalX - cameraX) * blockSize, (getRowY(level.rows, portalX) - cameraY) * blockSize + canvas.height]);
 					this.gl.uniform2fv(this.screenSizeLocation, [this.gl.canvas.width, this.gl.canvas.height]);
 					this.gl.uniform1f(this.blockSizeLocation, blockSize);
@@ -795,7 +811,9 @@
 					this.gl.uniform1f(this.darknessMinLocation, canvas.height - (dstY + (settings.darknessMin ?? 0) * dstHeight));
 					this.gl.uniform1f(this.darknessMaxLocation, canvas.height - (dstY + (settings.darknessMax ?? 1) * dstHeight));
 					this.gl.uniform1f(this.darknessLocation, settings.darkness ?? 0);
-
+					this.gl.uniform1f(this.ambientDarknessLocation, (settings.sky ?? false) ? 0 : getDarkness(gameTime));
+					this.gl.uniform1i(this.removeBlueLocation, settings.removeBlue ?? 0);
+					
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 					this.gl.useProgram(this.program);
 
@@ -822,7 +840,7 @@
 					darknessCtx.clearRect(0, 0, canvas.width, canvas.height);
 					
 					let skyImage = (getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight";
-					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 1, 1);
+					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {sky: true});
 
 					let stoneBackgroundScroll = 1 / 4;
 					let stoneBackgroundOffset = (750 - cameraY) * -blockSize * stoneBackgroundScroll;
@@ -830,7 +848,7 @@
 					let cloudsOffset = (850 - cameraY) * -blockSize * cloudsScroll;
 					this.drawImage(this.getTexture("stoneBackground"), 0, Math.max(stoneBackgroundOffset, 0), canvas.width, canvas.height - Math.max(stoneBackgroundOffset, 0), cameraX / (canvas.width / blockSize / stoneBackgroundScroll), (Math.max(stoneBackgroundOffset, 0) - stoneBackgroundOffset) * stoneBackgroundScroll / canvas.height, 1, (canvas.height - Math.max(stoneBackgroundOffset, 0)) / canvas.height / 4);
 					
-					this.drawImage(this.getTexture("clouds"), 0, cloudsOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / cloudsScroll), 0, 1, 1);
+					this.drawImage(this.getTexture("clouds"), 0, cloudsOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / cloudsScroll) + gameTime / 240, 0, 1, 1, {removeBlue: 1});
 					this.drawImage(this.getTexture("hills"), 0, stoneBackgroundOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / stoneBackgroundScroll), 0.325, 1, 0.675);
 	
 					let rowBuffer = range(Math.floor(cameraX), Math.floor(cameraX + canvas.width / blockSize));
@@ -841,14 +859,14 @@
 							let rainbowSize = 100;
 							this.drawImage(this.getTexture("rainbow"), (i - cameraX) * blockSize, (level.rows[i] + rainbowSize / 2 - cameraY) * -blockSize, blockSize * rainbowSize, blockSize * rainbowSize, 0, 0, 1, 1);
 						} else if (level.terrainFeatures[i] === "tree1") {
-							this.drawImage(this.getTexture("tree1"), (i - 2.5 - cameraX) * blockSize, (level.rows[i] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1);
+							this.drawImage(this.getTexture("tree1"), (i - 1.5 - cameraX) * blockSize, (level.rows[i] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1);
 						};
 					};
 	
 					let bakedRows = getBakedRows();
 					// grass
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
-						let rowYBlocks = getRowY(level.rows, rowBuffer[i])
+						let rowYBlocks = getRowY(level.rows, rowBuffer[i]);
 						let layer = getLayer(rowYBlocks);
 						let footprinty = (layer === 9) && rowYBlocks < getRowY(level.originalRows, rowBuffer[i]);
 						let ice = (layer === 9) && Math.round((rowYBlocks - 900) * 1000) / 1000 <= Math.round((getRowY(level.originalRows, rowBuffer[i]) - 900) * 0.9 * 1000) / 1000;
@@ -859,7 +877,7 @@
 						let groundUVSize = 25;
 						if (rowY < canvas.height) {
 							let height = canvas.height - Math.max(rowY, 0);
-							let darknessTop = height - (canvas.height - rowY);
+							let darknessTop = height - (canvas.height - ((rowYBlocks + (level.waterLevel[rowBuffer[i]] ?? 0) * (15 / waterDarkness)) - cameraY) * -blockSize);
 							this.drawImage(
 								this.getTexture(groundImage),
 								(rowBuffer[i] - cameraX) * blockSize,
@@ -869,15 +887,10 @@
 								rowBuffer[i] / groundUVSize,
 								((Math.max(rowY, 0) - rowY) / blockSize - rowYBlocks) / groundUVSize,
 								1 / groundUVSize,
-								(canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize,
+								height / blockSize / groundUVSize,
 								{darkness: 1, darknessMin: darknessTop / height, darknessMax: (darknessTop + blockSize * 15) / height}
 							);
 						};
-						let gradient = darknessCtx.createLinearGradient(0, bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize, 0, (bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize) + blockSize * 15);
-						gradient.addColorStop(0, darknessAlpha(0));
-						gradient.addColorStop(1, darknessAlpha(1));
-						darknessCtx.fillStyle = gradient;
-						darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, bakedRowY, blockSize * deltaRow, canvas.height - bakedRowY);
 						
 						if (rowBuffer[i] >= 0 && rowBuffer[i] < level.rows.length) {
 							switch (level.features[rowBuffer[i]]) {
@@ -1060,14 +1073,20 @@
 							let waterHeight = Math.min((bakedRows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.min(waterY, 0));
 	
 							if (waterY < canvas.height) {
-								this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize * deltaRow, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, (Math.max(waterY, 0) - waterY) / blockSize / waterUVSize, 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize, {alpha: 0.5});
+								let yOffset = Math.max(waterY, 0) - waterY;
+								this.drawImage(
+									this.getTexture("water"),
+									(rowBuffer[i] - cameraX) * blockSize,
+									Math.max(waterY, 0),
+									blockSize * deltaRow,
+									waterHeight - yOffset,
+									rowBuffer[i] / waterUVSize,
+									(Math.max(waterY, 0) - waterY) / blockSize / waterUVSize,
+									1 / waterUVSize,
+									(waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize,
+									{alpha: 0.5, darkness: 1, darknessMin: -yOffset / waterHeight, darknessMax: (blockSize * waterDarkness - yOffset) / waterHeight}
+								);
 							};
-	
-							let gradient = darknessCtx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
-							gradient.addColorStop(0, darknessAlpha(0));
-							gradient.addColorStop(1, darknessAlpha(1));
-							darknessCtx.fillStyle = gradient;
-							darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, waterY, blockSize * deltaRow, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
 						};
 					};
 					let darknessOpacity = getDarkness(gameTime);
@@ -1197,6 +1216,7 @@
 			
 			// consts
 			const fact = "Marina silva is a brazilian politician and an activist for deforestation and other things.\nShe was a rubber tapper and found that land was being invaded by rubber tappers and she\nstarted protecting thousands of hectares of land.";
+			const waterDarkness = 20;
 	
 			var game = {
 				"playerX": 0.5,
@@ -1394,7 +1414,7 @@
 			var notification = "";
 			var notificationTime = 0;
 			var gameTime = 0;
-			var developerMode = false;
+			var developerMode = !false;
 			var dybbukTime = 0;
 			var crouching = false;
 			var obeliskShop = false;
@@ -1460,8 +1480,8 @@
 			var possessionTime = 0;
 			var possessionDoll = null;
 			var dimension = "normal";
-			var portalX = 5132;
-			var isThereAPortal = true;
+			var portalX = 0;
+			var portalTime = 0;
 	
 			function generateOctaves() {
 				// octaves
@@ -1760,8 +1780,14 @@
 					potions[potion].time += potions[potion].duration;
 				};
 			};
-			function saveSlot(slot) {
-				let saveCode = JSON.stringify({
+			function codeToSave(text) {
+				return JSON.parse(text);
+			};
+			function saveToCode(save) {
+				return JSON.parse(save);
+			};
+			function getSave() {
+				return {
 					level,
 					playerX,
 					playerY,
@@ -1794,8 +1820,11 @@
 					possessionDoll,
 					dimension,
 					portalX,
-					isThereAPortal
-				});
+					portalTime
+				};
+			};
+			function saveSlot(slot) {
+				let saveCode = saveToCode(getSave());
 				localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 			};
 			function loadSlot(slot) {
@@ -1803,7 +1832,7 @@
 				if (saveCode === null) {
 					notificate("save slot " + slot + " empty, to create a new save slot reload and press save in the new one you want to create");
 				} else {
-					saveCode = JSON.parse(saveCode);
+					saveCode = codeToSave(saveCode);
 					level = saveCode.level ?? level;
 					playerX = saveCode.playerX ?? playerX;
 					playerY = saveCode.playerY ?? playerY;
@@ -1836,7 +1865,7 @@
 					possessionDoll = saveCode.possessionDoll ?? possessionDoll;
 					dimension = saveCode.dimension ?? dimension;
 					portalX = saveCode.portalX ?? portalX;
-					isThereAPortal = saveCode.isThereAPortal ?? isThereAPortal;
+					portalTime = saveCode.portalTime ?? portalTime;
 				};
 			};
 			function clearSlot(slot) {
@@ -1844,6 +1873,16 @@
 			};
 			function clearAllSlots() {
 				localStorage.clear();
+			};
+			function exportSave() {
+				saveFile("forestSimulator3DSave.json", "application/json", saveToCode(getSave()));
+			};
+			function saveFile(name, mime, content) {
+				var a = document.createElement("a");
+				a.href = "data:" + mime + "," + content;
+				a.download = name;
+				a.click();
+				a.remove();
 			};
 			function spawnMob(type, x, y) {
 				let mob = {
@@ -2117,6 +2156,10 @@
 					return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
 				};
 			};
+			function openPortal() {
+				portalX = playerX + 3;
+				portalTime = 60 * 60;
+			};
 	
 			function tick() {
 				document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
@@ -2187,6 +2230,7 @@
 	
 					gameTime += 1 / 60;
 					possessionTime = Math.max(possessionTime - 1 / 60, 0);
+					portalTime = Math.max(portalTime - 1, 0);
 	
 					for (let potion in potions) {
 						potions[potion].time = Math.max(potions[potion].time - (1 / 60), 0);
@@ -2305,7 +2349,8 @@
 					};
 					playerY += playerYV;
 	
-					if (isThereAPortal && lineIntersection({x: oldPlayerX, y: oldPlayerY + 1}, {x: playerX, y: playerY + 1}, {x: portalX, y: getRowY(level.rows, portalX)}, {x: portalX, y: getRowY(level.rows, portalX) + 5})) {
+					let portalHeight = clamp(portalTime / 120, 0, 5);
+					if (portalTime > 0 && lineIntersection({x: oldPlayerX, y: oldPlayerY + 1}, {x: playerX, y: playerY + 1}, {x: portalX, y: getRowY(level.rows, portalX) + 2.5 - portalHeight / 2}, {x: portalX, y: getRowY(level.rows, portalX) + 2.5 + portalHeight / 2})) {
 						dimension = (dimension === "normal") ? "upside down" : "normal";
 					};
 					// ROW LOOP //

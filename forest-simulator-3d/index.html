@@ -31,6 +31,9 @@
 				width: 100%;
 				height: 100%;
 			}
+			#darkness {
+				display: none;
+			}
 			#shop-button {
 				position: absolute;
 				top: 10px;
@@ -391,13 +394,15 @@
 					<button id="save-slot-selector" onclick="saveSlotSelectorButton();">slot 0 (click to change)</button><br>
 					<button onclick="saveSlot(saveSlotNumber);">save</button>
 					<button onclick="loadSlot(saveSlotNumber);">load</button>
+					<button onclick="exportSave();">export</button>
+					<button onclick="loadSlot();">import</button>
 					<button onclick="alert(level.featureRNG.seed);">get seed</button>
 				</div>
 				<hr>
 				<input type="checkbox" id="joystick-checkbox"><label for="joystick-checkbox">joystick</label><br>
 				<input type="checkbox" id="animations-checkbox"><label for="animations-checkbox">animations</label><br>
-				<button onclick="blockSize = clamp(blockSize * 1.5, 0.86707649579, 168.75);">zoom in</button>
-				<button onclick="blockSize = clamp(blockSize / 1.5, 0.86707649579, 168.75);">zoom out</button>
+				<button onclick="blockSize = clamp(blockSize * 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom in</button>
+				<button onclick="blockSize = clamp(blockSize / 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom out</button>
 				<div id="shop-coins">
 					<div id="boots">
 						<h3>boots</h3>
@@ -456,10 +461,14 @@
 			<div id="obelisk-shop">
 				<h1>obelisk</h1>
 				<hr>
+				<h2>Upgrades</h2>
 				<label>health</label><button onclick="obeliskShopUpgradeButton('health');">upgrade (1 totem)</button><br>
 				<label>speed</label><button onclick="obeliskShopUpgradeButton('speed');">upgrade (1 totem)</button><br>
 				<label>jump</label><button onclick="obeliskShopUpgradeButton('jump');">upgrade (1 totem)</button><br>
 				<label>step</label><button onclick="obeliskShopUpgradeButton('step');">upgrade (1 totem)</button><br>
+				<hr>
+				<h2>Stuff</h2>
+				<button onclick="openPortal();">Open portal (2 totems)</button>
 			</div>
 			<div id="hacker-console">
 				<h1>hacker console</h1>
@@ -504,7 +513,7 @@
 
 			void main() {
 				gl_Position = (u_matrix * a_position);
-				v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;
+				v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0.0, 1.0)).xy;
 			}
 		</script>
 		<script id="fragment" type="x-shader/x-fragment">
@@ -514,11 +523,102 @@
 
 			uniform sampler2D u_texture;
 
+			uniform vec2 u_playerPos;
+			uniform vec2 u_blockPos;
+			uniform vec2 u_screenSize;
+			uniform float u_portalTime;
+			uniform vec2 u_portalPos;
+			uniform float u_blockSize;
+			uniform int u_dimension; // 0-normal 1-upsidedown
+			uniform float u_alpha;
+			uniform float u_darknessMin;
+			uniform float u_darknessMax;
+			uniform float u_darkness;
+			uniform float u_ambientDarkness;
+			uniform bool u_removeBlue;
+			uniform float u_portalSkew;
+
+			bool rectIntersection(vec2 p1, vec2 p2, vec2 b1, vec2 b2) {
+				float t = 0.0;
+				if ((p1.x >= b1.x && p1.x <= b2.x && p1.y >= b1.y && p1.y <= b2.y) || (p2.x >= b1.x && p2.x <= b2.x && p2.y >= b1.y && p2.y <= b2.y)) {
+					return true;
+				}
+				if (p1.x < b1.x && p2.x >= b1.x) { // Left edge
+					t = p1.y + (p2.y - p1.y) * (b1.x - p1.x) / (p2.x - p1.x);
+					if (t > b1.y && t <= b2.y) {
+						return true;
+					}
+				} else if (p1.x > b2.x && p2.x <= b2.x) { // Right edge
+					t = p1.y + (p2.y - p1.y) * (b2.x - p1.x) / (p2.x - p1.x);
+					if (t >= b1.y && t <= b2.y) {
+						return true;
+					}
+				}
+				if (p1.y < b1.y && p2.y >= b1.y) { // Top edge
+					t = p1.x + (p2.x - p1.x) * (b1.y - p1.y) / (p2.y - p1.y);
+					if (t >= b1.x && t <= b2.x) {
+						return true;
+					}
+				} else if (p1.y > b2.y && p2.y <= b2.y) {	// Bottom edge
+					t = p1.x + (p2.x - p1.x) * (b2.y - p1.y) / (p2.y - p1.y);
+					if (t >= b1.x && t <= b2.x) {
+						return true;
+					}
+				}
+				return false;
+			}
+			bool lineIntersection(vec2 p1, vec2 p2, vec2 p3, vec2 p4) {
+				float det = (p2.x - p1.x) * (p4.y - p3.y) - (p4.x - p3.x) * (p2.y - p1.y);
+				if (det == 0.0) {
+					return false;
+				} else {
+					float lambda = ((p4.y - p3.y) * (p4.x - p1.x) + (p3.x - p4.x) * (p4.y - p1.y)) / det;
+					float gamma = ((p1.y - p2.y) * (p4.x - p1.x) + (p2.x - p1.x) * (p4.y - p1.y)) / det;
+					return (0.0 < lambda && lambda < 1.0) && (0.0 < gamma && gamma < 1.0);
+				}
+			}
+			vec4 vec4Lerp(vec4 a, vec4 b, vec4 c) {
+				return a * (vec4(1.0) - c) + b * c;
+			}
+			float lerp(float a, float b, float c) {
+				return a * (1.0 - c) + b * c;
+			}
+			float inverseLerp(float a, float b, float t) {
+				return (t - a) / (b - a);
+			}
+			vec4 invertColor(vec4 color, float factor) {
+				return vec4Lerp(color, vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a), vec4(factor));
+			}
 			void main() {
+				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
 				vec4 color = texture2D(u_texture, v_texcoord);
-				if (color.a < 0.5) {
-					discard;
-				};
+				color.a *= u_alpha;
+
+				if (u_removeBlue) {
+					float blueness = clamp(color.b - (color.r + color.g) / 2.0, 0.0, 1.0);
+					color.a = blueness > 0.1 ? 0.0 : 1.0 - blueness;
+				}
+				float darkness = clamp(inverseLerp(u_darknessMin, u_darknessMax, pixelCoord.y) * u_darkness, 0.0, 1.0);
+				color.rgb *= 1.0 - darkness;
+				color.rgb *= 1.0 - u_ambientDarkness;
+				color.a += darkness + u_ambientDarkness;
+				bool upsidedownifyPixel = false;
+				if (u_portalTime > 0.0) {
+					float portalSize = clamp(u_portalTime / 120.0, 0.0, 1.0);
+					vec2 portalOffset = vec2(portalSize * u_portalSkew / 2.0, portalSize * 5.0 / 2.0) * vec2(u_blockSize);
+					upsidedownifyPixel = lineIntersection(
+						pixelCoord,
+						u_playerPos,
+						u_portalPos + vec2(0.0, 2.5 * u_blockSize) - portalOffset,
+						u_portalPos + vec2(0.0, 2.5 * u_blockSize) + portalOffset
+					);
+				}
+				if (u_dimension == 1) {
+					upsidedownifyPixel = !upsidedownifyPixel;
+				}
+				if (upsidedownifyPixel) {
+					color = invertColor(color, 1.0);
+				}
 				gl_FragColor = color;
 			}
 		</script>
@@ -586,12 +686,14 @@
 			};
 			class WebGLRenderer {
 				constructor() {
-					this.gl = canvas.getContext("webgl");
+					this.gl = canvas.getContext("webgl", {alpha: false});
 	
 					// init
 					this.gl.viewport(0, 0, canvas.width, canvas.height);
 					this.gl.clearColor(0, 0, 0, 1);
 					this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+					this.gl.enable(this.gl.BLEND);
+					this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 				
 					// get shader code
 					this.vertexCode = document.getElementById("vertex").firstChild.nodeValue;
@@ -618,7 +720,20 @@
 					this.matrixLocation = this.gl.getUniformLocation(this.program, "u_matrix");
 					this.textureMatrixLocation = this.gl.getUniformLocation(this.program, "u_textureMatrix");
 					this.textureLocation = this.gl.getUniformLocation(this.program, "u_texture");
-	
+					this.playerPosLocation = this.gl.getUniformLocation(this.program, "u_playerPos");
+					this.portalTimeLocation = this.gl.getUniformLocation(this.program, "u_portalTime");
+					this.portalPosLocation = this.gl.getUniformLocation(this.program, "u_portalPos");
+					this.screenSizeLocation = this.gl.getUniformLocation(this.program, "u_screenSize");
+					this.blockSizeLocation = this.gl.getUniformLocation(this.program, "u_blockSize");
+					this.dimensionLocation = this.gl.getUniformLocation(this.program, "u_dimension");
+					this.alphaLocation = this.gl.getUniformLocation(this.program, "u_alpha");
+					this.darknessMinLocation = this.gl.getUniformLocation(this.program, "u_darknessMin");
+					this.darknessMaxLocation = this.gl.getUniformLocation(this.program, "u_darknessMax");
+					this.darknessLocation = this.gl.getUniformLocation(this.program, "u_darkness");
+					this.ambientDarknessLocation = this.gl.getUniformLocation(this.program, "u_ambientDarkness");
+					this.removeBlueLocation = this.gl.getUniformLocation(this.program, "u_removeBlue");
+					this.portalSkewLocation = this.gl.getUniformLocation(this.program, "u_portalSkew");
+					
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
 					this.positions = [
@@ -645,11 +760,11 @@
 	
 					this.defaultTexture = this.loadImageAndCreateTextureInfo("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAIAAABLbSncAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAjSURBVBhXY/zP8J8BBhiBEAaYoDQGIF0CYSgQINtHNTsYGAA9/gQN0D1U/wAAAABJRU5ErkJggg==");
 					// errors
-					if (!this.gl.getShaderParameter(this.vertexShader, this.gl.COMPILE_STATUS)) console.log(this.gl.getShaderInfoLog(this.vertexShader));
-					if (!this.gl.getShaderParameter(this.fragmentShader, this.gl.COMPILE_STATUS)) console.log(this.gl.getShaderInfoLog(this.fragmentShader));
-					if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) console.log(this.gl.getProgramInfoLog(this.program));
+					if (!this.gl.getShaderParameter(this.vertexShader, this.gl.COMPILE_STATUS)) alert(this.gl.getShaderInfoLog(this.vertexShader));
+					if (!this.gl.getShaderParameter(this.fragmentShader, this.gl.COMPILE_STATUS)) alert(this.gl.getShaderInfoLog(this.fragmentShader));
+					if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) alert(this.gl.getProgramInfoLog(this.program));
 					this.gl.validateProgram(this.program);
-					if (!this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS)) console.log(this.gl.getProgramInfoLog(this.program));
+					if (!this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS)) alert(this.gl.getProgramInfoLog(this.program));
 				};
 	
 				loadTextures() {
@@ -685,19 +800,39 @@
 					img.src = url;
 					return textureInfo;
 				};
-				drawImage(texInfo, dstX=0, dstY=0, dstWidth=blockSize, dstHeight=blockSize, uvX=0, uvY=0, uvWidth=1, uvHeight=1) {
+				drawImage(texInfo, dstX=0, dstY=0, dstWidth=blockSize, dstHeight=blockSize, uvX=0, uvY=0, uvWidth=1, uvHeight=1, settings={}) {
+					uvX %= 1;
 					uvX *= texInfo.width;
+					uvY %= 1;
 					uvY *= texInfo.height;
 					uvWidth *= texInfo.width;
 					uvHeight *= texInfo.height;
+
+					this.gl.uniform2fv(this.playerPosLocation, [(playerX - cameraX) * blockSize, (playerY + 1 - cameraY) * blockSize + canvas.height]);
+					this.gl.uniform1f(this.portalTimeLocation, portalTime);
+					this.gl.uniform2fv(this.portalPosLocation, [(portalX - cameraX) * blockSize, (getRowY(level.rows, portalX) - cameraY) * blockSize + canvas.height]);
+					this.gl.uniform2fv(this.screenSizeLocation, [this.gl.canvas.width, this.gl.canvas.height]);
+					this.gl.uniform1f(this.blockSizeLocation, blockSize);
+					this.gl.uniform1i(this.dimensionLocation, ["normal", "upside down"].indexOf(dimension));
+					this.gl.uniform1f(this.alphaLocation, settings.alpha ?? 1);
+					this.gl.uniform1f(this.darknessMinLocation, canvas.height - (dstY + (settings.darknessMin ?? 0) * dstHeight));
+					this.gl.uniform1f(this.darknessMaxLocation, canvas.height - (dstY + (settings.darknessMax ?? 1) * dstHeight));
+					this.gl.uniform1f(this.darknessLocation, settings.darkness ?? 0);
+					this.gl.uniform1f(this.ambientDarknessLocation, (settings.sky ?? false) ? 0 : getDarkness(gameTime));
+					this.gl.uniform1i(this.removeBlueLocation, settings.removeBlue ?? 0);
+					this.gl.uniform1f(this.portalSkewLocation, portalSkew);
+					
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 					this.gl.useProgram(this.program);
+
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
 					this.gl.enableVertexAttribArray(this.positionLocation);
-					this.gl.vertexAttribPointer(this.positionLocation, 2, this.gl.FLOAT, false, 0, 0);
+					this.gl.vertexAttribPointer(this.positionLocation, 2, this.gl.FLOAT, this.gl.FALSE, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
+
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texcoordBuffer);
 					this.gl.enableVertexAttribArray(this.texcoordLocation);
-					this.gl.vertexAttribPointer(this.texcoordLocation, 2, this.gl.FLOAT, false, 0, 0);
+					this.gl.vertexAttribPointer(this.texcoordLocation, 2, this.gl.FLOAT, this.gl.FALSE, 2 * Float32Array.BYTES_PER_ELEMENT, 0);
+
 					var matrix = m4.orthographic(0, this.gl.canvas.width, this.gl.canvas.height, 0, -1, 1);
 					matrix = m4.translate(matrix, dstX, dstY, 0);
 					matrix = m4.scale(matrix, dstWidth, dstHeight, 1);
@@ -713,7 +848,7 @@
 					darknessCtx.clearRect(0, 0, canvas.width, canvas.height);
 					
 					let skyImage = (getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight";
-					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 1, 1);
+					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {sky: true});
 
 					let stoneBackgroundScroll = 1 / 4;
 					let stoneBackgroundOffset = (750 - cameraY) * -blockSize * stoneBackgroundScroll;
@@ -721,7 +856,7 @@
 					let cloudsOffset = (850 - cameraY) * -blockSize * cloudsScroll;
 					this.drawImage(this.getTexture("stoneBackground"), 0, Math.max(stoneBackgroundOffset, 0), canvas.width, canvas.height - Math.max(stoneBackgroundOffset, 0), cameraX / (canvas.width / blockSize / stoneBackgroundScroll), (Math.max(stoneBackgroundOffset, 0) - stoneBackgroundOffset) * stoneBackgroundScroll / canvas.height, 1, (canvas.height - Math.max(stoneBackgroundOffset, 0)) / canvas.height / 4);
 					
-					this.drawImage(this.getTexture("clouds"), 0, cloudsOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / cloudsScroll), 0, 1, 1);
+					this.drawImage(this.getTexture("clouds"), 0, cloudsOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / cloudsScroll) + gameTime / 240, 0, 1, 1, {removeBlue: 1});
 					this.drawImage(this.getTexture("hills"), 0, stoneBackgroundOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / stoneBackgroundScroll), 0.325, 1, 0.675);
 	
 					let rowBuffer = range(Math.floor(cameraX), Math.floor(cameraX + canvas.width / blockSize));
@@ -732,29 +867,38 @@
 							let rainbowSize = 100;
 							this.drawImage(this.getTexture("rainbow"), (i - cameraX) * blockSize, (level.rows[i] + rainbowSize / 2 - cameraY) * -blockSize, blockSize * rainbowSize, blockSize * rainbowSize, 0, 0, 1, 1);
 						} else if (level.terrainFeatures[i] === "tree1") {
-							this.drawImage(this.getTexture("tree1"), (i - 2.5 - cameraX) * blockSize, (level.rows[i] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1);
+							this.drawImage(this.getTexture("tree1"), (i - 1.5 - cameraX) * blockSize, (level.rows[i] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1);
 						};
 					};
 	
 					let bakedRows = getBakedRows();
 					// grass
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
-						let layer = getLayer(getRowY(level.rows, rowBuffer[i]));
-						let footprinty = (layer === 9) && getRowY(level.rows, rowBuffer[i]) < getRowY(level.originalRows, rowBuffer[i]);
-						let ice = (layer === 9) && Math.round((getRowY(level.rows, rowBuffer[i]) - 900) * 1000) / 1000 <= Math.round((getRowY(level.originalRows, rowBuffer[i]) - 900) * 0.9 * 1000) / 1000;
+						let rowYBlocks = getRowY(level.rows, rowBuffer[i]);
+						let layer = getLayer(rowYBlocks);
+						let footprinty = (layer === 9) && rowYBlocks < getRowY(level.originalRows, rowBuffer[i]);
+						let ice = (layer === 9) && Math.round((rowYBlocks - 900) * 1000) / 1000 <= Math.round((getRowY(level.originalRows, rowBuffer[i]) - 900) * 0.9 * 1000) / 1000;
 						let groundImage = footprinty ? (ice ? "snowMegaFootprinty" : "snowFootprinty") : layers[layer][0];
 
-						let rowY = (getRowY(level.rows, rowBuffer[i]) - cameraY) * -blockSize;
-						let bakedRowY = (getRowY(bakedRows, rowBuffer[i]) - cameraY) * -blockSize;
+						let rowY = (rowYBlocks - cameraY) * -blockSize;
+						let bakedRowY = (rowYBlocks - cameraY) * -blockSize;
 						let groundUVSize = 25;
 						if (rowY < canvas.height) {
-							this.drawImage(this.getTexture(groundImage), (rowBuffer[i] - cameraX) * blockSize, Math.max(rowY, 0), blockSize * deltaRow, canvas.height - Math.max(rowY, 0), rowBuffer[i] / groundUVSize, (Math.max(rowY, 0) - rowY) / blockSize / groundUVSize - getRowY(level.rows, rowBuffer[i]) / groundUVSize, 1 / groundUVSize, (canvas.height - Math.max(rowY, 0)) / blockSize / groundUVSize);
+							let height = canvas.height - Math.max(rowY, 0);
+							let darknessTop = height - (canvas.height - ((rowYBlocks + (level.waterLevel[rowBuffer[i]] ?? 0) * (15 / waterDarkness)) - cameraY) * -blockSize);
+							this.drawImage(
+								this.getTexture(groundImage),
+								(rowBuffer[i] - cameraX) * blockSize,
+								Math.max(rowY, 0),
+								blockSize * deltaRow,
+								height,
+								rowBuffer[i] / groundUVSize,
+								((Math.max(rowY, 0) - rowY) / blockSize - rowYBlocks) / groundUVSize,
+								1 / groundUVSize,
+								height / blockSize / groundUVSize,
+								{darkness: 1, darknessMin: darknessTop / height, darknessMax: (darknessTop + blockSize * 15) / height}
+							);
 						};
-						let gradient = darknessCtx.createLinearGradient(0, bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize, 0, (bakedRowY - (level.waterLevel[rowBuffer[i]] ?? 0) * blockSize) + blockSize * 15);
-						gradient.addColorStop(0, darknessAlpha(0));
-						gradient.addColorStop(1, darknessAlpha(1));
-						darknessCtx.fillStyle = gradient;
-						darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, bakedRowY, blockSize * deltaRow, canvas.height - bakedRowY);
 						
 						if (rowBuffer[i] >= 0 && rowBuffer[i] < level.rows.length) {
 							switch (level.features[rowBuffer[i]]) {
@@ -813,7 +957,7 @@
 										this.drawImage(this.getTexture("obelisk"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 4 - featureEntity.yOffset * blockSize, blockSize, blockSize * 4 - featureEntity.yOffset * -blockSize, 0.43, 0.1, 0.15, (1 + featureEntity.yOffset / 4) * 0.7);
 										break;
 									case "scaffolding":
-										this.drawImage(this.getTexture("scaffolding"), (rowBuffer[i] - cameraX) * blockSize, rowY - featureEntity.height * blockSize, blockSize, featureEntity.height * blockSize);
+										this.drawImage(this.getTexture("scaffolding"), (rowBuffer[i] - cameraX) * blockSize, rowY - featureEntity.height * blockSize, blockSize, featureEntity.height * blockSize, 0.237, 0.032, 0.525, 0.934);
 										break;
 									case "sentry house":
 										switch (featureEntity.variant) {
@@ -868,7 +1012,7 @@
 										this.drawImage(this.getTexture("aquaGolem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 9 - golem.yOffset * blockSize, blockSize, blockSize * 9 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 9));
 										break;
 									case "mecha golem":
-										this.drawImage(this.getTexture("mechaGolem"), (rowBuffer[i] - 1 - cameraX) * blockSize, rowY - blockSize * 12 - golem.yOffset * blockSize, blockSize * 3, blockSize * 12 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 12));
+										this.drawImage(this.getTexture("mechaGolem"), (rowBuffer[i] - 1 - cameraX) * blockSize, rowY - blockSize * 12 - golem.yOffset * blockSize, blockSize * 3, blockSize * 12 - golem.yOffset * -blockSize, 0.298, 0.007, 0.324, 0.919 + (golem.yOffset / 12));
 										break;
 									case "celestial golem":
 										this.drawImage(this.getTexture("celestialGolem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 100 - golem.yOffset * blockSize, blockSize, blockSize * 100 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 100));
@@ -880,7 +1024,7 @@
 					let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV <= 0 ? "guyFalling" : "guyJumping"))));
 					this.drawImage(this.getTexture(document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
 					if (dybbukTime > 0) {
-						this.drawImage(this.getTexture("dybbuk"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
+						this.drawImage(this.getTexture("dybbuk"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2, 0, 0, 1, 1, {alpha: 0.5});
 					};
 					let grimReaperX = lerp(playerX - 1, playerX - 100, health / maxHealth);
 					this.drawImage(this.getTexture("grimReaper"), (grimReaperX - 0.5 - cameraX) * blockSize, (getRowY(bakedRows, getHittableRows(grimReaperX).reduce((a, b) => level.rows[a] > level.rows[b] ? a : b)) + 3 - cameraY) * -blockSize, blockSize, blockSize * 3);
@@ -906,15 +1050,16 @@
 												this.drawImage(this.getTexture("error"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1 - cameraY) * -blockSize, blockSize, blockSize);
 										};
 									} else {
-										switch (Math.sign(Math.round(playerXV * 1000) / 1000)) {
-											case -1:
-												this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4);
-												break;
-											case 0:
-												this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4);
-												break;
-											case 1:
-												this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4);
+										if (mob.deltaX === 0) {
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4, 0.435, 0.278, 0.144, 0.548);//idle
+										} else if (mob.deltaX > 0.19) {
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4, 0.054, 0.27, 0.174, 0.686);//rightbig
+										} else if (mob.deltaX > 0) {
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4, 0.216, 0.277, 0.175, 0.579);//right
+										} else if (mob.deltaX < -0.19) {
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4, 0.759, 0.249, 0.2, 0.686);//leftbig
+										} else if (mob.deltaX < 0) {
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4, 0.613, 0.262, 0.167, 0.578);//left
 										};
 									};
 									break;
@@ -937,14 +1082,20 @@
 							let waterHeight = Math.min((bakedRows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.min(waterY, 0));
 	
 							if (waterY < canvas.height) {
-								this.drawImage(this.getTexture("water"), (rowBuffer[i] - cameraX) * blockSize, Math.max(waterY, 0), blockSize * deltaRow, waterHeight + (waterY - Math.max(waterY, 0)), rowBuffer[i] / waterUVSize, (Math.max(waterY, 0) - waterY) / blockSize / waterUVSize, 1 / waterUVSize, (waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize);
+								let yOffset = Math.max(waterY, 0) - waterY;
+								this.drawImage(
+									this.getTexture("water"),
+									(rowBuffer[i] - cameraX) * blockSize,
+									Math.max(waterY, 0),
+									blockSize * deltaRow,
+									waterHeight - yOffset,
+									rowBuffer[i] / waterUVSize,
+									(Math.max(waterY, 0) - waterY) / blockSize / waterUVSize,
+									1 / waterUVSize,
+									(waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize,
+									{alpha: 0.5, darkness: 1, darknessMin: -yOffset / waterHeight, darknessMax: (blockSize * waterDarkness - yOffset) / waterHeight}
+								);
 							};
-	
-							let gradient = darknessCtx.createLinearGradient(0, waterY, 0, waterY + blockSize * 25);
-							gradient.addColorStop(0, darknessAlpha(0));
-							gradient.addColorStop(1, darknessAlpha(1));
-							darknessCtx.fillStyle = gradient;
-							darknessCtx.fillRect((rowBuffer[i] - cameraX) * blockSize, waterY, blockSize * deltaRow, (level.waterLevel[rowBuffer[i]] + waveOffset) * blockSize);
 						};
 					};
 					let darknessOpacity = getDarkness(gameTime);
@@ -964,8 +1115,8 @@
 						};
 					};*/
 	
-					if (health / maxHealth < 0.05) {
-						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height);
+					if (health / maxHealth < 0.1) {
+						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {alpha: clamp(1 - (health / maxHealth) / 0.1, 0, 1), sky: 1});
 					};
 					
 					darknessCtx.save();
@@ -1074,6 +1225,7 @@
 			
 			// consts
 			const fact = "Marina silva is a brazilian politician and an activist for deforestation and other things.\nShe was a rubber tapper and found that land was being invaded by rubber tappers and she\nstarted protecting thousands of hectares of land.";
+			const waterDarkness = 20;
 	
 			var game = {
 				"playerX": 0.5,
@@ -1271,7 +1423,7 @@
 			var notification = "";
 			var notificationTime = 0;
 			var gameTime = 0;
-			var developerMode = false;
+			var developerMode = !false;
 			var dybbukTime = 0;
 			var crouching = false;
 			var obeliskShop = false;
@@ -1336,6 +1488,10 @@
 			var saveSlotNumber = 0;
 			var possessionTime = 0;
 			var possessionDoll = null;
+			var dimension = "normal";
+			var portalX = 0;
+			var portalTime = 0;
+			var portalSkew = 0;
 	
 			function generateOctaves() {
 				// octaves
@@ -1634,8 +1790,14 @@
 					potions[potion].time += potions[potion].duration;
 				};
 			};
-			function saveSlot(slot) {
-				let saveCode = JSON.stringify({
+			function codeToSave(text) {
+				return JSON.parse(text);
+			};
+			function saveToCode(save) {
+				return JSON.stringify(save);
+			};
+			function getSave() {
+				return {
 					level,
 					playerX,
 					playerY,
@@ -1665,8 +1827,15 @@
 					cameraX,
 					cameraY,
 					possessionTime,
-					possessionDoll
-				});
+					possessionDoll,
+					dimension,
+					portalX,
+					portalTime,
+					portalSkew
+				};
+			};
+			function saveSlot(slot) {
+				let saveCode = saveToCode(getSave());
 				localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 			};
 			function loadSlot(slot) {
@@ -1674,7 +1843,7 @@
 				if (saveCode === null) {
 					notificate("save slot " + slot + " empty, to create a new save slot reload and press save in the new one you want to create");
 				} else {
-					saveCode = JSON.parse(saveCode);
+					saveCode = codeToSave(saveCode);
 					level = saveCode.level ?? level;
 					playerX = saveCode.playerX ?? playerX;
 					playerY = saveCode.playerY ?? playerY;
@@ -1705,6 +1874,10 @@
 					cameraY = saveCode.cameraY ?? cameraY;
 					possessionTime = saveCode.possessionTime ?? possessionTime;
 					possessionDoll = saveCode.possessionDoll ?? possessionDoll;
+					dimension = saveCode.dimension ?? dimension;
+					portalX = saveCode.portalX ?? portalX;
+					portalTime = saveCode.portalTime ?? portalTime;
+					portalSkew = saveCode.portalSkew ?? portalSkew;
 				};
 			};
 			function clearSlot(slot) {
@@ -1712,6 +1885,16 @@
 			};
 			function clearAllSlots() {
 				localStorage.clear();
+			};
+			function exportSave() {
+				saveFile("forestSimulator3DSave.json", "application/json", saveToCode(getSave()));
+			};
+			function saveFile(name, mime, content) {
+				var a = document.createElement("a");
+				a.href = "data:" + mime + "," + content;
+				a.download = name;
+				a.click();
+				a.remove();
 			};
 			function spawnMob(type, x, y) {
 				let mob = {
@@ -1725,6 +1908,7 @@
 					mob.mimicTimer = false;
 					mob.mimicking = true;
 					mob.mimicSpawnAge = 0;
+					mob.deltaX = 0;
 				} else if (type === "leprechaun") {
 					mob.coins = arguments[3];
 				} else if (type === "possessed doll") {
@@ -1897,7 +2081,7 @@
 				return array;
 			};
 			function getRowY(rows, x) {
-				x = Math.round(x);
+				x = Math.floor(x);
 				if (x <= -5 && x > -25) {
 					return -2000000;
 				};
@@ -1945,6 +2129,51 @@
 			function clockEmoji(time=gameTime) {
 				var clocks = ["🕛", "🕧", "🕐", "🕜", "🕑", "🕝", "🕒", "🕞", "🕓", "🕟", "🕔", "🕠", "🕕", "🕡", "🕖", "🕢", "🕗", "🕣", "🕘", "🕤", "🕙", "🕥", "🕚", "🕦"];
 				return clocks[Math.floor(Math.mod((time - 150), 300) / 12.5)];
+			};
+			function rectIntersection(p1, p2, b1, b2) {
+				var t = 0;
+				if ((p1.x >= b1.x && p1.x <= b2.x && p1.y >= b1.y && p1.y <= b2.y) || (p2.x >= b1.x && p2.x <= b2.x && p2.y >= b1.y && p2.y <= b2.y)) {
+					return true;
+				};
+				if (p1.x < b1.x && p2.x >= b1.x) { // Left edge
+					t = p1.y + (p2.y - p1.y) * (b1.x - p1.x) / (p2.x - p1.x);
+					if (t > b1.y && t <= b2.y) {
+						return true;
+					};
+				} else if (p1.x > b2.x && p2.x <= b2.x) { // Right edge
+					t = p1.y + (p2.y - p1.y) * (b2.x - p1.x) / (p2.x - p1.x);
+					if (t >= b1.y && t <= b2.y) {
+						return true;
+					};
+				};
+				if (p1.y < b1.y && p2.y >= b1.y) { // Top edge
+					t = p1.x + (p2.x - p1.x) * (b1.y - p1.y) / (p2.y - p1.y);
+					if (t >= b1.x && t <= b2.x) {
+						return true;
+					};
+				} else if (p1.y > b2.y && p2.y <= b2.y) {	// Bottom edge
+					t = p1.x + (p2.x - p1.x) * (b2.y - p1.y) / (p2.y - p1.y);
+					if (t >= b1.x && t <= b2.x) {
+						return true;
+					};
+				};
+				return false;
+			};
+			function lineIntersection(p1, p2, p3, p4) {
+				var det = (p2.x - p1.x) * (p4.y - p3.y) - (p4.x - p3.x) * (p2.y - p1.y);
+				if (det === 0) {
+					return false;
+				} else {
+					let lambda = ((p4.y - p3.y) * (p4.x - p1.x) + (p3.x - p4.x) * (p4.y - p1.y)) / det;
+					let gamma = ((p1.y - p2.y) * (p4.x - p1.x) + (p2.x - p1.x) * (p4.y - p1.y)) / det;
+					return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+				};
+			};
+			function openPortal() {
+				portalX = playerX + 3;
+				portalTime = 60 * 60;
+				let skewiness = 2;
+				portalSkew = Math.random() * skewiness - skewiness / 2;
 			};
 	
 			function tick() {
@@ -2016,6 +2245,7 @@
 	
 					gameTime += 1 / 60;
 					possessionTime = Math.max(possessionTime - 1 / 60, 0);
+					portalTime = Math.max(portalTime - 1, 0);
 	
 					for (let potion in potions) {
 						potions[potion].time = Math.max(potions[potion].time - (1 / 60), 0);
@@ -2023,6 +2253,8 @@
 					flying = potions["bird potion"].time > 0;
 					inWater = playerY < bakedRows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && level.waterLevel[Math.floor(playerX)] > 0.75;
 	
+					let oldPlayerX = playerX;
+					let oldPlayerY = playerY;
 					// X MOVEMENT //
 					
 					let playerSpeed = basePlayerSpeed + (boots === "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
@@ -2132,6 +2364,16 @@
 					};
 					playerY += playerYV;
 	
+					let portalSize = clamp(portalTime / 120, 0, 1);
+					let portalOffset = [portalSize * portalSkew / 2.0, portalSize * 5.0 / 2.0];
+					let portalY = getRowY(level.rows, portalX);
+					if (portalTime > 0 && lineIntersection(
+						{x: oldPlayerX, y: oldPlayerY + 1},
+						{x: playerX, y: playerY + 1},
+						{x: portalX - portalOffset[0], y: portalY + 2.5 - portalOffset[1]},
+						{x: portalX + portalOffset[0], y: portalY + 2.5 + portalOffset[1]})) {
+						dimension = (dimension === "normal") ? "upside down" : "normal";
+					};
 					// ROW LOOP //
 	
 					let oldInLadder = inLadder;
@@ -2167,7 +2409,7 @@
 								switch (level.features[i]) {
 									case 2:
 										if (dybbukTime <= 0) {
-											gems++;
+											gems += (dimension === "upside down") ? 2 : 1;
 										};
 										level.features[i] = 0;
 										break;
@@ -2177,7 +2419,7 @@
 										break;
 									case 12:
 										if (dybbukTime <= 0) {
-											totems++;
+											totems += (dimension === "upside down") ? 2 : 1;
 										};
 										level.features[i] = 0;
 										break;
@@ -2185,7 +2427,7 @@
 							};
 							if (level.features[i] === 1 && (boots === "magnet boots" || playerY < level.rows[i] + 1)) {
 								if (dybbukTime <= 0) {
-									coins++;
+									coins += (dimension === "upside down") ? 2 : 1;
 								};
 								level.features[i] = 0;
 							};
@@ -2422,7 +2664,9 @@
 								break;
 							case "mimic":
 								if (!mob.mimicking) {
+									let oldMobX = mob.x;
 									mob.x = (mob.x > playerX ? Math.min : Math.max)(mob.x, mob.x + playerXV);
+									mob.deltaX = Math.round((mob.x - oldMobX) * 1000) / 1000;
 									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)] ?? mob.y;
 									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
 										health -= (Math.sin(gameTime * 20) + 0.1) * 0.03; // 0.01
@@ -2457,11 +2701,15 @@
 									mob.possessed = true;
 									possessionDoll = null;
 								};
-								if (mob.possessed) {
-									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1.5 && playerY + 2 > mob.y) {
+								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1.5 && playerY + 2 > mob.y) {
+									if (mob.possessed) {
 										possessionTime = 15;
 										possessionDoll = mob;
+									} else {
+										notificate("<span style=\"opacity: 10%;\">WHEN THE CLOCK STRIKES TWELVE</span>");
 									};
+								};
+								if (mob.possessed) {
 									mob.x += Math.abs(playerXV * (0.05 / 0.2)) * (health / maxHealth) * Math.sign(playerX - mob.x);
 									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
 								};
@@ -2479,7 +2727,8 @@
 					score = Math.max(score, Math.floor(playerX));
 					pb = Math.max(pb, score);
 	
-					health += potions["regeneration potion"].time > 0 ? 0.0008 : -0.00008;
+					health -= (dimension === "upside down") ? 0.00016 : 0.00008;
+					health += potions["regeneration potion"].time > 0 ? 0.00088 : 0;
 					if (oxygen <= 0) {
 						health -= 0.003;
 					};
@@ -2495,11 +2744,13 @@
 				notificationTime = Math.max(0, notificationTime - 1);
 			};
 			function drawScreen() {
-				if (canvas.width !== innerWidth) {
-					canvas.width = darkness.width = innerWidth;
+				let width = innerWidth;
+				let height = innerHeight;
+				if (canvas.width !== width) {
+					canvas.width = darkness.width = width;
 				};
-				if (canvas.height !== innerHeight) {
-					canvas.height = darkness.height = innerHeight;
+				if (canvas.height !== height) {
+					canvas.height = darkness.height = height;
 				};
 				canvasWidth = canvas.width / blockSize * 2;
 				canvasHeight = canvas.height / blockSize * 2;
@@ -2546,13 +2797,13 @@
 			};
 			var oldfpsTime = 0;
 			function loop() {
-				try {
+				//try {
 					tick();
 					drawScreen();
-				} catch (e) {
-					alert(e.stack);
-					return;
-				};
+				//} catch (e) {
+				//	alert(e.stack);
+				//	return;
+				//};
 				frameCount++;
 				let now = performance.now();
 				if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

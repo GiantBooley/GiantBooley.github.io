@@ -536,6 +536,7 @@
 			uniform float u_darkness;
 			uniform float u_ambientDarkness;
 			uniform bool u_removeBlue;
+			uniform float u_portalSkew;
 
 			bool rectIntersection(vec2 p1, vec2 p2, vec2 b1, vec2 b2) {
 				float t = 0.0;
@@ -589,10 +590,9 @@
 				return vec4Lerp(color, vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a), vec4(factor));
 			}
 			void main() {
+				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
 				vec4 color = texture2D(u_texture, v_texcoord);
 				color.a *= u_alpha;
-
-				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
 
 				if (u_removeBlue) {
 					float blueness = clamp(color.b - (color.r + color.g) / 2.0, 0.0, 1.0);
@@ -602,15 +602,21 @@
 				color.rgb *= 1.0 - darkness;
 				color.rgb *= 1.0 - u_ambientDarkness;
 				color.a += darkness + u_ambientDarkness;
-				bool invertPixel = false;
+				bool upsidedownifyPixel = false;
 				if (u_portalTime > 0.0) {
-					float portalHeight = clamp(u_portalTime / 120.0, 0.0, 5.0);
-					invertPixel = lineIntersection(pixelCoord, u_playerPos, vec2(u_portalPos.x, u_portalPos.y + (2.5 - portalHeight / 2.0) * u_blockSize), vec2(u_portalPos.x, u_portalPos.y + (2.5 + portalHeight / 2.0) * u_blockSize));
+					float portalSize = clamp(u_portalTime / 120.0, 0.0, 1.0);
+					vec2 portalOffset = vec2(portalSize * u_portalSkew / 2.0, portalSize * 5.0 / 2.0) * vec2(u_blockSize);
+					upsidedownifyPixel = lineIntersection(
+						pixelCoord,
+						u_playerPos,
+						u_portalPos + vec2(0.0, 2.5 * u_blockSize) - portalOffset,
+						u_portalPos + vec2(0.0, 2.5 * u_blockSize) + portalOffset
+					);
 				}
 				if (u_dimension == 1) {
-					invertPixel = !invertPixel;
+					upsidedownifyPixel = !upsidedownifyPixel;
 				}
-				if (invertPixel) {
+				if (upsidedownifyPixel) {
 					color = invertColor(color, 1.0);
 				}
 				gl_FragColor = color;
@@ -726,6 +732,7 @@
 					this.darknessLocation = this.gl.getUniformLocation(this.program, "u_darkness");
 					this.ambientDarknessLocation = this.gl.getUniformLocation(this.program, "u_ambientDarkness");
 					this.removeBlueLocation = this.gl.getUniformLocation(this.program, "u_removeBlue");
+					this.portalSkewLocation = this.gl.getUniformLocation(this.program, "u_portalSkew");
 					
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -813,6 +820,7 @@
 					this.gl.uniform1f(this.darknessLocation, settings.darkness ?? 0);
 					this.gl.uniform1f(this.ambientDarknessLocation, (settings.sky ?? false) ? 0 : getDarkness(gameTime));
 					this.gl.uniform1i(this.removeBlueLocation, settings.removeBlue ?? 0);
+					this.gl.uniform1f(this.portalSkewLocation, portalSkew);
 					
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 					this.gl.useProgram(this.program);
@@ -949,7 +957,7 @@
 										this.drawImage(this.getTexture("obelisk"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 4 - featureEntity.yOffset * blockSize, blockSize, blockSize * 4 - featureEntity.yOffset * -blockSize, 0.43, 0.1, 0.15, (1 + featureEntity.yOffset / 4) * 0.7);
 										break;
 									case "scaffolding":
-										this.drawImage(this.getTexture("scaffolding"), (rowBuffer[i] - cameraX) * blockSize, rowY - featureEntity.height * blockSize, blockSize, featureEntity.height * blockSize);
+										this.drawImage(this.getTexture("scaffolding"), (rowBuffer[i] - cameraX) * blockSize, rowY - featureEntity.height * blockSize, blockSize, featureEntity.height * blockSize, 0.237, 0.032, 0.525, 0.934);
 										break;
 									case "sentry house":
 										switch (featureEntity.variant) {
@@ -1004,7 +1012,7 @@
 										this.drawImage(this.getTexture("aquaGolem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 9 - golem.yOffset * blockSize, blockSize, blockSize * 9 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 9));
 										break;
 									case "mecha golem":
-										this.drawImage(this.getTexture("mechaGolem"), (rowBuffer[i] - 1 - cameraX) * blockSize, rowY - blockSize * 12 - golem.yOffset * blockSize, blockSize * 3, blockSize * 12 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 12));
+										this.drawImage(this.getTexture("mechaGolem"), (rowBuffer[i] - 1 - cameraX) * blockSize, rowY - blockSize * 12 - golem.yOffset * blockSize, blockSize * 3, blockSize * 12 - golem.yOffset * -blockSize, 0.298, 0.007, 0.324, 0.919 + (golem.yOffset / 12));
 										break;
 									case "celestial golem":
 										this.drawImage(this.getTexture("celestialGolem"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 100 - golem.yOffset * blockSize, blockSize, blockSize * 100 - golem.yOffset * -blockSize, 0, 0, 1, 1 + (golem.yOffset / 100));
@@ -1016,7 +1024,7 @@
 					let animatedGuyImage = dead ? "guyDead" : (inLadder ? "guyClimbingLadder" : (flying ? "guyFlying" : (onGround ? (Math.abs(playerXV) > 0.1 ? "guyRunning" : "guy") : (playerYV <= 0 ? "guyFalling" : "guyJumping"))));
 					this.drawImage(this.getTexture(document.getElementById("animations-checkbox").checked ? animatedGuyImage : "guy"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
 					if (dybbukTime > 0) {
-						this.drawImage(this.getTexture("dybbuk"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
+						this.drawImage(this.getTexture("dybbuk"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2, 0, 0, 1, 1, {alpha: 0.5});
 					};
 					let grimReaperX = lerp(playerX - 1, playerX - 100, health / maxHealth);
 					this.drawImage(this.getTexture("grimReaper"), (grimReaperX - 0.5 - cameraX) * blockSize, (getRowY(bakedRows, getHittableRows(grimReaperX).reduce((a, b) => level.rows[a] > level.rows[b] ? a : b)) + 3 - cameraY) * -blockSize, blockSize, blockSize * 3);
@@ -1042,15 +1050,16 @@
 												this.drawImage(this.getTexture("error"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1 - cameraY) * -blockSize, blockSize, blockSize);
 										};
 									} else {
-										switch (Math.sign(Math.round(playerXV * 1000) / 1000)) {
-											case -1:
-												this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4);
-												break;
-											case 0:
-												this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4);
-												break;
-											case 1:
-												this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4);
+										if (mob.deltaX === 0) {
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4, 0.435, 0.278, 0.144, 0.548);//idle
+										} else if (mob.deltaX > 0.19) {
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4, 0.054, 0.27, 0.174, 0.686);//rightbig
+										} else if (mob.deltaX > 0) {
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4, 0.216, 0.277, 0.175, 0.579);//right
+										} else if (mob.deltaX < -0.19) {
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4, 0.759, 0.249, 0.2, 0.686);//leftbig
+										} else if (mob.deltaX < 0) {
+											this.drawImage(this.getTexture("mimic"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 4 - cameraY) * -blockSize, blockSize, blockSize * 4, 0.613, 0.262, 0.167, 0.578);//left
 										};
 									};
 									break;
@@ -1107,7 +1116,7 @@
 					};*/
 	
 					if (health / maxHealth < 0.1) {
-						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {alpha: clamp(1 - (health / maxHealth) / 0.1, 0, 1)});
+						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {alpha: clamp(1 - (health / maxHealth) / 0.1, 0, 1), sky: 1});
 					};
 					
 					darknessCtx.save();
@@ -1482,6 +1491,7 @@
 			var dimension = "normal";
 			var portalX = 0;
 			var portalTime = 0;
+			var portalSkew = 0;
 	
 			function generateOctaves() {
 				// octaves
@@ -1784,7 +1794,7 @@
 				return JSON.parse(text);
 			};
 			function saveToCode(save) {
-				return JSON.parse(save);
+				return JSON.stringify(save);
 			};
 			function getSave() {
 				return {
@@ -1820,7 +1830,8 @@
 					possessionDoll,
 					dimension,
 					portalX,
-					portalTime
+					portalTime,
+					portalSkew
 				};
 			};
 			function saveSlot(slot) {
@@ -1866,6 +1877,7 @@
 					dimension = saveCode.dimension ?? dimension;
 					portalX = saveCode.portalX ?? portalX;
 					portalTime = saveCode.portalTime ?? portalTime;
+					portalSkew = saveCode.portalSkew ?? portalSkew;
 				};
 			};
 			function clearSlot(slot) {
@@ -1896,6 +1908,7 @@
 					mob.mimicTimer = false;
 					mob.mimicking = true;
 					mob.mimicSpawnAge = 0;
+					mob.deltaX = 0;
 				} else if (type === "leprechaun") {
 					mob.coins = arguments[3];
 				} else if (type === "possessed doll") {
@@ -2068,7 +2081,7 @@
 				return array;
 			};
 			function getRowY(rows, x) {
-				x = Math.round(x);
+				x = Math.floor(x);
 				if (x <= -5 && x > -25) {
 					return -2000000;
 				};
@@ -2159,6 +2172,8 @@
 			function openPortal() {
 				portalX = playerX + 3;
 				portalTime = 60 * 60;
+				let skewiness = 2;
+				portalSkew = Math.random() * skewiness - skewiness / 2;
 			};
 	
 			function tick() {
@@ -2349,8 +2364,14 @@
 					};
 					playerY += playerYV;
 	
-					let portalHeight = clamp(portalTime / 120, 0, 5);
-					if (portalTime > 0 && lineIntersection({x: oldPlayerX, y: oldPlayerY + 1}, {x: playerX, y: playerY + 1}, {x: portalX, y: getRowY(level.rows, portalX) + 2.5 - portalHeight / 2}, {x: portalX, y: getRowY(level.rows, portalX) + 2.5 + portalHeight / 2})) {
+					let portalSize = clamp(portalTime / 120, 0, 1);
+					let portalOffset = [portalSize * portalSkew / 2.0, portalSize * 5.0 / 2.0];
+					let portalY = getRowY(level.rows, portalX);
+					if (portalTime > 0 && lineIntersection(
+						{x: oldPlayerX, y: oldPlayerY + 1},
+						{x: playerX, y: playerY + 1},
+						{x: portalX - portalOffset[0], y: portalY + 2.5 - portalOffset[1]},
+						{x: portalX + portalOffset[0], y: portalY + 2.5 + portalOffset[1]})) {
 						dimension = (dimension === "normal") ? "upside down" : "normal";
 					};
 					// ROW LOOP //
@@ -2388,7 +2409,7 @@
 								switch (level.features[i]) {
 									case 2:
 										if (dybbukTime <= 0) {
-											gems++;
+											gems += (dimension === "upside down") ? 2 : 1;
 										};
 										level.features[i] = 0;
 										break;
@@ -2398,7 +2419,7 @@
 										break;
 									case 12:
 										if (dybbukTime <= 0) {
-											totems++;
+											totems += (dimension === "upside down") ? 2 : 1;
 										};
 										level.features[i] = 0;
 										break;
@@ -2406,7 +2427,7 @@
 							};
 							if (level.features[i] === 1 && (boots === "magnet boots" || playerY < level.rows[i] + 1)) {
 								if (dybbukTime <= 0) {
-									coins++;
+									coins += (dimension === "upside down") ? 2 : 1;
 								};
 								level.features[i] = 0;
 							};
@@ -2643,7 +2664,9 @@
 								break;
 							case "mimic":
 								if (!mob.mimicking) {
+									let oldMobX = mob.x;
 									mob.x = (mob.x > playerX ? Math.min : Math.max)(mob.x, mob.x + playerXV);
+									mob.deltaX = Math.round((mob.x - oldMobX) * 1000) / 1000;
 									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)] ?? mob.y;
 									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
 										health -= (Math.sin(gameTime * 20) + 0.1) * 0.03; // 0.01
@@ -2678,11 +2701,15 @@
 									mob.possessed = true;
 									possessionDoll = null;
 								};
-								if (mob.possessed) {
-									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1.5 && playerY + 2 > mob.y) {
+								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1.5 && playerY + 2 > mob.y) {
+									if (mob.possessed) {
 										possessionTime = 15;
 										possessionDoll = mob;
+									} else {
+										notificate("<span style=\"opacity: 10%;\">WHEN THE CLOCK STRIKES TWELVE</span>");
 									};
+								};
+								if (mob.possessed) {
 									mob.x += Math.abs(playerXV * (0.05 / 0.2)) * (health / maxHealth) * Math.sign(playerX - mob.x);
 									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
 								};
@@ -2700,7 +2727,8 @@
 					score = Math.max(score, Math.floor(playerX));
 					pb = Math.max(pb, score);
 	
-					health += potions["regeneration potion"].time > 0 ? 0.0008 : -0.00008;
+					health -= (dimension === "upside down") ? 0.00016 : 0.00008;
+					health += potions["regeneration potion"].time > 0 ? 0.00088 : 0;
 					if (oxygen <= 0) {
 						health -= 0.003;
 					};
@@ -2769,13 +2797,13 @@
 			};
 			var oldfpsTime = 0;
 			function loop() {
-				try {
+				//try {
 					tick();
 					drawScreen();
-				} catch (e) {
-					alert(e.stack);
-					return;
-				};
+				//} catch (e) {
+				//	alert(e.stack);
+				//	return;
+				//};
 				frameCount++;
 				let now = performance.now();
 				if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

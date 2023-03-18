@@ -669,9 +669,10 @@
 
 				vec3 darknessColor = vec3(0.0, 0.0, 0.0);
 				float ambientDarkness = u_ambientDarkness;
+				//bioluminescense://ambientDarkness = min(clamp(distance(pixelCoord, u_playerPos) / (u_blockSize * 3.0) + 0.4, 0.0, 1.0), ambientDarkness);
 				if (u_nightVisionTime > 0.0) {
 					darknessColor.g = 0.85;
-					ambientDarkness = lerp(0.0, 0.8, ambientDarkness);
+					ambientDarkness = lerp(0.3, 0.8, ambientDarkness);
 				}
 				float darkness = clamp(inverseLerp(u_darknessMin, u_darknessMax, pixelCoord.y) * u_darkness, 0.0, 1.0);
 				color.rgb = vec3Lerp(color.rgb, darknessColor, vec3(darkness));

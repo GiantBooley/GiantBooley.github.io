@@ -128,11 +128,9 @@
 				transform: translate(0px, 0px);
 			}
 			#shop-coins {
-				width: 50%;
 				float: left;
 			}
 			#shop-gems {
-				width: 50%;
 				float: right;
 			}
 			#notification {
@@ -457,23 +455,23 @@
 					<div class="shop-item">
 						<h2>🙛————— F<span class="small">OO</span>D —————🙙</h2>
 						<table>
-							<tr><th>food</th><th>how many</th><th></th></tr>
-							<tr><td><label>government meal</label></td><td><label id="government-meal-howmany">0</label></td><td><button onclick="devourFood('government meal');">devour</button><button onclick="purchaseFood('government meal');">purchase (1 coin)</button></td></tr>
-							<tr><td><label>apple</label></td><td><label id="apple-howmany">0</label></td><td><button onclick="devourFood('apple');">devour</button><button onclick="purchaseFood('apple');">purchase (5 coins)</button></td></tr>
-							<tr><td><label>bread</label></td><td><label id="bread-howmany">0</label></td><td><button onclick="devourFood('bread');">devour</button><button onclick="purchaseFood('bread');">purchase (10 coins)</button></td></tr>
-							<tr><td><label>burger</label></td><td><label id="burger-howmany">0</label></td><td><button onclick="devourFood('burger');">devour</button><button onclick="purchaseFood('burger');">purchase (14 coins)</button></td></tr>
-							<tr><td><label>cold meal</label></td><td><label id="cold-meal-howmany">0</label></td><td><button onclick="devourFood('cold meal');">devour</button><button onclick="purchaseFood('cold meal');">purchase (19 coins)</button></td></tr>
-							<tr><td><label>meal</label></td><td><label id="meal-howmany">0</label></td><td><button onclick="devourFood('meal');">devour</button><button onclick="purchaseFood('meal');">purchase (23 coins)</button></td></tr>
-							<tr><td><label>warm meal</label></td><td><label id="warm-meal-howmany">0</label></td><td><button onclick="devourFood('warm meal');">devour</button><button onclick="purchaseFood('warm meal');">purchase (27 coins)</button></td></tr>
-							<tr><td><label>hot meal</label></td><td><label id="hot-meal-howmany">0</label></td><td><button onclick="devourFood('hot meal');">devour</button><button onclick="purchaseFood('hot meal');">purchase (31 coins)</button></td></tr>
-							<tr><td><label>crispy gooey homemade mac and cheese</label></td><td><label id="crispy-gooey-homemade-mac-and-cheese-howmany">0</label></td><td><button onclick="devourFood('crispy gooey homemade mac and cheese');">devour</button><button onclick="purchaseFood('crispy gooey homemade mac and cheese');">purchase (34 coins)</button></td></tr>
-							<tr><td><label>cow brain</label></td><td><label id="cow-brain-howmany">0</label></td><td><button onclick="devourFood('cow brain');">devour</button><button onclick="purchaseFood('cow brain');">purchase (38 coins)</button></td></tr>
-							<tr><td><label>filling warm meal</label></td><td><label id="filling-warm-meal-howmany">0</label></td><td><button onclick="devourFood('filling warm meal');">devour</button><button onclick="purchaseFood('filling warm meal');">purchase (41 coins)</button></td></tr>
-							<tr><td><label>buckwheat pancake</label></td><td><label id="buckwheat-pancake-howmany">0</label></td><td><button onclick="devourFood('buckwheat pancake');">devour</button><button onclick="purchaseFood('buckwheat pancake');">purchase (47 coins)</button>
-							<tr><td><label>sopping meal</label></td><td><label id="sopping-meal-howmany">0</label></td><td><button onclick="devourFood('sopping meal');">devour</button><button onclick="purchaseFood('sopping meal');">purchase (52 coins)</button>
-							<tr><td><label>emptying cold meal</label></td><td><label id="emptying-cold-meal-howmany">0</label></td><td><button onclick="devourFood('emptying cold meal');">devour</button><button onclick="purchaseFood('emptying cold meal');">purchase (56 coins)</button>
-							<tr><td><label>piping hot meal</label></td><td><label id="piping-hot-meal-howmany">0</label></td><td><button onclick="devourFood('piping hot meal');">devour</button><button onclick="purchaseFood('piping hot meal');">purchase (59 coins)</button>
-							<tr><td><label title="styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion">STBFOARRPHFSSWMP</label></td><td><label id="styrofoam-tupperware-baggy-full-of-a-reheated-rehydrated-piping-hot-filling-sloppy-sopping-warm-meal-portion-howmany">0</label></td><td><button onclick="devourFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">devour</button><button onclick="purchaseFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">purchase (62 coins)</button></td></tr>
+							<tr><th>food</th><th>count</th><th></th></tr>
+							<tr><td><label>government meal</label></td><td><label id="government-meal-howmany">0</label></td><td><button onclick="devourFood('government meal');">devour</button><button onclick="purchaseFood('government meal');">buy (1 coin)</button></td></tr>
+							<tr><td><label>apple</label></td><td><label id="apple-howmany">0</label></td><td><button onclick="devourFood('apple');">devour</button><button onclick="purchaseFood('apple');">buy (5 coins)</button></td></tr>
+							<tr><td><label>bread</label></td><td><label id="bread-howmany">0</label></td><td><button onclick="devourFood('bread');">devour</button><button onclick="purchaseFood('bread');">buy (10 coins)</button></td></tr>
+							<tr><td><label>burger</label></td><td><label id="burger-howmany">0</label></td><td><button onclick="devourFood('burger');">devour</button><button onclick="purchaseFood('burger');">buy (14 coins)</button></td></tr>
+							<tr><td><label>cold meal</label></td><td><label id="cold-meal-howmany">0</label></td><td><button onclick="devourFood('cold meal');">buy</button><button onclick="purchaseFood('cold meal');">buy (19 coins)</button></td></tr>
+							<tr><td><label>meal</label></td><td><label id="meal-howmany">0</label></td><td><button onclick="devourFood('meal');">devour</button><button onclick="purchaseFood('meal');">buy (23 coins)</button></td></tr>
+							<tr><td><label>warm meal</label></td><td><label id="warm-meal-howmany">0</label></td><td><button onclick="devourFood('warm meal');">devour</button><button onclick="purchaseFood('warm meal');">buy (27 coins)</button></td></tr>
+							<tr><td><label>hot meal</label></td><td><label id="hot-meal-howmany">0</label></td><td><button onclick="devourFood('hot meal');">devour</button><button onclick="purchaseFood('hot meal');">buy (31 coins)</button></td></tr>
+							<tr><td><label title="crispy gooey homemade mac and cheese">crispy gooey homemade macncheese</label></td><td><label id="crispy-gooey-homemade-mac-and-cheese-howmany">0</label></td><td><button onclick="devourFood('crispy gooey homemade mac and cheese');">devour</button><button onclick="purchaseFood('crispy gooey homemade mac and cheese');">buy (34 coins)</button></td></tr>
+							<tr><td><label>cow brain</label></td><td><label id="cow-brain-howmany">0</label></td><td><button onclick="devourFood('cow brain');">devour</button><button onclick="purchaseFood('cow brain');">buy (38 coins)</button></td></tr>
+							<tr><td><label>filling warm meal</label></td><td><label id="filling-warm-meal-howmany">0</label></td><td><button onclick="devourFood('filling warm meal');">devour</button><button onclick="purchaseFood('filling warm meal');">buy (41 coins)</button></td></tr>
+							<tr><td><label>buckwheat pancake</label></td><td><label id="buckwheat-pancake-howmany">0</label></td><td><button onclick="devourFood('buckwheat pancake');">devour</button><button onclick="purchaseFood('buckwheat pancake');">buy (47 coins)</button>
+							<tr><td><label>sopping meal</label></td><td><label id="sopping-meal-howmany">0</label></td><td><button onclick="devourFood('sopping meal');">devour</button><button onclick="purchaseFood('sopping meal');">buy (52 coins)</button>
+							<tr><td><label>emptying cold meal</label></td><td><label id="emptying-cold-meal-howmany">0</label></td><td><button onclick="devourFood('emptying cold meal');">devour</button><button onclick="purchaseFood('emptying cold meal');">buy (56 coins)</button>
+							<tr><td><label>piping hot meal</label></td><td><label id="piping-hot-meal-howmany">0</label></td><td><button onclick="devourFood('piping hot meal');">devour</button><button onclick="purchaseFood('piping hot meal');">buy (59 coins)</button>
+							<tr><td><label title="styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion">STBFOARRPHFSSWMP</label></td><td><label id="styrofoam-tupperware-baggy-full-of-a-reheated-rehydrated-piping-hot-filling-sloppy-sopping-warm-meal-portion-howmany">0</label></td><td><button onclick="devourFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">devour</button><button onclick="purchaseFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">buy (62 coins)</button></td></tr>
 						</table>
 					</div>
 					<div class="shop-item">

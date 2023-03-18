@@ -8,6 +8,7 @@
 		<style>
 			* {
 				box-sizing: border-box;
+				font-family: "Franklin Gothic Medium", Arial, Helvetica, sans-serif;
 			}
 			html,body {
 				width: 100%;
@@ -26,13 +27,10 @@
 			#game {
 				user-select: none;
 			}
-			#canvas,#darkness {
+			#canvas {
 				position: absolute;
 				width: 100%;
 				height: 100%;
-			}
-			#darkness {
-				display: none;
 			}
 			#shop-button {
 				position: absolute;
@@ -43,7 +41,6 @@
 				border: 5px solid black;
 				border-radius: 5px;
 				padding: 10px;
-				font-family: Arial, Helvetica, sans-serif;
 				font-size: 20px;
 			}
 			#shop {
@@ -58,7 +55,6 @@
 				width: 80%;
 				height: calc(100% - 100px);
 				overflow: auto;
-				font-family: Arial, Helvetica, sans-serif;
 				background-image: repeating-linear-gradient(
 					90deg,
 					#FFFFFF,
@@ -66,10 +62,10 @@
 					#FFEEEE 20px,
 					#FFEEEE 40px
 				);
+				user-select: none;
 			}
 			.gui-text {
 				margin: 0;
-				font-family: Arial, Helvetica, sans-serif;
 				color: #DDDDAA;
 				font-size: max(5px, 2.5vw);
 				text-shadow: -1px 1px 0px #000000, 1px 1px 0px #000000, -1px -1px 0px #000000, 1px -1px 0px #000000;
@@ -140,7 +136,6 @@
 				float: right;
 			}
 			#notification {
-				font-family: Arial, sans-serif;
 				position: absolute;
 				font-size: 30px;
 				color: yellow;
@@ -157,13 +152,20 @@
 				left: 50%;
 				top: 50%;
 				transform: translate(-50%, -50%);
-				background-color: white;
 				border-radius: 10px;
 				border: 5px solid black;
 				padding: 5px;
 				width: 80%;
 				height: calc(100% - 100px);
 				overflow: auto;
+				background-image: repeating-linear-gradient(
+					90deg,
+					#EEEEFF,
+					#EEEEFF 20px,
+					#DDDDEE 20px,
+					#DDDDEE 40px
+				);
+				user-select: none;
 			}
 			#obelisk-shop-button {
 				position: absolute;
@@ -174,7 +176,6 @@
 				border: 5px solid black;
 				border-radius: 5px;
 				padding: 10px;
-				font-family: Arial, Helvetica, sans-serif;
 				font-size: 20px;
 			}
 			#hacker-console {
@@ -209,7 +210,6 @@
 				font-size: 60px;
 			}
 			.menu-text {
-				font-family: Arial, Helvetica, sans-serif;
 				color: white;
 				text-shadow: 3px 3px 5px black;
 			}
@@ -223,7 +223,6 @@
 			}
 			#seed-wrapper label {
 				font-size: 30px;
-				font-family: Arial, Helvetica, sans-serif;
 				color: white;
 			}
 			#seed-wrapper div {
@@ -231,7 +230,6 @@
 			}
 			#seed-wrapper p {
 				color: white;
-				font-family: Arial, Helvetica, sans-serif;
 				font-size: 15px;
 				margin: 0px;
 			}
@@ -248,8 +246,9 @@
 			}
 			button {
 				background-color: white;
-				border: 3px solid black;
-				border-radius: 5px;
+				border: 2px solid black;
+				border-radius: 4px;
+				margin: 1px;
 			}
 			button:hover {
 				background-color: #DDDDDD;
@@ -270,7 +269,6 @@
 				color: white;
 				background-color: rgba(100, 100, 100, 0.8);
 				border-radius: 5px;
-				font-family: Arial, Helvetica, sans-serif;
 				width: 100px;
 				height: 50px;
 				display: flex;
@@ -359,21 +357,51 @@
 			}
 			#totem-emoji {
 				background-image: url("https://m.media-amazon.com/images/I/41yYu0ji5GL._AC_UF894,1000_QL80_.jpg");
-			};
+			}
+			table,tr,td,th {
+				border: 1px solid black;
+				border-collapse: separate;
+				border-spacing: 2px;
+			}
+			td {
+				height: 1em;
+			}
+			.shop-title {
+				width: 100%;
+				text-align: center;
+			}
+			#shop-coins,#shop-gems {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+			.shop-item {
+				text-align: center;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+			h2 {
+				font-size: 25px;
+				font-weight: bold;
+			}
+			.small {
+				font-size: 23px;
+				font-weight: bold;
+			}
 		</style>
 	</head>
 	<body>
-		<div id="thing" tabindex="0" onkeydown="if (event.key === 'Escape') {shopButton()} else if (event.key === 'h' && developerMode) {openHackerConsole()}" onkeyup="keysDown[event.key] = false;">
+		<div id="thing" tabindex="0" onkeydown="if (event.key === 'Escape') obeliskShopButtonShowing ? obeliskShopButton() : shopButton();" onkeyup="keysDown[event.key] = false;">
 			<div id="game" tabindex="0" onmouseup="joystick.mouseUp(event);" ontouchend="joystick.mouseUp(event);" onmousemove="joystick.mouseMove(event);" ontouchmove="joystick.mouseMove(event);" oncontextmenu="return false;">
 				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);">
 					<canvas id="canvas"></canvas>
-					<canvas id="darkness"></canvas>
 				</div>
 				<div id="death-screen">
 					YOU DIED
 				</div>
 				<div id="stats" class="gui-text"></div>
-				<div id="score" class="gui-text"></div>
+				<div id="score" class="gui-text" title="clicking this doesnt do anything"></div>
 				<button id="shop-button" onclick="shopButton();">SHOP</button>
 				<button id="obelisk-shop-button" onclick="obeliskShopButton();">OBELISK</button>
 				<div id="oxygen" class="bar">
@@ -395,86 +423,109 @@
 				</div>
 			</div>
 			<div id="shop">
-				<h1>shop</h1>
+				<div class="shop-title">
+					<h1>🙛════════ SHOP ════════🙙</h1>
+				</div>
 				<div id="saves">
 					<button id="save-slot-selector" onclick="saveSlotSelectorButton();">slot 0 (click to change)</button><br>
 					<button onclick="saveSlot(saveSlotNumber);">save</button>
 					<button onclick="loadSlot(saveSlotNumber);">load</button>
-					<button onclick="exportSave();">export</button>
-					<button onclick="loadSlot();">import</button>
+					<button onclick="exportSave();">export save</button>
+					<button onclick="importSave();">import save</button>
 					<button onclick="alert(level.featureRNG.seed);">get seed</button>
+					<button onclick="blockSize = clamp(blockSize * 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom in</button>
+					<button onclick="blockSize = clamp(blockSize / 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom out</button><br>
+					<input type="checkbox" id="joystick-checkbox"><label for="joystick-checkbox">joystick</label>
+					<input type="checkbox" id="animations-checkbox"><label for="animations-checkbox">animations</label>
 				</div>
 				<hr>
-				<input type="checkbox" id="joystick-checkbox"><label for="joystick-checkbox">joystick</label><br>
-				<input type="checkbox" id="animations-checkbox"><label for="animations-checkbox">animations</label><br>
-				<button onclick="blockSize = clamp(blockSize * 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom in</button>
-				<button onclick="blockSize = clamp(blockSize / 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom out</button>
 				<div id="shop-coins">
-					<div id="boots">
-						<h3>boots</h3>
-						<button onclick="clickShoeButton(this, 'hondas');">Hondas (0 coins)</button><br>
-						<button onclick="clickShoeButton(this, 'tennis rackets');">Tennis rackets (30 coins)</button><br>
-						<button onclick="clickShoeButton(this, 'running shoes');">Running shoes (60 coins)</button><br>
-						<button onclick="clickShoeButton(this, 'spring boots');">Spring boots (90 coins)</button><br>
-						<button onclick="clickShoeButton(this, 'spike boots');">Spike boots (100 coins)</button><br>
-						<button onclick="clickShoeButton(this, 'feather boots');">Feather boots (120 coins)</button><br>
-						<button onclick="clickShoeButton(this, 'stepping boots');">Stepping boots (150 coins)</button><br>
-						<button onclick="clickShoeButton(this, 'magnet boots');">Magnet boots (170 coins)</button><br>
-					</div><br>
-					<div id="food">
-						<h3>food</h3><br>
-						<label>government meal</label><label id="government-meal-howmany">(0)</label><button onclick="devourFood('government meal');">devour</button><button onclick="purchaseFood('government meal');">purchase (1 coin)</button><br>
-						<br>
-						<label>apple</label><label id="apple-howmany">(0)</label><button onclick="devourFood('apple');">devour</button><button onclick="purchaseFood('apple');">purchase (5 coins)</button><br>
-						<label>bread</label><label id="bread-howmany">(0)</label><button onclick="devourFood('bread');">devour</button><button onclick="purchaseFood('bread');">purchase (10 coins)</button><br>
-						<label>burger</label><label id="burger-howmany">(0)</label><button onclick="devourFood('burger');">devour</button><button onclick="purchaseFood('burger');">purchase (14 coins)</button><br>
-						<label>cold meal</label><label id="cold-meal-howmany">(0)</label><button onclick="devourFood('cold meal');">devour</button><button onclick="purchaseFood('cold meal');">purchase (19 coins)</button><br>
-						<label>meal</label><label id="meal-howmany">(0)</label><button onclick="devourFood('meal');">devour</button><button onclick="purchaseFood('meal');">purchase (23 coins)</button><br>
-						<label>warm meal</label><label id="warm-meal-howmany">(0)</label><button onclick="devourFood('warm meal');">devour</button><button onclick="purchaseFood('warm meal');">purchase (27 coins)</button><br>
-						<label>hot meal</label><label id="hot-meal-howmany">(0)</label><button onclick="devourFood('hot meal');">devour</button><button onclick="purchaseFood('hot meal');">purchase (31 coins)</button><br>
-						<label>crispy gooey homemade mac and cheese</label><label id="crispy-gooey-homemade-mac-and-cheese-howmany">(0)</label><button onclick="devourFood('crispy gooey homemade mac and cheese');">devour</button><button onclick="purchaseFood('crispy gooey homemade mac and cheese');">purchase (34 coins)</button><br>
-						<label>cow brain</label><label id="cow-brain-howmany">(0)</label><button onclick="devourFood('cow brain');">devour</button><button onclick="purchaseFood('cow brain');">purchase (38 coins)</button><br>
-						<label>filling warm meal</label><label id="filling-warm-meal-howmany">(0)</label><button onclick="devourFood('filling warm meal');">devour</button><button onclick="purchaseFood('filling warm meal');">purchase (41 coins)</button><br>
-						<br>
-						<label>buckwheat pancake</label><label id="buckwheat-pancake-howmany">(0)</label><button onclick="devourFood('buckwheat pancake');">devour</button><button onclick="purchaseFood('buckwheat pancake');">purchase (47 coins)</button><br>
-						<label>sopping meal</label><label id="sopping-meal-howmany">(0)</label><button onclick="devourFood('sopping meal');">devour</button><button onclick="purchaseFood('sopping meal');">purchase (52 coins)</button><br>
-						<label>emptying cold meal</label><label id="emptying-cold-meal-howmany">(0)</label><button onclick="devourFood('emptying cold meal');">devour</button><button onclick="purchaseFood('emptying cold meal');">purchase (56 coins)</button><br>
-						<label>piping hot meal</label><label id="piping-hot-meal-howmany">(0)</label><button onclick="devourFood('piping hot meal');">devour</button><button onclick="purchaseFood('piping hot meal');">purchase (59 coins)</button><br>
-						<label>styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion</label><label id="styrofoam-tupperware-baggy-full-of-a-reheated-rehydrated-piping-hot-filling-sloppy-sopping-warm-meal-portion-howmany">(0)</label><button onclick="devourFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">devour</button><button onclick="purchaseFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">purchase (62 coins)</button>
-					</div><br>
-					<div id="stuff">
-						<h3>stuff</h3><br>
-						<label>ladder</label><label id="ladder-howmany">(0)</label><button onclick="placeLadder();">place</button><button onclick="purchaseLadder();">purchase (10 coins)</button><br>
-						<label>tall ladder</label><label id="tall-ladder-howmany">(0)</label><button onclick="placeTallLadder();">place</button><button onclick="purchaseTallLadder();">purchase (25 coins)</button><br>
-						<label>scaffolding</label><button onclick="purchaseScaffolding();">place (1 coin/block)</button><br>
-						<label>trampoline</label><label id="trampoline-howmany">(0)</label><button onclick="placeTrampoline();">place</button><button onclick="purchaseTrampoline();">purchase (45 coins)</button><br>
+					<div class="shop-item">
+						<h2>🙛————— B<span class="small">OOT</span>S —————🙙</h2>
+						<table>
+							<th>boots</th><th></th>
+							<tr><td>hondas</td><td><button onclick="clickShoeButton(this, 'hondas');">purchase/equip (0 coins)</button></td></tr>
+							<tr><td>tennis rackets</td><td><button onclick="clickShoeButton(this, 'tennis rackets');">purchase/equip (30 coins)</button></td></tr>
+							<tr><td>running shoes</td><td><button onclick="clickShoeButton(this, 'running shoes');">purchase/equip (60 coins)</button></td></tr>
+							<tr><td>spring boots</td><td><button onclick="clickShoeButton(this, 'spring boots');">purchase/equip (90 coins)</button></td></tr>
+							<tr><td>spike boots</td><td><button onclick="clickShoeButton(this, 'spike boots');">purchase/equip (100 coins)</button></td></tr>
+							<tr><td>feather boots</td><td><button onclick="clickShoeButton(this, 'feather boots');">purchase/equip (120 coins)</button></td></tr>
+							<tr><td>stepping boots</td><td><button onclick="clickShoeButton(this, 'stepping boots');">purchase/equip (150 coins)</button></td></tr>
+							<tr><td>magnet boots</td><td><button onclick="clickShoeButton(this, 'magnet boots');">purchase/equip (170 coins)</button></td></tr>
+						</table>
+					</div>
+					<div class="shop-item">
+						<h2>🙛————— F<span class="small">OO</span>D —————🙙</h2>
+						<table>
+							<tr><th>food</th><th>how many</th><th></th></tr>
+							<tr><td><label>government meal</label></td><td><label id="government-meal-howmany">0</label></td><td><button onclick="devourFood('government meal');">devour</button><button onclick="purchaseFood('government meal');">purchase (1 coin)</button></td></tr>
+							<tr><td><label>apple</label></td><td><label id="apple-howmany">0</label></td><td><button onclick="devourFood('apple');">devour</button><button onclick="purchaseFood('apple');">purchase (5 coins)</button></td></tr>
+							<tr><td><label>bread</label></td><td><label id="bread-howmany">0</label></td><td><button onclick="devourFood('bread');">devour</button><button onclick="purchaseFood('bread');">purchase (10 coins)</button></td></tr>
+							<tr><td><label>burger</label></td><td><label id="burger-howmany">0</label></td><td><button onclick="devourFood('burger');">devour</button><button onclick="purchaseFood('burger');">purchase (14 coins)</button></td></tr>
+							<tr><td><label>cold meal</label></td><td><label id="cold-meal-howmany">0</label></td><td><button onclick="devourFood('cold meal');">devour</button><button onclick="purchaseFood('cold meal');">purchase (19 coins)</button></td></tr>
+							<tr><td><label>meal</label></td><td><label id="meal-howmany">0</label></td><td><button onclick="devourFood('meal');">devour</button><button onclick="purchaseFood('meal');">purchase (23 coins)</button></td></tr>
+							<tr><td><label>warm meal</label></td><td><label id="warm-meal-howmany">0</label></td><td><button onclick="devourFood('warm meal');">devour</button><button onclick="purchaseFood('warm meal');">purchase (27 coins)</button></td></tr>
+							<tr><td><label>hot meal</label></td><td><label id="hot-meal-howmany">0</label></td><td><button onclick="devourFood('hot meal');">devour</button><button onclick="purchaseFood('hot meal');">purchase (31 coins)</button></td></tr>
+							<tr><td><label>crispy gooey homemade mac and cheese</label></td><td><label id="crispy-gooey-homemade-mac-and-cheese-howmany">0</label></td><td><button onclick="devourFood('crispy gooey homemade mac and cheese');">devour</button><button onclick="purchaseFood('crispy gooey homemade mac and cheese');">purchase (34 coins)</button></td></tr>
+							<tr><td><label>cow brain</label></td><td><label id="cow-brain-howmany">0</label></td><td><button onclick="devourFood('cow brain');">devour</button><button onclick="purchaseFood('cow brain');">purchase (38 coins)</button></td></tr>
+							<tr><td><label>filling warm meal</label></td><td><label id="filling-warm-meal-howmany">0</label></td><td><button onclick="devourFood('filling warm meal');">devour</button><button onclick="purchaseFood('filling warm meal');">purchase (41 coins)</button></td></tr>
+							<tr><td><label>buckwheat pancake</label></td><td><label id="buckwheat-pancake-howmany">0</label></td><td><button onclick="devourFood('buckwheat pancake');">devour</button><button onclick="purchaseFood('buckwheat pancake');">purchase (47 coins)</button>
+							<tr><td><label>sopping meal</label></td><td><label id="sopping-meal-howmany">0</label></td><td><button onclick="devourFood('sopping meal');">devour</button><button onclick="purchaseFood('sopping meal');">purchase (52 coins)</button>
+							<tr><td><label>emptying cold meal</label></td><td><label id="emptying-cold-meal-howmany">0</label></td><td><button onclick="devourFood('emptying cold meal');">devour</button><button onclick="purchaseFood('emptying cold meal');">purchase (56 coins)</button>
+							<tr><td><label>piping hot meal</label></td><td><label id="piping-hot-meal-howmany">0</label></td><td><button onclick="devourFood('piping hot meal');">devour</button><button onclick="purchaseFood('piping hot meal');">purchase (59 coins)</button>
+							<tr><td><label title="styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion">STBFOARRPHFSSWMP</label></td><td><label id="styrofoam-tupperware-baggy-full-of-a-reheated-rehydrated-piping-hot-filling-sloppy-sopping-warm-meal-portion-howmany">0</label></td><td><button onclick="devourFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">devour</button><button onclick="purchaseFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">purchase (62 coins)</button></td></tr>
+						</table>
+					</div>
+					<div class="shop-item">
+						<h2>🙛————— B<span class="small">LOCK</span>S —————🙙</h2>
+						<table>
+							<tr><th>block</th><th>how many</th><th></th></tr>
+							<tr><td><label>ladder</label></td><td><label id="ladder-howmany">0</label></td><td><button onclick="placeLadder();">place</button><button onclick="purchaseLadder();">purchase (10 coins)</button></td></tr>
+							<tr><td><label>tall ladder</label></td><td><label id="tall-ladder-howmany">0</label></td><td><button onclick="placeTallLadder();">place</button><button onclick="purchaseTallLadder();">purchase (25 coins)</button></td></tr>
+							<tr><td><label>scaffolding</label></td><td></td><td><button onclick="purchaseScaffolding();">place (1 coin/block)</button><br>
+							<tr><td><label>trampoline</label></td><td><label id="trampoline-howmany">0</label></td><td><button onclick="placeTrampoline();">place</button><button onclick="purchaseTrampoline();">purchase (45 coins)</button></td></tr>
+						</table>
 					</div>
 				</div>
 				<div id="shop-gems">
-					<div id="potions">
-						<h3>alchemy (potions)</h3>
-						<label>night vision potion (30 seconds)</label><label id="night-vision-potion-howmany">(0)</label><button onclick="chugPotion('night vision potion');">chug</button><button onclick="brewPotion('night vision potion');">brew (1 gem)</button><br>
-						<label>speed potion (10 seconds)</label><label id="speed-potion-howmany">(0)</label><button onclick="chugPotion('speed potion');">chug</button><button onclick="brewPotion('speed potion');">brew (2 gems)</button><br>
-						<label>jumping potion (10 seconds)</label><label id="jumping-potion-howmany">(0)</label><button onclick="chugPotion('jumping potion');">chug</button><button onclick="brewPotion('jumping potion');">brew (3 gems)</button><br>
-						<label>regeneration potion (10 seconds)</label><label id="regeneration-potion-howmany">(0)</label><button onclick="chugPotion('regeneration potion');">chug</button><button onclick="brewPotion('regeneration potion');">brew (5 gems)</button><br>
-						<label>spider potion (10 seconds)</label><label id="spider-potion-howmany">(0)</label><button onclick="chugPotion('spider potion');">chug</button><button onclick="brewPotion('spider potion');">brew (7 gems)</button><br>
-						<label>levitation potion (10 seconds)</label><label id="levitation-potion-howmany">(0)</label><button onclick="chugPotion('levitation potion');">chug</button><button onclick="brewPotion('levitation potion');">brew (8 gems)</button><br>
-						<label>anti gravity potion (10 seconds)</label><label id="anti-gravity-potion-howmany">(0)</label><button onclick="chugPotion('anti gravity potion');">chug</button><button onclick="brewPotion('anti gravity potion');">brew (10 gems)</button><br>
-						<label>bird potion (10 seconds)</label><label id="bird-potion-howmany">(0)</label><button onclick="chugPotion('bird potion');">chug</button><button onclick="brewPotion('bird potion');">brew (12 gems)</button>
+					<div class="shop-item">
+						<h2>🙛————— A<span class="small">LCHEM</span>Y —————🙙</h2>
+						<table>
+							<th>potion</th><th>time</th><th>how many</th><th></th>
+							<tr><td><label>night vision potion</label></td><td>30s</td><td><label id="night-vision-potion-howmany">0</label></td><td><button onclick="chugPotion('night vision potion');">chug</button><button onclick="brewPotion('night vision potion');">brew (1 gem)</button></td></tr>
+							<tr><td><label>speed potion</label></td><td>10s</td><td><label id="speed-potion-howmany">0</label></td><td><button onclick="chugPotion('speed potion');">chug</button><button onclick="brewPotion('speed potion');">brew (2 gems)</button></td></tr>
+							<tr><td><label>jumping potion</label></td><td>10s</td><td><label id="jumping-potion-howmany">0</label></td><td><button onclick="chugPotion('jumping potion');">chug</button><button onclick="brewPotion('jumping potion');">brew (3 gems)</button></td></tr>
+							<tr><td><label>regeneration potion</label></td><td>10s</td><td><label id="regeneration-potion-howmany">0</label></td><td><button onclick="chugPotion('regeneration potion');">chug</button><button onclick="brewPotion('regeneration potion');">brew (5 gems)</button></td></tr>
+							<tr><td><label>spider potion</label></td><td>10s</td><td><label id="spider-potion-howmany">0</label></td><td><button onclick="chugPotion('spider potion');">chug</button><button onclick="brewPotion('spider potion');">brew (7 gems)</button></td></tr>
+							<tr><td><label>levitation potion</label></td><td>10s</td><td><label id="levitation-potion-howmany">0</label></td><td><button onclick="chugPotion('levitation potion');">chug</button><button onclick="brewPotion('levitation potion');">brew (8 gems)</button></td></tr>
+							<tr><td><label>anti gravity potion</label></td><td>10s</td><td><label id="anti-gravity-potion-howmany">0</label></td><td><button onclick="chugPotion('anti gravity potion');">chug</button><button onclick="brewPotion('anti gravity potion');">brew (10 gems)</button></td></tr>
+							<tr><td><label>bird potion</label></td><td>10s</td><td><label id="bird-potion-howmany">0</label></td><td><button onclick="chugPotion('bird potion');">chug</button><button onclick="brewPotion('bird potion');">brew (12 gems)</button></td></tr>
+						</table>
 					</div>
 				</div>
 			</div>
 			<div id="obelisk-shop">
-				<h1>obelisk</h1>
+				<div class="shop-title">
+					<h1>🙛════════ OBELISK ════════🙙</h1>
+				</div>
 				<hr>
-				<h2>Upgrades</h2>
-				<label>health</label><button onclick="obeliskShopUpgradeButton('health');">upgrade (1 totem)</button><br>
-				<label>speed</label><button onclick="obeliskShopUpgradeButton('speed');">upgrade (1 totem)</button><br>
-				<label>jump</label><button onclick="obeliskShopUpgradeButton('jump');">upgrade (1 totem)</button><br>
-				<label>step</label><button onclick="obeliskShopUpgradeButton('step');">upgrade (1 totem)</button><br>
-				<hr>
-				<h2>Stuff</h2>
-				<button onclick="openPortal();">Open portal (2 totems)</button>
+				<div class="shop-item">
+					<h2>🙛————— U<span class="small">PGRADE</span>S —————🙙</h2>
+					<table>
+						<tr><th>upgrade</th><th></th></tr>
+						<tr><td><label>health</label></td><td><button onclick="obeliskShopUpgradeButton('health');">upgrade (1 totem)</button></td></tr>
+						<tr><td><label>speed</label></td><td><button onclick="obeliskShopUpgradeButton('speed');">upgrade (1 totem)</button></td></tr>
+						<tr><td><label>jump</label></td><td><button onclick="obeliskShopUpgradeButton('jump');">upgrade (1 totem)</button></td></tr>
+						<tr><td><label>step</label></td><td><button onclick="obeliskShopUpgradeButton('step');">upgrade (1 totem)</button></td></tr>
+					</table>
+				</div>
+				<div class="shop-item">
+					<h2>🙛————— S<span class="small">TUF</span>F —————🙙</h2>
+					<table>
+						<tr><th>thing</th><th></th></tr>
+						<tr><td><label>portal</label></td><td><button onclick="openPortal();">open (2 totems)</button></td></tr>
+					</table>
+				</div>
 			</div>
 			<div id="hacker-console">
 				<h1>hacker console</h1>
@@ -617,13 +668,14 @@
 				};
 
 				vec3 darknessColor = vec3(0.0, 0.0, 0.0);
+				float ambientDarkness = u_ambientDarkness;
 				if (u_nightVisionTime > 0.0) {
-					darknessColor.g = 1.0;
-					color.rgb = vec3Lerp(vec3(0.2), vec3(1.0), color.rgb);
+					darknessColor.g = 0.85;
+					ambientDarkness = lerp(0.0, 0.8, ambientDarkness);
 				}
 				float darkness = clamp(inverseLerp(u_darknessMin, u_darknessMax, pixelCoord.y) * u_darkness, 0.0, 1.0);
 				color.rgb = vec3Lerp(color.rgb, darknessColor, vec3(darkness));
-				color.rgb = vec3Lerp(color.rgb, darknessColor, vec3(u_ambientDarkness));
+				color.rgb = vec3Lerp(color.rgb, darknessColor, vec3(ambientDarkness));
 				color.a += darkness;
 
 				bool upsidedownifyPixel = false;
@@ -651,11 +703,6 @@
 			const canvas = document.getElementById("canvas");
 			canvas.width = innerWidth;
 			canvas.height = innerHeight;
-	
-			const darkness = document.getElementById("darkness");
-			darkness.width = innerWidth;
-			darkness.height = innerHeight;
-			const darknessCtx = darkness.getContext("2d");
 			
 			document.getElementById("canvas-wrapper").focus();
 	
@@ -802,7 +849,7 @@
 				getTexture(texture) {
 					return (typeof textures !== "undefined") ? textures[texture] : this.defaultTexture;
 				};
-				loadImageAndCreateTextureInfo(url, color) {
+				loadImageAndCreateTextureInfo(url) {
 					var tex = this.gl.createTexture();
 					this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
 					this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array([255, 0, 255, 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 0, 255, 255]));
@@ -827,6 +874,20 @@
 					img.src = url;
 					return textureInfo;
 				};
+				colorTexture(r, g, b, a) {
+					var tex = this.gl.createTexture();
+					this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
+					this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, 1, 1, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, new Uint8Array([r * 255, g * 255, b * 255, a * 255]));
+					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+					this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+					return {
+						width: 1,
+						height: 1,
+						texture: tex,
+					};
+				};
 				drawImage(texInfo, dstX=0, dstY=0, dstWidth=blockSize, dstHeight=blockSize, uvX=0, uvY=0, uvWidth=1, uvHeight=1, settings={}) {
 					uvX %= 1;
 					uvX *= texInfo.width;
@@ -845,7 +906,7 @@
 					this.gl.uniform1f(this.darknessMinLocation, canvas.height - (dstY + (settings.darknessMin ?? 0) * dstHeight));
 					this.gl.uniform1f(this.darknessMaxLocation, canvas.height - (dstY + (settings.darknessMax ?? 1) * dstHeight));
 					this.gl.uniform1f(this.darknessLocation, settings.darkness ?? 0);
-					this.gl.uniform1f(this.ambientDarknessLocation, (settings.sky ?? false) ? 0 : lerp(0, 0.95, getDarkness(gameTime)));
+					this.gl.uniform1f(this.ambientDarknessLocation, (settings.sky ?? false) ? 0 : lerp(0, 0.99, getDarkness(gameTime)));
 					this.gl.uniform1i(this.removeBlueLocation, settings.removeBlue ?? 0);
 					this.gl.uniform1f(this.portalSkewLocation, portalSkew);
 					this.gl.uniform1i(this.removeWhiteLocation, settings.removeWhite ?? 0);
@@ -875,7 +936,6 @@
 				};
 				draw() {
 					this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-					darknessCtx.clearRect(0, 0, canvas.width, canvas.height);
 					
 					let skyImage = (getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight";
 					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {sky: true});
@@ -1145,19 +1205,6 @@
 					if (health / maxHealth < 0.1) {
 						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {alpha: clamp(1 - (health / maxHealth) / 0.1, 0, 1), sky: 1});
 					};
-					
-					darknessCtx.save();
-					let circleLightX = (playerX - cameraX) * blockSize;
-					let circleLightY = ((playerY + 1) - cameraY) * -blockSize;
-					let gradient = darknessCtx.createRadialGradient(circleLightX, circleLightY, 0, circleLightX, circleLightY, Math.abs(blockSize * 2));
-					gradient.addColorStop(1, darknessAlpha(0));
-					gradient.addColorStop(0, darknessAlpha(1));
-					darknessCtx.fillStyle = gradient;
-					darknessCtx.beginPath();
-					darknessCtx.arc(circleLightX, circleLightY, blockSize * 2, 0, Math.PI * 2);
-					darknessCtx.globalCompositeOperation = "destination-out";
-					darknessCtx.fill();
-					darknessCtx.restore();
 				};
 			};
 			const renderer = new WebGLRenderer();
@@ -1501,7 +1548,6 @@
 					spawnOffset: 35
 				}
 			};
-			var hackerConsole = false;
 			var baseStepHeight = 0.5;
 			var oxygen = 1;
 			var playing = false;
@@ -1519,6 +1565,7 @@
 			var portalX = 0;
 			var portalTime = 0;
 			var portalSkew = 0;
+			var obeliskShopButtonShowing = false;
 	
 			function generateOctaves() {
 				// octaves
@@ -1555,7 +1602,7 @@
 				for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline
 					level.waterLevel[i] = 0;
 					if (mb32.rng(level.featureRNG) < 1 / 1000) {
-						level.waterLevel[i] = Math.floor(mb32.rng(level.featureRNG) * 10000);
+						level.waterLevel[i] = Math.floor(mb32.rng(level.featureRNG) * 500);
 					};
 					if (i === 300000000) {
 						let trenchDepth = 100;
@@ -1871,41 +1918,44 @@
 					notificate("save slot " + slot + " empty, to create a new save slot reload and press save in the new one you want to create");
 				} else {
 					saveCode = codeToSave(saveCode);
-					level = saveCode.level ?? level;
-					playerX = saveCode.playerX ?? playerX;
-					playerY = saveCode.playerY ?? playerY;
-					playerXV = saveCode.playerXV ?? playerXV;
-					playerYV = saveCode.playerYV ?? playerYV;
-					coins = saveCode.coins ?? coins;
-					gems = saveCode.gems ?? gems;
-					ladders = saveCode.ladders ?? ladders;
-					tallLadders = saveCode.tallLadders ?? tallLadders;
-					health = saveCode.health ?? health;
-					dead = saveCode.dead ?? dead;
-					bootses = saveCode.bootses ?? bootses;
-					boots = saveCode.boots ?? boots;
-					foods = saveCode.foods ?? foods;
-					potions = saveCode.potions ?? potions;
-					pb = saveCode.pb ?? pb;
-					gameTime = saveCode.gameTime ?? gameTime;
-					totems = saveCode.totems ?? totems;
-					dybbukTime = saveCode.dybbukTime ?? dybbukTime;
-					basePlayerSpeed = saveCode.basePlayerSpeed ?? basePlayerSpeed;
-					baseJumpHeight = saveCode.baseJumpHeight ?? baseJumpHeight;
-					maxHealth = saveCode.maxHealth ?? maxHealth;
-					score = saveCode.score ?? score;
-					baseStepHeight = saveCode.baseStepHeight ?? baseStepHeight;
-					oxygen = saveCode.oxygen ?? oxygen;
-					trampolines = saveCode.trampolines ?? trampolines;
-					cameraX = saveCode.cameraX ?? cameraX;
-					cameraY = saveCode.cameraY ?? cameraY;
-					possessionTime = saveCode.possessionTime ?? possessionTime;
-					possessionDoll = saveCode.possessionDoll ?? possessionDoll;
-					dimension = saveCode.dimension ?? dimension;
-					portalX = saveCode.portalX ?? portalX;
-					portalTime = saveCode.portalTime ?? portalTime;
-					portalSkew = saveCode.portalSkew ?? portalSkew;
+					loadSave(saveCode);	
 				};
+			};
+			function loadSave(save) {
+				level = save.level ?? level;
+				playerX = save.playerX ?? playerX;
+				playerY = save.playerY ?? playerY;
+				playerXV = save.playerXV ?? playerXV;
+				playerYV = save.playerYV ?? playerYV;
+				coins = save.coins ?? coins;
+				gems = save.gems ?? gems;
+				ladders = save.ladders ?? ladders;
+				tallLadders = save.tallLadders ?? tallLadders;
+				health = save.health ?? health;
+				dead = save.dead ?? dead;
+				bootses = save.bootses ?? bootses;
+				boots = save.boots ?? boots;
+				foods = save.foods ?? foods;
+				potions = save.potions ?? potions;
+				pb = save.pb ?? pb;
+				gameTime = save.gameTime ?? gameTime;
+				totems = save.totems ?? totems;
+				dybbukTime = save.dybbukTime ?? dybbukTime;
+				basePlayerSpeed = save.basePlayerSpeed ?? basePlayerSpeed;
+				baseJumpHeight = save.baseJumpHeight ?? baseJumpHeight;
+				maxHealth = save.maxHealth ?? maxHealth;
+				score = save.score ?? score;
+				baseStepHeight = save.baseStepHeight ?? baseStepHeight;
+				oxygen = save.oxygen ?? oxygen;
+				trampolines = save.trampolines ?? trampolines;
+				cameraX = save.cameraX ?? cameraX;
+				cameraY = save.cameraY ?? cameraY;
+				possessionTime = save.possessionTime ?? possessionTime;
+				possessionDoll = save.possessionDoll ?? possessionDoll;
+				dimension = save.dimension ?? dimension;
+				portalX = save.portalX ?? portalX;
+				portalTime = save.portalTime ?? portalTime;
+				portalSkew = save.portalSkew ?? portalSkew;
 			};
 			function clearSlot(slot) {
 				localStorage.removeItem("forestSimulator3DSaveSlot" + slot);
@@ -1915,6 +1965,26 @@
 			};
 			function exportSave() {
 				saveFile("forestSimulator3DSave.json", "application/json", saveToCode(getSave()));
+			};
+			function importSave() {
+				let filePicker = document.createElement("input");
+				filePicker.type = "file";
+				filePicker.accept = "application/json";
+				filePicker.onchange = e => {
+					var reader = new FileReader();
+					reader.onload = event => {
+						try {
+							loadSave(codeToSave(event.target.result));
+						} catch (err) {
+							notificate("malformed save code");
+						};
+					};
+					reader.onerror = event => {
+						notificate("error reading file");
+					};
+					reader.readAsText(e.target.files[0], "UTF-8");
+				};
+				filePicker.click();
 			};
 			function saveFile(name, mime, content) {
 				var a = document.createElement("a");
@@ -2046,13 +2116,6 @@
 					notificate("bankrupt");
 				};
 			};
-			function openHackerConsole() {
-				hackerConsole = !hackerConsole;
-				document.getElementById("hacker-console").style.display = hackerConsole ? "block" : "none";
-				if (!hackerConsole) {
-					document.getElementById("canvas-wrapper").focus();
-				};
-			};
 			function purchaseScaffolding() {
 				let height = Math.round(parseInt(prompt("what height (1 coin/block)")));
 				if (height > 0) {
@@ -2147,11 +2210,6 @@
 					};
 				};
 				return bakedRows;
-			};
-			function darknessAlpha(a) {
-				let g = (potions["night vision potion"].time > 0) * 255;
-				let nightVision = potions["night vision potion"].time > 0;
-				return "rgba(0, " + g + ", 0, " + (a * (nightVision ? 0.85 : 1)) + ")";
 			};
 			function clockEmoji(time=gameTime) {
 				var clocks = ["🕛", "🕧", "🕐", "🕜", "🕑", "🕝", "🕒", "🕞", "🕓", "🕟", "🕔", "🕠", "🕕", "🕡", "🕖", "🕢", "🕗", "🕣", "🕘", "🕤", "🕙", "🕥", "🕚", "🕦"];
@@ -2251,7 +2309,7 @@
 					cameraPanX = gamePad.axes[2] * 10;
 					cameraPanY = -gamePad.axes[3] * 10;
 					if (gamePad.buttons[9].pressed && !oldGamePadMenuButtonPressed) {
-						shopButton();
+						obeliskShopButtonShowing ? obeliskShopButton() : shopButton();
 					};
 					if (shop || obeliskShop || !playing) {
 						cursorX += gamePad.axes[0] * 3;
@@ -2416,6 +2474,7 @@
 					inLadder = false;
 					dybbukTime = Math.max(0, dybbukTime - 1);
 					document.getElementById("obelisk-shop-button").style.display = "none";
+					obeliskShopButtonShowing = false;
 					// water
 					let totalWaterHeight = x => level.waterLevel[x] + bakedRows[x];
 					let waterTick = function(x) {
@@ -2513,6 +2572,7 @@
 									};
 									if (i + 1 > playerX - 0.5 && i < playerX + 0.5 && playerY < level.rows[i] + 4 && level.featureEntities[i].riseSpeed === 0) {
 										document.getElementById("obelisk-shop-button").style.display = "block";
+										obeliskShopButtonShowing = true;
 									};
 									break;
 								case "sentry house":
@@ -2783,13 +2843,11 @@
 				let width = innerWidth;
 				let height = innerHeight;
 				if (canvas.width !== width) {
-					canvas.width = darkness.width = width;
+					canvas.width = width;
 				};
 				if (canvas.height !== height) {
-					canvas.height = darkness.height = height;
+					canvas.height = height;
 				};
-				canvasWidth = canvas.width / blockSize * 2;
-				canvasHeight = canvas.height / blockSize * 2;
 				renderer.gl.viewport(0, 0, canvas.width, canvas.height);
 				renderer.draw();
 	
@@ -2822,14 +2880,14 @@
 				document.getElementById("score").innerHTML = "◄ " + score + "m ►";
 				document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 				for (let food in foods) {
-					document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + foods[food].howmany + ")";
+					document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = foods[food].howmany;
 				};
 				for (let potion in potions) {
-					document.getElementById(potion.replaceAll(" ", "-") + "-howmany").innerHTML = "(" + potions[potion].howmany + ")";
+					document.getElementById(potion.replaceAll(" ", "-") + "-howmany").innerHTML = potions[potion].howmany;
 				};
-				document.getElementById("ladder-howmany").innerHTML = "(" + ladders + ")";
-				document.getElementById("tall-ladder-howmany").innerHTML = "(" + tallLadders + ")";
-				document.getElementById("trampoline-howmany").innerHTML = "(" + trampolines + ")";
+				document.getElementById("ladder-howmany").innerHTML = ladders;
+				document.getElementById("tall-ladder-howmany").innerHTML = tallLadders;
+				document.getElementById("trampoline-howmany").innerHTML = trampolines;
 			};
 			var oldfpsTime = 0;
 			function loop() {

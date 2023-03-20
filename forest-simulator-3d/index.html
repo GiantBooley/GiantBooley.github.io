@@ -1039,6 +1039,9 @@
 								case 18:
 									this.drawImage(this.getTexture("trampoline"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
 									break;
+								case 19:
+									this.drawImage(this.getTexture("humanoidBody"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize * 4, blockSize, blockSize * 4);
+									break;
 								default:
 									this.drawImage(this.getTexture("error"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
 							};
@@ -1593,7 +1596,8 @@
 			var sounds = {
 				"sentryIdle": new Sound("./sounds/sentryIdle.mp3"),
 				"death": new Sound("./sounds/death.mp3"),
-				"sentryAmbient": new Sound("./sounds/sentryAmbient.mp3")
+				"sentryAmbient": new Sound("./sounds/sentryAmbient.mp3"),
+				"humanoidAmbient": new Sound("./sounds/humanoidAmbient.mp3")
 			};
 	
 			function generateOctaves() {
@@ -1628,7 +1632,7 @@
 				};
 	
 				// round stuff and coins n gems
-				for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline
+				for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline 19-humanoid
 					level.waterLevel[i] = 0;
 					if (mb32.rng(level.featureRNG) < 1 / 1000) {
 						level.waterLevel[i] = Math.floor(mb32.rng(level.featureRNG) * 500);
@@ -1657,6 +1661,7 @@
 						if (mb32.rng(level.featureRNG) < 1 / 8000) pool.push(12);
 						if (mb32.rng(level.featureRNG) < 1 / 20000) pool.push(16);
 						if (mb32.rng(level.featureRNG) < 1 / 20213123123123.000) pool.push(17);
+						if (mb32.rng(level.featureRNG) < 1 / 35000) pool.push(19);
 						if (mb32.rng(level.featureRNG) < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
 						level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(mb32.rng(level.featureRNG) * pool.length)];
 					};
@@ -2476,7 +2481,7 @@
 							if (right) {
 								howmany += 0.0025;
 								level.rows[max + 1] += 0.0025;
-							};// down by 0.0025 * howmany
+							};
 							level.rows[max] -= howmany;
 							//if (level.rows[max] - 200 < (level.originalRows[max] - 200) * 0.9) {
 							//	level.rows[max] = (level.originalRows[max] - 200) * 0.9 + 200;
@@ -2589,6 +2594,10 @@
 							if (playerY < level.rows[i] + 2 && level.features[i] === 17) {
 								notificate("press e to time travel (100 gems)");
 							};
+						};
+						if (level.features[i] === 19) {
+							sounds.humanoidAmbient.falloff([i + 0.5, getRowY(level.rows, i) + 2]);
+							if (Math.random() < 1 / 1000) sounds.humanoidAmbient.play();
 						};
 						// feature entities
 						if (level.featureEntities[i]) {

@@ -1363,6 +1363,9 @@
 								case "possessed doll":
 									this.drawImage(this.getTexture(mob.possessed ? "possessedDollStanding" : "possessedDollSitting"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1.5 - cameraY) * -blockSize, blockSize, blockSize * 1.5);
 									break;
+								case "merchant":
+									this.drawImage(this.getTexture("guyRunning"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 2.5 - cameraY) * -blockSize, blockSize, blockSize * 2.5);
+									break;
 								default:
 									this.drawImage(this.getTexture("error"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
 							};
@@ -1536,17 +1539,44 @@
 			Math.mod = function(a, b) {
 				return ((a % b) + b) % b;
 			};
-			Array.prototype.random = function() {
-				return this[Math.floor(Math.random() * this.length)];
-			};
 			Array.prototype.mean = function() {
 				return this.reduce((a, b) => a + b, 0) / this.length;
 			};
+			const soundSystem = new SoundSystem();
 			
 			// consts
 			const fact = "Marina silva is a brazilian politician and an activist for deforestation and other things.\nShe was a rubber tapper and found that land was being invaded by rubber tappers and she\nstarted protecting thousands of hectares of land.";
 			const waterDarkness = 20;
-			const soundSystem = new SoundSystem();
+			const missions = [
+				{
+					"getStartingValue": () => totems,
+					"satisfies": function(){return totems - startingValue >= 1},
+					"complete": () => {potions["bird potion"].howmany += 5},
+					"mission": "collect 1 totem",
+					"reward": "+5 bird potions"
+				},
+				{
+					"getStartingValue": () => gems,
+					"satisfies": function(startingValue) {return gems - startingValue >= 10},
+					"complete": () => {foods["filling warm meal"].howmany += 2},
+					"mission": "collect 10 gems",
+					"reward": "+2 filling warm meals"
+				},
+				{
+					"getStartingValue": () => playerX,
+					"satisfies": function(startingValue) {return Math.abs(playerX - startingValue) >= 500},
+					"complete": () => {foods["government meal"].howmany += 80},
+					"mission": "travel 500 blocks",
+					"reward": "+80 government meals"
+				},
+				{
+					"getStartingValue": () => playerX,
+					"satisfies": function(startingValue) {return Math.abs(playerX - startingValue) >= 1000},
+					"complete": () => {gems += 20},
+					"mission": "travel 1000 blocks",
+					"reward": "+20 gems"
+				}
+			];
 	
 			var game = {
 				"playerX": 0.5,
@@ -1592,11 +1622,11 @@
 					"cow brain":							{cost: 38, hunger: 0.9, howmany: 0},
 					"filling warm meal":					{cost: 41, hunger: 1, howmany: 0},
 					
-					"buckwheat pancake":																							{cost: 47, hunger: 1.2, howmany: 0},
-					"sopping meal":																									{cost: 52, hunger: 1.4, howmany: 0},
-					"emptying cold meal":																							{cost: 56, hunger: -0.8, howmany: 0},
-					"piping hot meal":																								{cost: 59, hunger: 1.8, howmany: 0},
-					"styrofoam tupperware baggy full of a shrink wrapped reheated rehydrated piping hot filling sloppy sopping warm meal portion": {cost: 62, hunger: 2, howmany: 0}
+					"buckwheat pancake":																											{cost: 47, hunger: 1.2, howmany: 0},
+					"sopping meal":																													{cost: 52, hunger: 1.4, howmany: 0},
+					"emptying cold meal":																											{cost: 56, hunger: -0.8, howmany: 0},
+					"piping hot meal":																												{cost: 59, hunger: 1.8, howmany: 0},
+					"styrofoam tupperware baggy full of a shrink wrapped reheated rehydrated piping hot filling sloppy sopping warm meal portion": 	{cost: 62, hunger: 2, howmany: 0}
 				},
 				"potions": {
 					"night vision potion":	{cost: 1, time: 0, duration: 30, howmany: 0},
@@ -2075,6 +2105,23 @@
 							notificate("bankrupt");
 						};
 					};
+					for (let mob of level.mobs) {
+						if (mob.type === "merchant" && mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 2.5 && playerY + 2 > mob.y) {
+							if (mob.missionStarted) {
+								if (mob.mission.satisfies(mob.startingValue)) {
+									mob.mission.complete();
+									notificate("MISSION COMPLETED: " + mob.mission.reward);
+									level.mobs.splice(level.mobs.indexOf(mob));
+								} else {
+									notificate("mission: " + mob.mission.mission + " for " + mob.mission.reward);
+								};
+							} else {
+								mob.missionStarted = true;
+								mob.startingValue = mob.mission.getStartingValue();
+								notificate("mission: " + mob.mission.mission + " for " + mob.mission.reward);
+							};
+						};
+					};
 				};
 			};
 			function globalKeyDownFunction(e) {
@@ -2274,12 +2321,17 @@
 					mob.coins = arguments[3];
 				} else if (type === "possessed doll") {
 					mob.possessed = false;
+				} else if (type === "merchant") {
+					mob.missionStarted = false;
+					mob.notificated = false;
+					mob.startingValue = null;
+					mob.mission = missions[Math.floor(mb32.rng(level.featureRNG) * missions.length)];
 				};
 				level.mobs.push(mob);
 			};
-			function notificate(message) {
+			function notificate(message, time=180) {
 				notification = message;
-				notificationTime = 180;
+				notificationTime = time;
 			};
 			function placeFeatureEntity(type, x) {
 				let featureEntity = {
@@ -3129,6 +3181,17 @@
 								if (mob.possessed) {
 									if (potions["invisibility potion"].time <= 0) mob.x += Math.abs(playerXV * (0.05 / 0.2)) * (health / maxHealth) * Math.sign(playerX - mob.x);
 									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+								};
+								break;
+							case "merchant":
+								if (mob.missionStarted && Math.abs(mob.x - playerX) > 4) {
+									let xSign = potions["invisibility potion"].time > 0 ? 0 : Math.sign(playerX - mob.x);
+									mob.x += xSign * 0.06;
+								};
+								mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+								if (!mob.notificated) {
+									notificate("press e to interact with merchant");
+									mob.notificated = true;
 								};
 								break;
 						};

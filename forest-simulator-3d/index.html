@@ -238,6 +238,11 @@
 				background-color: #DDDDDD;
 				cursor: pointer;
 			}
+			td div {
+				width: 100%;
+				display: flex;
+				flex-direction: row;
+			}
 			td div button {
 				border: 2px outset #D0D0D0;
 				border-radius: 0px;
@@ -249,12 +254,6 @@
 				border: 2px inset #D0D0D0;
 				background-color: #CCCCCC;
 				transform: none;
-			}
-			td div {
-				width: 100%;
-				height: 100%;
-				display: flex;
-				flex-direction: row;
 			}
 			/* button:focus {
 				box-shadow: inset 0px 0px 5px black;
@@ -404,6 +403,7 @@
 				left: 0px;
 				right: 20px;
 				margin: 1px;
+				display: none;
 			}
 			#hacker-console-text {
 				background-color: black;
@@ -419,7 +419,7 @@
 		</style>
 	</head>
 	<body>
-		<div id="thing" tabindex="0" onkeydown="if (event.key === 'Escape') (obeliskShopButtonShowing || obeliskShop) ? obeliskShopButton() : shopButton();" onkeyup="keysDown[event.key] = false;">
+		<div id="thing" tabindex="0" onkeydown="globalKeyDownFunction(event);" onkeyup="keysDown[event.key] = false;">
 			<div id="game" tabindex="0" onmouseup="joystick.mouseUp(event);" ontouchend="joystick.mouseUp(event);" onmousemove="joystick.mouseMove(event);" ontouchmove="joystick.mouseMove(event);" oncontextmenu="return false;">
 				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);">
 					<canvas id="canvas"></canvas>
@@ -594,9 +594,9 @@
 									<td><div><button onclick="devourFood('piping hot meal');">devour</button><button onclick="purchaseFood('piping hot meal');">buy (59 coins)</button></div></td>
 								</tr>
 								<tr>
-									<td><label title="styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion">STBFOARRPHFSSWMP</label></td>
-									<td><label id="styrofoam-tupperware-baggy-full-of-a-reheated-rehydrated-piping-hot-filling-sloppy-sopping-warm-meal-portion-howmany">0</label></td>
-									<td><div><button onclick="devourFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">devour</button><button onclick="purchaseFood('styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion');">buy (62 coins)</button></div></td>
+									<td><label title="styrofoam tupperware baggy full of a shrink wrapped reheated rehydrated piping hot filling sloppy sopping warm meal portion">STBFOASWRRPHFSSWMP</label></td>
+									<td><label id="styrofoam-tupperware-baggy-full-of-a-shrink-wrapped-reheated-rehydrated-piping-hot-filling-sloppy-sopping-warm-meal-portion-howmany">0</label></td>
+									<td><div><button onclick="devourFood('styrofoam tupperware baggy full of a shrink wrapped reheated rehydrated piping hot filling sloppy sopping warm meal portion');">devour</button><button onclick="purchaseFood('styrofoam tupperware baggy full of a shrink wrapped reheated rehydrated piping hot filling sloppy sopping warm meal portion');">buy (62 coins)</button></div></td>
 								</tr>
 							</table>
 						</div>
@@ -1093,6 +1093,7 @@
 					uvY *= texInfo.height;
 					uvWidth *= texInfo.width;
 					uvHeight *= texInfo.height;
+					this.gl.useProgram(this.program);
 
 					this.gl.uniform2fv(this.playerPosLocation, [(playerX - cameraX) * blockSize, (playerY + 1 - cameraY) * blockSize + canvas.height]);
 					this.gl.uniform1f(this.portalTimeLocation, portalTime);
@@ -1112,7 +1113,6 @@
 					this.gl.uniform1f(this.nightVisionTimeLocation, potions["night vision potion"].time);
 					
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
-					this.gl.useProgram(this.program);
 
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
 					this.gl.enableVertexAttribArray(this.positionLocation);
@@ -1491,23 +1491,47 @@
 					document.getElementById("circle-thing").style.transform = "translate(" + (Math.sin(this.angle) * this.strength * 100) + "px, " + (Math.cos(this.angle) * this.strength * 100) + "px)";
 				};
 			};
-			class Sound extends Audio {
-				constructor(url) {
-					super(url);
-					this.addEventListener("ended", e => {
-						this.resetFalloff();
+			class SoundSystem {
+				constructor() { /* {sound1: https://s.com/sound1.mp3,...} */
+					this.activeSounds = [];
+				};
+				emitSound(sound, origin) {
+					var newSound = sound.createInstance(origin);
+					newSound.element.addEventListener("ended", e => {
+						this.activeSounds.splice(this.activeSounds.indexOf(newSound), 1);
+					});
+
+					this.activeSounds.push(newSound);
+					newSound.element.play();
+				};
+				tickAllSounds() {
+					this.activeSounds.forEach(sound => {
+						sound.element.volume = 1;
+						try {
+							sound.falloff(sound.origin);
+						} catch (e) {
+							console.error("sound origin error");
+						};
 					});
 				};
-				asyncPlay() {
-					this.cloneNode().play();
+			};
+			class Sound {
+				constructor(thing, origin) {
+					if (thing instanceof Audio) {
+						this.element = thing;
+					} else {
+						this.element = new Audio(thing);
+					};
+					this.origin = origin;
 				};
 				falloff(origin) {
-					this.resetFalloff();
-					this.volume *= 1 / (2 * Math.PI * distance(origin, [playerX, playerY]) + 1);
+					this.element.volume = 1;
+					this.element.volume = clamp(2 * this.element.volume / (2 * Math.PI * distance(origin, [playerX, playerY + 1]) + 1), 0, 1);
 				};
-				resetFalloff() {
-					this.volume = 1;
-				}
+				createInstance(origin=this.origin) {
+					var soundClone = new Sound(this.element.cloneNode(), origin);
+					return soundClone;
+				};
 			};
 			Math.mod = function(a, b) {
 				return ((a % b) + b) % b;
@@ -1522,6 +1546,7 @@
 			// consts
 			const fact = "Marina silva is a brazilian politician and an activist for deforestation and other things.\nShe was a rubber tapper and found that land was being invaded by rubber tappers and she\nstarted protecting thousands of hectares of land.";
 			const waterDarkness = 20;
+			const soundSystem = new SoundSystem();
 	
 			var game = {
 				"playerX": 0.5,
@@ -1571,7 +1596,7 @@
 					"sopping meal":																									{cost: 52, hunger: 1.4, howmany: 0},
 					"emptying cold meal":																							{cost: 56, hunger: -0.8, howmany: 0},
 					"piping hot meal":																								{cost: 59, hunger: 1.8, howmany: 0},
-					"styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion": {cost: 62, hunger: 2, howmany: 0}
+					"styrofoam tupperware baggy full of a shrink wrapped reheated rehydrated piping hot filling sloppy sopping warm meal portion": {cost: 62, hunger: 2, howmany: 0}
 				},
 				"potions": {
 					"night vision potion":	{cost: 1, time: 0, duration: 30, howmany: 0},
@@ -1685,7 +1710,7 @@
 				"sopping meal": {cost: 52, hunger: 1.4, howmany: 0},
 				"emptying cold meal": {cost: 56, hunger: -0.8, howmany: 0},
 				"piping hot meal": {cost: 59, hunger: 1.8, howmany: 0},
-				"styrofoam tupperware baggy full of a reheated rehydrated piping hot filling sloppy sopping warm meal portion": {cost: 62, hunger: 2, howmany: 0}
+				"styrofoam tupperware baggy full of a shrink wrapped reheated rehydrated piping hot filling sloppy sopping warm meal portion": {cost: 62, hunger: 2, howmany: 0}
 			};
 			var potions = {
 				"night vision potion": {cost: 1, time: 0, duration: 30, howmany: 0},
@@ -2050,8 +2075,15 @@
 							notificate("bankrupt");
 						};
 					};
+				};
+			};
+			function globalKeyDownFunction(e) {
+				if (e.key === "Escape")  {
+					(obeliskShopButtonShowing || obeliskShop) ? obeliskShopButton() : shopButton();
 				} else if (e.key === "/" && developerMode) {
-					alert("HACKER CONSOLE OPENED");
+					e.preventDefault();
+					document.getElementById("hacker-console").style.display = "block";
+					document.getElementById("hacker-console-text").focus();
 				};
 			};
 			function purchaseLadder() {
@@ -2519,6 +2551,7 @@
 								break;
 							case "heal":
 								health = maxHealth;
+								dead = health <= 0;
 								break;
 							case "reset":
 								playerXV = 0;
@@ -2527,6 +2560,8 @@
 								playerY = getRowY(level.rows, 0) ?? 0;
 								cameraSnapPending = true;
 								gameTime = 0;
+								health = maxHealth;
+								dead = health <= 0;
 								break;
 							case "obeliskshop":
 								obeliskShopButton();
@@ -2536,6 +2571,8 @@
 						notificate("command error");
 					};
 					e.target.value = "";
+					document.getElementById("hacker-console").style.display = "none";
+					document.getElementById("canvas-wrapper").focus();
 				};
 			};
 
@@ -2833,9 +2870,8 @@
 								notificate("press e to time travel (100 gems)");
 							};
 						};
-						if (level.features[i] === 19) {
-							sounds.humanoidAmbient.falloff([i + 0.5, getRowY(level.rows, i) + 2]);
-							if (Math.random() < 1 / 1000) sounds.humanoidAmbient.play();
+						if (Math.floor(gameTime * 60) % Math.round(sounds.humanoidAmbient.element.duration * 60) === 0 && level.features[i] === 19) {
+							soundSystem.emitSound(sounds.humanoidAmbient, [i + 0.5, getRowY(level.rows, i) + 2]);
 						};
 						// feature entities
 						if (level.featureEntities[i]) {
@@ -3028,13 +3064,11 @@
 									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
 										health -= 0.01;
 									};
-									sounds.sentryAmbient.falloff([mob.x, mob.y + 2]);
-									if (sounds.sentryAmbient.paused) {
-										sounds.sentryAmbient.play();
+									if (mob.age % Math.round(sounds.sentryAmbient.element.duration * 60) === 0) {
+										soundSystem.emitSound(sounds.sentryAmbient, [mob.x, mob.y + 2]);
 									};
-									if (mob.age % (15 * 60) === 0) {
-										sounds.sentryIdle.falloff([mob.x, mob.y + 2]);
-										sounds.sentryIdle.asyncPlay();
+									if (mob.age % Math.round(sounds.sentryIdle.element.duration * 2 * 60) === 0) {
+										soundSystem.emitSound(sounds.sentryIdle, [mob.x, mob.y + 2]);
 									};
 									for (let collisionMob of level.mobs) {
 										if (mob.x + 0.5 > collisionMob.x - 0.5 && mob.x - 0.5 < collisionMob.x + 0.5 && collisionMob.y < mob.y + 4 && collisionMob.y + 4 > mob.y && collisionMob.type === "mimic" && !collisionMob.mimicking) {
@@ -3124,10 +3158,13 @@
 					oxygen = clamp(oxygen, 0, 1);
 					dead = health <= 0;
 					if (dead) {
-						sounds.death.asyncPlay();
+						soundSystem.emitSound(sounds.death, [playerX, playerY + 1]);
 					};
 				};
 				notificationTime = Math.max(0, notificationTime - 1);
+
+				// sounds
+				soundSystem.tickAllSounds();
 			};
 			function renderScreen() {
 					canvas.width = innerWidth;
@@ -3180,13 +3217,13 @@
 			};
 			var oldfpsTime = 0;
 			function loop() {
-				try {
+				//try {
 					tick();
 					drawScreen();
-				} catch (e) {
-					alert(e.stack);
-					return;
-				};
+				//} catch (e) {
+				//	alert(e.stack);
+				//	return;
+				//};
 				frameCount++;
 				let now = performance.now();
 				if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

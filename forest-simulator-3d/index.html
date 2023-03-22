@@ -1364,7 +1364,7 @@
 									this.drawImage(this.getTexture(mob.possessed ? "possessedDollStanding" : "possessedDollSitting"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1.5 - cameraY) * -blockSize, blockSize, blockSize * 1.5);
 									break;
 								case "merchant":
-									this.drawImage(this.getTexture("guyRunning"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 2.5 - cameraY) * -blockSize, blockSize, blockSize * 2.5);
+									this.drawImage(this.getTexture("merchant"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 3 - cameraY) * -blockSize, blockSize, blockSize * 3, 0.145, 0.111, 0.707, 0.8);
 									break;
 								default:
 									this.drawImage(this.getTexture("error"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
@@ -1529,7 +1529,7 @@
 				};
 				falloff(origin) {
 					this.element.volume = 1;
-					this.element.volume = clamp(2 * this.element.volume / (2 * Math.PI * distance(origin, [playerX, playerY + 1]) + 1), 0, 1);
+					this.element.volume = clamp(5 * this.element.volume / (2 * Math.PI * distance(origin, [playerX, playerY + 1]) + 1), 0, 1);
 				};
 				createInstance(origin=this.origin) {
 					var soundClone = new Sound(this.element.cloneNode(), origin);
@@ -1575,6 +1575,20 @@
 					"complete": () => {gems += 20},
 					"mission": "travel 1000 blocks",
 					"reward": "+20 gems"
+				},
+				{
+					"getStartingValue": () => foods["government meal"].howmany,
+					"satisfies": function(startingValue) {return foods["government meal"].howmany - startingValue >= 123},
+					"complete": () => {foods["filling warm meal"].howmany += 2},
+					"mission": "buy 123 more government meals",
+					"reward": "+2 filling warm meals"
+				},
+				{
+					"getStartingValue": () => playerX,
+					"satisfies": function(startingValue) {return (playerX - startingValue) <= -250},
+					"complete": () => {potions["speed potion"].howmany += 3},
+					"mission": "travel 250 blocks backwards",
+					"reward": "+3 speed potions"
 				}
 			];
 	
@@ -2106,19 +2120,19 @@
 						};
 					};
 					for (let mob of level.mobs) {
-						if (mob.type === "merchant" && mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 2.5 && playerY + 2 > mob.y) {
+						if (mob.type === "merchant" && mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 3 && playerY + 2 > mob.y) {
 							if (mob.missionStarted) {
 								if (mob.mission.satisfies(mob.startingValue)) {
 									mob.mission.complete();
 									notificate("MISSION COMPLETED: " + mob.mission.reward);
 									level.mobs.splice(level.mobs.indexOf(mob));
 								} else {
-									notificate("mission: " + mob.mission.mission + " for " + mob.mission.reward);
+									notificate("mission: " + mob.mission.mission + " to get " + mob.mission.reward);
 								};
 							} else {
 								mob.missionStarted = true;
 								mob.startingValue = mob.mission.getStartingValue();
-								notificate("mission: " + mob.mission.mission + " for " + mob.mission.reward);
+								notificate("mission: " + mob.mission.mission + " to get " + mob.mission.reward);
 							};
 						};
 					};
@@ -3107,7 +3121,7 @@
 									if (xSign !== Math.sign(playerX - mob.x) && potions["invisibility potion"].time <= 0) {
 										mob.x = playerX;
 									};
-									let sentryStepHeight = getRowY(bakedRows, getHittableRows(mob.x).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b)) ?? mob.y;
+									let sentryStepHeight = getRowY(bakedRows, getHittableRows(mob.x).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b));
 									if (sentryStepHeight - mob.y <= 3 || getHittableRows(mob.x).some(it => level.features[it] === 3 || level.features[it] === 4 || (level.featureEntities[it] && level.featureEntities[it].type === "scaffolding" && level.featureEntities[it].height >= getRowY(bakedRows, it + 1) - getRowY(bakedRows, it)))) {
 										mob.y = sentryStepHeight;
 									} else {
@@ -3136,7 +3150,7 @@
 									let oldMobX = mob.x;
 									mob.x = (mob.x > playerX ? Math.min : Math.max)(mob.x, mob.x + playerXV);
 									mob.deltaX = Math.round((mob.x - oldMobX) * 1000) / 1000;
-									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)] ?? mob.y;
+									mob.y = getRowY(bakedRows, getHittableRows(mob.x).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b));
 									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
 										health -= (Math.sin(gameTime * 20) + 0.1) * 0.03; // 0.01
 									};
@@ -3156,7 +3170,7 @@
 								break;
 							case "leprechaun":
 								mob.x += 0.15//(playerX - 1.5) / (gameTime * 60);
-								mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+								mob.y = getRowY(bakedRows, getHittableRows(mob.x).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b));
 								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1.5 && playerY + 2 > mob.y) {
 									let rainbowSize = 100;
 									level.terrainFeatures[Math.floor(mob.x - rainbowSize)] = "rainbow";
@@ -3180,15 +3194,15 @@
 								};
 								if (mob.possessed) {
 									if (potions["invisibility potion"].time <= 0) mob.x += Math.abs(playerXV * (0.05 / 0.2)) * (health / maxHealth) * Math.sign(playerX - mob.x);
-									mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+									mob.y = getRowY(bakedRows, getHittableRows(mob.x).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b));
 								};
 								break;
 							case "merchant":
 								if (mob.missionStarted && Math.abs(mob.x - playerX) > 4) {
 									let xSign = potions["invisibility potion"].time > 0 ? 0 : Math.sign(playerX - mob.x);
-									mob.x += xSign * 0.06;
+									mob.x += xSign * 0.16;
 								};
-								mob.y = bakedRows[getHittableRows(mob.x).reduce((a, b) => bakedRows[a] > bakedRows[b] ? a : b)];
+								mob.y = getRowY(bakedRows, getHittableRows(mob.x).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b));
 								if (!mob.notificated) {
 									notificate("press e to interact with merchant");
 									mob.notificated = true;

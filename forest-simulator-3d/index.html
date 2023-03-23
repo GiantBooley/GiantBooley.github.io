@@ -399,7 +399,7 @@
 			}
 			#hacker-console {
 				position: absolute;
-				bottom: 60px;
+				bottom: 100px;
 				left: 0px;
 				right: 20px;
 				margin: 1px;
@@ -415,6 +415,10 @@
 			}
 			#hacker-console-text:focus {
 				outline: 1px solid #00FF00;
+			}
+			#seed-label-input {
+				font-family: Consolas, "Courier New", monospace;
+				width: 6ch;
 			}
 		</style>
 	</head>
@@ -459,11 +463,12 @@
 					<button onclick="loadSlot(saveSlotNumber);">load</button>
 					<button onclick="exportSave();">export save</button>
 					<button onclick="importSave();">import save</button>
-					<label id="seed-label">seed: </label>
+					<label id="seed-label">seed: <input type="text" readonly id="seed-label-input"></input></label>
 					<button onclick="blockSize = clamp(blockSize * 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom in</button>
 					<button onclick="blockSize = clamp(blockSize / 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom out</button><br>
 					<input type="checkbox" id="joystick-checkbox"><label for="joystick-checkbox">joystick</label>
 					<input type="checkbox" id="animations-checkbox"><label for="animations-checkbox">animations</label>
+					<input type="checkbox" id="grim-reaper-checkbox" checked><label for="grim-reaper-checkbox">show grim reaper</label>
 				</div>
 				<hr>
 				<div id="shop-sections">
@@ -601,9 +606,9 @@
 							</table>
 						</div>
 						<div class="shop-item">
-							<h2>🙛————— B<span class="small">LOCK</span>S —————🙙</h2>
+							<h2>🙛————— S<span class="small">TUF</span>F —————🙙</h2>
 							<table>
-								<tr><th>block</th><th>how many</th><th></th></tr>
+								<tr><th>thing</th><th>how many</th><th></th></tr>
 								<tr>
 									<td><label>ladder</label></td>
 									<td><label id="ladder-howmany">0</label></td>
@@ -624,6 +629,11 @@
 									<td><label id="trampoline-howmany">0</label></td>
 									<td><div><button onclick="placeTrampoline();">place</button><button onclick="purchaseTrampoline();">purchase (45 coins)</button></div></td>
 								</tr>
+								<tr>
+									<td><label>lantern</label></td>
+									<td>lasts 1m</td>
+									<td><div><button onclick="purchaseLantern();">purchase (10 coins)</button></div></td>
+								</tr>
 							</table>
 						</div>
 					</div>
@@ -636,7 +646,7 @@
 									<td><label>night vision potion</label></td>
 									<td>30s</td>
 									<td><label id="night-vision-potion-howmany">0</label></td>
-									<td><div><button onclick="chugPotion('night vision potion');">chug</button><button onclick="brewPotion('night vision potion');">brew (1 gem)</button></div></td>
+									<td><div><button onclick="chugPotion('night vision potion');">chug</button><button onclick="brewPotion('night vision potion');">brew (2 gems)</button></div></td>
 								</tr>
 								<tr>
 									<td><label>speed potion</label></td>
@@ -789,6 +799,7 @@
 			uniform float u_portalSkew;
 			uniform float u_whitenessThreshold;
 			uniform float u_nightVisionTime;
+			uniform float u_lanternTime;
 			uniform int u_dimension; // 0-normal 1-upsidedown
 			uniform bool u_removeBlue;
 			uniform bool u_removeWhite;
@@ -847,6 +858,9 @@
 			vec4 invertColor(vec4 color, float factor) {
 				return vec4Lerp(color, vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a), vec4(factor));
 			}
+			vec4 saturation(vec4 color, float factor) {
+				return vec4Lerp(color, vec4((color.r + color.g + color.b) / 3.0), vec4(factor));
+			}
 			void main() {
 				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
 				vec4 color = texture2D(u_texture, v_texcoord);
@@ -864,12 +878,21 @@
 
 				vec3 darknessColor = vec3(0.0, 0.0, 0.0);
 				float ambientDarkness = u_ambientDarkness;
-				//bioluminescense://ambientDarkness = min(clamp(distance(pixelCoord, u_playerPos) / (u_blockSize * 3.0) + 0.4, 0.0, 1.0), ambientDarkness);
-				if (u_nightVisionTime > 0.0) {
-					darknessColor.g = 0.85;
-					ambientDarkness = lerp(0.3, 0.8, ambientDarkness);
-				}
 				float darkness = clamp(inverseLerp(u_darknessMin, u_darknessMax, pixelCoord.y) * u_darkness, 0.0, 1.0);
+				//bioluminescense://ambientDarkness = min(clamp(distance(pixelCoord, u_playerPos) / (u_blockSize * 3.0) + 0.4, 0.0, 1.0), ambientDarkness);
+				if (u_lanternTime > 0.0) {
+					float lanternBrightness = clamp(inverseLerp(0.0, 300.0, u_lanternTime), 0.0, 1.0);
+					float lanterniness = (1.0 - clamp(distance(pixelCoord, u_playerPos) / (lanternBrightness * 10.0 * u_blockSize), 0.0, 1.0)) * lanternBrightness;
+					darknessColor.r = lerp(darknessColor.r, 0.9, lanterniness);
+					ambientDarkness = lerp(ambientDarkness, 0.15, lanterniness);
+					darkness = lerp(darkness, 0.15, lanterniness);
+				}
+				if (u_nightVisionTime > 0.0) {
+					float nightVisioniness = clamp(inverseLerp(0.0, 1.0, u_nightVisionTime), 0.0, 1.0);
+					darknessColor.g = lerp(darknessColor.g, 0.85, nightVisioniness);
+					ambientDarkness = lerp(ambientDarkness, lerp(0.3, 0.8, ambientDarkness), nightVisioniness);
+					darkness = lerp(darkness, lerp(0.3, 0.8, darkness), nightVisioniness);
+				}
 				color.rgb = vec3Lerp(color.rgb, darknessColor, vec3(darkness));
 				color.rgb = vec3Lerp(color.rgb, darknessColor, vec3(ambientDarkness));
 				color.a += darkness;
@@ -1003,6 +1026,7 @@
 					this.removeWhiteLocation = this.gl.getUniformLocation(this.program, "u_removeWhite");
 					this.whitenessThresholdLocation = this.gl.getUniformLocation(this.program, "u_whitenessThreshold");
 					this.nightVisionTimeLocation = this.gl.getUniformLocation(this.program, "u_nightVisionTime");
+					this.lanternTimeLocation = this.gl.getUniformLocation(this.program, "u_lanternTime");
 					
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -1111,6 +1135,7 @@
 					this.gl.uniform1i(this.removeWhiteLocation, settings.removeWhite ?? 0);
 					this.gl.uniform1f(this.whitenessThresholdLocation, settings.whitenessThreshold ?? 0.95);
 					this.gl.uniform1f(this.nightVisionTimeLocation, potions["night vision potion"].time);
+					this.gl.uniform1f(this.lanternTimeLocation, lanternTime);
 					
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 
@@ -1320,8 +1345,13 @@
 					if (dybbukTime > 0) {
 						this.drawImage(this.getTexture("dybbuk"), (playerX - 0.5 - cameraX) * blockSize, (playerY + 2 - cameraY) * -blockSize, blockSize, blockSize * 2, 0, 0, 1, 1, {alpha: 0.5});
 					};
-					let grimReaperX = lerp(playerX - 1, playerX - 100, health / maxHealth);
-					this.drawImage(this.getTexture("grimReaper"), (grimReaperX - 0.5 - cameraX) * blockSize, (getRowY(bakedRows, getHittableRows(grimReaperX).reduce((a, b) => level.rows[a] > level.rows[b] ? a : b)) + 3 - cameraY) * -blockSize, blockSize, blockSize * 3);
+					if (document.getElementById("grim-reaper-checkbox").checked) {
+						let grimReaperX = lerp(playerX - 1, playerX - 100, health / maxHealth) + 0.5;
+						let grimReaperY1 = getRowY(bakedRows, getHittableRows(Math.floor(grimReaperX - 1) + 0.5).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b)) + 3 - cameraY;
+						let grimReaperY2 = getRowY(bakedRows, getHittableRows(Math.ceil(grimReaperX) - 0.5).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b)) + 3 - cameraY;
+						this.drawImage(this.getTexture("grimReaper"), (Math.floor(grimReaperX - 1) - cameraX) * blockSize, grimReaperY1 * -blockSize, blockSize, blockSize * 3, 0, 0, 1, 1, {alpha: 1 - (grimReaperX) % 1});
+						this.drawImage(this.getTexture("grimReaper"), (Math.floor(grimReaperX) - cameraX) * blockSize, grimReaperY2 * -blockSize, blockSize, blockSize * 3, 0, 0, 1, 1, {alpha: (grimReaperX) % 1});
+					};
 
 					for (let mob of level.mobs) {
 						if ((mob.x + 0.5 - cameraX) * blockSize > 0 && (mob.x - 0.5 - cameraX) * blockSize < canvas.width) {
@@ -1643,7 +1673,7 @@
 					"styrofoam tupperware baggy full of a shrink wrapped reheated rehydrated piping hot filling sloppy sopping warm meal portion": 	{cost: 62, hunger: 2, howmany: 0}
 				},
 				"potions": {
-					"night vision potion":	{cost: 1, time: 0, duration: 30, howmany: 0},
+					"night vision potion":	{cost: 2, time: 0, duration: 30, howmany: 0},
 					"speed potion":			{cost: 2, time: 0, duration: 10, howmany: 0},
 					"jumping potion":		{cost: 3, time: 0, duration: 10, howmany: 0},
 					"levitation potion":	{cost: 5, time: 0, duration: 10, howmany: 0},
@@ -1757,7 +1787,7 @@
 				"styrofoam tupperware baggy full of a shrink wrapped reheated rehydrated piping hot filling sloppy sopping warm meal portion": {cost: 62, hunger: 2, howmany: 0}
 			};
 			var potions = {
-				"night vision potion": {cost: 1, time: 0, duration: 30, howmany: 0},
+				"night vision potion": {cost: 2, time: 0, duration: 30, howmany: 0},
 				"speed potion": {cost: 2, time: 0, duration: 10, howmany: 0},
 				"jumping potion": {cost: 3, time: 0, duration: 10, howmany: 0},
 				"levitation potion": {cost: 5, time: 0, duration: 10, howmany: 0},
@@ -1865,6 +1895,7 @@
 				"sentryAmbient": new Sound("./sounds/sentryAmbient.mp3"),
 				"humanoidAmbient": new Sound("./sounds/humanoidAmbient.mp3")
 			};
+			var lanternTime = 0;
 	
 			function generateOctaves() {
 				// octaves
@@ -2230,7 +2261,8 @@
 					dimension,
 					portalX,
 					portalTime,
-					portalSkew
+					portalSkew,
+					lanternTime
 				};
 			};
 			function saveSlot(slot) {
@@ -2281,6 +2313,7 @@
 				portalX = save.portalX ?? portalX;
 				portalTime = save.portalTime ?? portalTime;
 				portalSkew = save.portalSkew ?? portalSkew;
+				lanternTime = save.lanternTime ?? lanternTime;
 			};
 			function clearSlot(slot) {
 				localStorage.removeItem("forestSimulator3DSaveSlot" + slot);
@@ -2618,6 +2651,7 @@
 							case "heal":
 								health = maxHealth;
 								dead = health <= 0;
+								oxygen = 1;
 								break;
 							case "reset":
 								playerXV = 0;
@@ -2628,10 +2662,40 @@
 								gameTime = 0;
 								health = maxHealth;
 								dead = health <= 0;
+								oxygen = 1;
 								break;
 							case "obeliskshop":
 								obeliskShopButton();
 								break;
+							case "setspeed":
+								basePlayerSpeed = args[1] ?? 0.2;
+								break;
+							case "setjump":
+								jumpHeight = args[1] ?? 0.24;
+								break;
+							case "setstep":
+								baseStepHeight = args[1] ?? 0.5;
+								break;
+							case "give":
+								switch (args[1]) {
+									case "coin":
+										coins += args[2] ?? 1;
+										break;
+									case "gem":
+										gems += args[2] ?? 1;
+										break;
+									case "totem":
+										totems += args[2] ?? 1;
+										break;
+									case "ladder":
+										ladders += args[2] ?? 1;
+										break;
+									case "tallladder":
+										tallLadders += args[2] ?? 1;
+										break;
+									case "trampoline":
+										trampolines += args[2] ?? 1;
+								};
 						};
 					} catch (e) {
 						notificate("command error");
@@ -2639,6 +2703,14 @@
 					e.target.value = "";
 					document.getElementById("hacker-console").style.display = "none";
 					document.getElementById("canvas-wrapper").focus();
+				};
+			};
+			function purchaseLantern() {
+				if (coins >= 10) {
+					lanternTime += 3600;
+					coins -= 10;
+				} else {
+					notificate("bankrupt");
 				};
 			};
 
@@ -2851,6 +2923,7 @@
 					let oldInLadder = inLadder;
 					inLadder = false;
 					dybbukTime = Math.max(0, dybbukTime - 1);
+					lanternTime = Math.max(0, lanternTime - 1);
 					document.getElementById("obelisk-shop-button").style.display = "none";
 					obeliskShopButtonShowing = false;
 					// water
@@ -3290,17 +3363,18 @@
 				document.getElementById("ladder-howmany").innerHTML = ladders;
 				document.getElementById("tall-ladder-howmany").innerHTML = tallLadders;
 				document.getElementById("trampoline-howmany").innerHTML = trampolines;
-				document.getElementById("seed-label").innerText = "seed: " + level.featureRNG.seed;
+				document.getElementById("seed-label-input").value = level.featureRNG.seed;
+				document.getElementById("seed-label-input").style.width = level.featureRNG.seed.length + "ch";
 			};
 			var oldfpsTime = 0;
 			function loop() {
-				//try {
+				try {
 					tick();
 					drawScreen();
-				//} catch (e) {
-				//	alert(e.stack);
-				//	return;
-				//};
+				} catch (e) {
+					alert(e.stack);
+					return;
+				};
 				frameCount++;
 				let now = performance.now();
 				if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

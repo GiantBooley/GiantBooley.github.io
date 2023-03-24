@@ -803,6 +803,7 @@
 			uniform int u_dimension; // 0-normal 1-upsidedown
 			uniform bool u_removeBlue;
 			uniform bool u_removeWhite;
+			uniform int u_d;
 
 			bool rectIntersection(vec2 p1, vec2 p2, vec2 b1, vec2 b2) {
 				float t = 0.0;
@@ -913,6 +914,12 @@
 				}
 				if (upsidedownifyPixel) {
 					color = invertColor(color, 1.0);
+				}
+				if (u_d == 0) {
+					color.r = 0.0;
+				} else {
+					color.g = 0.0;
+					color.b = 0.0;
 				}
 				gl_FragColor = color;
 			}
@@ -1027,6 +1034,7 @@
 					this.whitenessThresholdLocation = this.gl.getUniformLocation(this.program, "u_whitenessThreshold");
 					this.nightVisionTimeLocation = this.gl.getUniformLocation(this.program, "u_nightVisionTime");
 					this.lanternTimeLocation = this.gl.getUniformLocation(this.program, "u_lanternTime");
+					this.dLocation = this.gl.getUniformLocation(this.program, "u_d");
 					
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -1136,6 +1144,7 @@
 					this.gl.uniform1f(this.whitenessThresholdLocation, settings.whitenessThreshold ?? 0.95);
 					this.gl.uniform1f(this.nightVisionTimeLocation, potions["night vision potion"].time);
 					this.gl.uniform1f(this.lanternTimeLocation, lanternTime);
+					this.gl.uniform1i(this.dLocation, d);
 					
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 
@@ -1896,6 +1905,7 @@
 				"humanoidAmbient": new Sound("./sounds/humanoidAmbient.mp3")
 			};
 			var lanternTime = 0;
+			var d = 0;
 	
 			function generateOctaves() {
 				// octaves
@@ -1921,15 +1931,35 @@
 				return perlinHeight;
 			};
 			function generateLevel() {
+				var newRows = 5000;
 				let oldLength = level.rows.length;//rows.length === 0 ? -1 : rows.length;
-				for (let i = oldLength; i < oldLength + 5000; i++) {
+				for (let i = oldLength; i < oldLength + newRows; i++) {
 					level.rows[i] = level.originalRows[i] = getPerlinHeight(i);// + (level.rows[i - 1] ?? 0);
 					level.featureEntities[i] = null;
 					level.golems[i] = null;
 				};
 	
+				// pieces
+				let pieces = [ // 0 id 1 chance 2 thingthing
+					[1, 0, 1 / 20],
+					[2, 0, 1 / 200],
+					[5, 0, 1 / 5000],
+					[7, 0, 1 / 4000],
+					[10, 0, 1 / 2000],
+					[12, 0, 1 / 8000],
+					[16, 0, 1 / 20000],
+					[17, 0, 1 / 20213123123123.000],
+					[19, 0, 1 / 35000]
+				];
+				let currentPieceThing = 0;
+				for (let i = 0; i < pieces.length; i++) {
+					pieces[i][1] = currentPieceThing;
+					currentPieceThing += pieces[i][2];
+					pieces[i][2] = currentPieceThing;
+				};
+
 				// round stuff and coins n gems
-				for (let i = oldLength; i < oldLength + 5000; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline 19-humanoid
+				for (let i = oldLength; i < oldLength + newRows; i++) {// 0-air 1-coin 2-gem 3-ladder 4-tallladder 5-wall 6-mysterycrate 7-sentrybarracks 8-sentrybarracksnosentry 9-pitfall 10-dybbukbox 11-dybbukboxopen 12-totem 13-fourleafclover 14-potofgold 15-burlapsack 16-ruinedobelisk 17-timemachine 18-trampoline 19-humanoid
 					level.waterLevel[i] = 0;
 					if (mb32.rng(level.featureRNG) < 1 / 1000) {
 						level.waterLevel[i] = Math.floor(mb32.rng(level.featureRNG) * 500);
@@ -1949,18 +1979,16 @@
 					};
 					level.rows[i] = Math.round(level.rows[i]);
 					if (level.features[i] === undefined) {
-						let pool = [];
-						if (mb32.rng(level.featureRNG) < 1 / 20) pool.push(1);
-						if (mb32.rng(level.featureRNG) < 1 / 200) pool.push(2);
-						if (mb32.rng(level.featureRNG) < 1 / 5000) pool.push(5);
-						if (mb32.rng(level.featureRNG) < 1 / 4000) pool.push(7);
-						if (mb32.rng(level.featureRNG) < 1 / 2000) pool.push(10);
-						if (mb32.rng(level.featureRNG) < 1 / 8000) pool.push(12);
-						if (mb32.rng(level.featureRNG) < 1 / 20000) pool.push(16);
-						if (mb32.rng(level.featureRNG) < 1 / 20213123123123.000) pool.push(17);
-						if (mb32.rng(level.featureRNG) < 1 / 35000) pool.push(19);
-						if (mb32.rng(level.featureRNG) < 1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
-						level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(mb32.rng(level.featureRNG) * pool.length)];
+						let featuriness = mb32.rng(level.featureRNG);
+						level.features[i] = 0;
+						for (let j = 0; j < pieces.length; j++) {
+							if (featuriness >= pieces[j][1] && featuriness < pieces[j][2]) {
+								level.features[i] = pieces[j][0];
+								break;
+							};
+						};
+						//if (1 / 70 && new Set([level.rows[i - 2], level.rows[i - 1], level.rows[i], Math.round(level.rows[i + 1]), Math.round(level.rows[i + 2])]).size === 1) pool.push(9);
+						//level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(mb32.rng(level.featureRNG) * pool.length)];
 					};
 	
 					if (mb32.rng(level.featureRNG) < 1 / 30000) {
@@ -2713,6 +2741,18 @@
 					notificate("bankrupt");
 				};
 			};
+			function bigIntString(number) {
+				if (Number.isNaN(number)) {
+					return "NaN";
+				};
+				if (number === Infinity) {
+					return "Infinity";
+				};
+				if (number === -Infinity) {
+					return "-Infinity";
+				};
+				return BigInt(number).toString();
+			};
 
 			var seedUrlParam = getURLParam("seed");
 			if (seedUrlParam !== undefined) {
@@ -3317,14 +3357,22 @@
 				soundSystem.tickAllSounds();
 			};
 			function renderScreen() {
-					canvas.width = innerWidth;
-					canvas.height = innerHeight;
-					renderer.gl.viewport(0, 0, canvas.width, canvas.height);
-					renderer.draw();
+				canvas.width = innerWidth;
+				canvas.height = innerHeight;
+				renderer.gl.viewport(0, 0, canvas.width, canvas.height);
+				if (Math.floor(gameTime * 60) % 2 === 0) {
+					cameraX += 0.8;
+					d = 1;
+				};
+				renderer.draw();
+				if (Math.floor(gameTime * 60) % 2 === 0) {
+					cameraX -= 0.8;
+					d = 0;
+				};
 			};
 			function drawScreen() {
 				if ((!shop && !obeliskShop && playing) || canvas.width !== innerWidth || canvas.height !== innerHeight) {
-				    renderScreen();
+					renderScreen();
 				};
 				
 				document.getElementById("death-screen").style.display = dead ? "flex" : "none";
@@ -3351,8 +3399,8 @@
 				
 				let minutes = (gameTime + 450) * ((12 * 60) / 300);
 				let timeText = ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " AM" : " PM");
-				document.getElementById("stats").innerHTML = "altitude: " + Math.floor(playerY) + "m<br>fps: " + fps + "<br>🪙 " + coins + "<br>💎 " + gems + "<br><div class=\"emoji\" id=\"totem-emoji\"></div> " + totems + "<br>🥾 " + boots + "<br>" + clockEmoji(gameTime) + " " + timeText;
-				document.getElementById("score").innerHTML = "◄ " + score + "m ►";
+				document.getElementById("stats").innerHTML = "altitude: " + Math.floor(playerY) + "m<br>fps: " + fps + "<br>🪙 " + bigIntString(coins) + "<br>💎 " + bigIntString(gems) + "<br><div class=\"emoji\" id=\"totem-emoji\"></div> " + bigIntString(totems) + "<br>🥾 " + boots + "<br>" + clockEmoji(gameTime) + " " + timeText;
+				document.getElementById("score").innerHTML = "◄ " + bigIntString(Math.floor(playerX)) + "m ►";
 				document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 				for (let food in foods) {
 					document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = foods[food].howmany;

@@ -803,7 +803,6 @@
 			uniform int u_dimension; // 0-normal 1-upsidedown
 			uniform bool u_removeBlue;
 			uniform bool u_removeWhite;
-			uniform int u_d;
 
 			bool rectIntersection(vec2 p1, vec2 p2, vec2 b1, vec2 b2) {
 				float t = 0.0;
@@ -860,7 +859,7 @@
 				return vec4Lerp(color, vec4(1.0 - color.r, 1.0 - color.g, 1.0 - color.b, color.a), vec4(factor));
 			}
 			vec4 saturation(vec4 color, float factor) {
-				return vec4Lerp(color, vec4((color.r + color.g + color.b) / 3.0), vec4(factor));
+				return vec4Lerp(color, vec4(vec3((color.r + color.g + color.b) / 3.0), color.a), vec4(factor));
 			}
 			void main() {
 				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
@@ -914,12 +913,6 @@
 				}
 				if (upsidedownifyPixel) {
 					color = invertColor(color, 1.0);
-				}
-				if (u_d == 0) {
-					color.r = 0.0;
-				} else {
-					color.g = 0.0;
-					color.b = 0.0;
 				}
 				gl_FragColor = color;
 			}
@@ -1034,7 +1027,6 @@
 					this.whitenessThresholdLocation = this.gl.getUniformLocation(this.program, "u_whitenessThreshold");
 					this.nightVisionTimeLocation = this.gl.getUniformLocation(this.program, "u_nightVisionTime");
 					this.lanternTimeLocation = this.gl.getUniformLocation(this.program, "u_lanternTime");
-					this.dLocation = this.gl.getUniformLocation(this.program, "u_d");
 					
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -1144,7 +1136,6 @@
 					this.gl.uniform1f(this.whitenessThresholdLocation, settings.whitenessThreshold ?? 0.95);
 					this.gl.uniform1f(this.nightVisionTimeLocation, potions["night vision potion"].time);
 					this.gl.uniform1f(this.lanternTimeLocation, lanternTime);
-					this.gl.uniform1i(this.dLocation, d);
 					
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 
@@ -1905,7 +1896,6 @@
 				"humanoidAmbient": new Sound("./sounds/humanoidAmbient.mp3")
 			};
 			var lanternTime = 0;
-			var d = 0;
 	
 			function generateOctaves() {
 				// octaves
@@ -3357,18 +3347,10 @@
 				soundSystem.tickAllSounds();
 			};
 			function renderScreen() {
-				canvas.width = innerWidth;
-				canvas.height = innerHeight;
-				renderer.gl.viewport(0, 0, canvas.width, canvas.height);
-				if (Math.floor(gameTime * 60) % 2 === 0) {
-					cameraX += 0.8;
-					d = 1;
-				};
+				//canvas.width = innerWidth;
+				//canvas.height = innerHeight;
+				//renderer.gl.viewport(0, 0, canvas.width, canvas.height);
 				renderer.draw();
-				if (Math.floor(gameTime * 60) % 2 === 0) {
-					cameraX -= 0.8;
-					d = 0;
-				};
 			};
 			function drawScreen() {
 				if ((!shop && !obeliskShop && playing) || canvas.width !== innerWidth || canvas.height !== innerHeight) {
@@ -3400,7 +3382,7 @@
 				let minutes = (gameTime + 450) * ((12 * 60) / 300);
 				let timeText = ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " AM" : " PM");
 				document.getElementById("stats").innerHTML = "altitude: " + Math.floor(playerY) + "m<br>fps: " + fps + "<br>🪙 " + bigIntString(coins) + "<br>💎 " + bigIntString(gems) + "<br><div class=\"emoji\" id=\"totem-emoji\"></div> " + bigIntString(totems) + "<br>🥾 " + boots + "<br>" + clockEmoji(gameTime) + " " + timeText;
-				document.getElementById("score").innerHTML = "◄ " + bigIntString(Math.floor(playerX)) + "m ►";
+				document.getElementById("score").innerHTML = "◄ " + bigIntString(score) + "m ►";
 				document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 				for (let food in foods) {
 					document.getElementById(food.replaceAll(" ", "-") + "-howmany").innerHTML = foods[food].howmany;

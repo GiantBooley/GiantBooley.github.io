@@ -6,6 +6,14 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<title>forest simulator 3d</title>
 		<style>
+			@font-face {
+				font-family: "Rock Salt";
+				src: url("./RockSalt-Regular.ttf");
+			}
+			@font-face {
+				font-family: "Canterbury";
+				src: url("./Canterbury.ttf");
+			}
 			* {
 				box-sizing: border-box;
 				font-family: "Franklin Gothic Medium", Arial, Helvetica, sans-serif;
@@ -418,15 +426,66 @@
 			}
 			#seed-label-input {
 				font-family: Consolas, "Courier New", monospace;
-				width: 6ch;
+				width: 11ch;
+			}
+			#scroll-container {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 100%;
+				height: 100%;
+				display: none;
+				align-items: center;
+				justify-content: center;
+				pointer-events: none;
+			}
+			.scroll {
+				background-image: url("./scroll.png");
+				background-size: 100% 100%;
+				height: 100%;
+				padding: 8% 4% 8% 4%;
+				width: calc(100vh * (859 / 1100));
+				pointer-events: all;
+			}
+			.scroll div {
+				font-family: Canterbury, "Rock Salt", serif, "Comic Sans MS", cursive;
+				color: rgba(10, 10, 10, 0.7);
+				font-size: 3vh;
+				width: 100%;
+				height: 100%;
+				text-decoration: underline;
+				text-decoration-thickness: 1px;
+				overflow-wrap: break-word;
+				text-shadow: 0px 0px 7px rgba(0, 0, 0, 0.15);
+				overflow-y: auto;
+			}
+			.scroll div::first-letter {
+				font-size: 2em;
 			}
 		</style>
 	</head>
 	<body>
 		<div id="thing" tabindex="0" onkeydown="globalKeyDownFunction(event);" onkeyup="keysDown[event.key] = false;">
 			<div id="game" tabindex="0" onmouseup="joystick.mouseUp(event);" ontouchend="joystick.mouseUp(event);" onmousemove="joystick.mouseMove(event);" ontouchmove="joystick.mouseMove(event);" oncontextmenu="return false;">
-				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);">
+				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);" onclick="hideScroll();">
 					<canvas id="canvas"></canvas>
+				</div>
+				<div id="scroll-container">
+					<div class="scroll">
+						<div>
+							
+						</div>
+					</div>
+					<!-- <div class="scroll">
+						<div>
+							Verily, sentries be great dark towering figures and doth spawn from sentry barracks and ne'er die unless they doth touch a mimic. Sentries hath the ability to step up everything under 3 blocks and canst climb ladders as well.
+						</div>
+					</div>
+					<div class="scroll">
+						<div>
+							Possessed dolls doth spawn as unpossessed and doth sit down. When the clock doth strike 12 am, they doth wake up and walk towards thee. An thou art caught by a possessed doll, thou art possessed for 15 ticks. Whilst thou art possessed, thou canst not control thy movements, for the possessed doll doth control thy movement. Possessed dolls doth become unpossessed at morn, and they doth spawn about every 3000 blocks.
+						</div>
+					</div> -->
 				</div>
 				<div id="death-screen">
 					YOU DIED
@@ -1163,13 +1222,13 @@
 					let skyImage = (getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight";
 					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {sky: true});
 
-					let stoneBackgroundScroll = 1 / 4;
-					let stoneBackgroundOffset = (750 - cameraY) * -blockSize * stoneBackgroundScroll;
 					let cloudsScroll = 1 / 8;
 					let cloudsOffset = (850 - cameraY) * -blockSize * cloudsScroll;
+					this.drawImage(this.getTexture("clouds"), 0, cloudsOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / cloudsScroll) + gameTime / 240, 0, 1, 1, {removeBlue: 1});
+					let stoneBackgroundScroll = 1 / 4;
+					let stoneBackgroundOffset = (750 - cameraY) * -blockSize * stoneBackgroundScroll;
 					this.drawImage(this.getTexture("stoneBackground"), 0, Math.max(stoneBackgroundOffset, 0), canvas.width, canvas.height - Math.max(stoneBackgroundOffset, 0), cameraX / (canvas.width / blockSize / stoneBackgroundScroll), (Math.max(stoneBackgroundOffset, 0) - stoneBackgroundOffset) * stoneBackgroundScroll / canvas.height, 1, (canvas.height - Math.max(stoneBackgroundOffset, 0)) / canvas.height / 4);
 					
-					this.drawImage(this.getTexture("clouds"), 0, cloudsOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / cloudsScroll) + gameTime / 240, 0, 1, 1, {removeBlue: 1});
 					this.drawImage(this.getTexture("hills"), 0, stoneBackgroundOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / stoneBackgroundScroll), 0.325, 1, 0.675);
 	
 					let rowBuffer = range(Math.floor(cameraX), Math.floor(cameraX + canvas.width / blockSize));
@@ -1529,13 +1588,15 @@
 					this.activeSounds = [];
 				};
 				emitSound(sound, origin) {
-					var newSound = sound.createInstance(origin);
-					newSound.element.addEventListener("ended", e => {
-						this.activeSounds.splice(this.activeSounds.indexOf(newSound), 1);
-					});
+					if (distance(origin, [playerX, playerY] < 150)) {
+						var newSound = sound.createInstance(origin);
+						newSound.element.addEventListener("ended", e => {
+							this.activeSounds.splice(this.activeSounds.indexOf(newSound), 1);
+						});
 
-					this.activeSounds.push(newSound);
-					newSound.element.play();
+						this.activeSounds.push(newSound);
+						newSound.element.play();
+					};
 				};
 				tickAllSounds() {
 					this.activeSounds.forEach(sound => {
@@ -1896,6 +1957,7 @@
 				"humanoidAmbient": new Sound("./sounds/humanoidAmbient.mp3")
 			};
 			var lanternTime = 0;
+			var scrollShowing = false;
 	
 			function generateOctaves() {
 				// octaves
@@ -2185,6 +2247,17 @@
 							};
 						};
 					};
+				} else if (e.key === "g") {
+					showScroll(
+						"Mimics hath the power to mimic coins or gems. "+
+						"Mimics doth spawn about every 5000 blocks and thou "+
+						"canst discern if a coin be a mimic if it be offcentered "+
+						"from the block. When thou dost collect the false "+
+						"coin or gem, it turneth into a mimic after 2 ticks. "+
+						"They be 4 blocks tall and mimic thy movements, but "+
+						"they doth not move if thou dost approach them, and "+
+						"they turn back into a true coin or gem after 30 ticks."
+					);
 				};
 			};
 			function globalKeyDownFunction(e) {
@@ -2742,6 +2815,16 @@
 					return "-Infinity";
 				};
 				return BigInt(number).toString();
+			};
+			function showScroll(text) {
+				document.querySelector("#scroll-container .scroll div").innerText = text;
+				document.querySelector("#scroll-container").style.display = "flex";
+				scrollShowing = true;
+			};
+			function hideScroll() {
+				document.querySelector("#scroll-container .scroll div").innerText = "";
+				document.querySelector("#scroll-container").style.display = "none";
+				scrollShowing = false;
 			};
 
 			var seedUrlParam = getURLParam("seed");

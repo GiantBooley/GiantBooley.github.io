@@ -14,6 +14,9 @@
 				font-family: "Canterbury";
 				src: url("./Canterbury.ttf");
 			}
+			:root {
+				--block-size: 50px;
+			}
 			* {
 				box-sizing: border-box;
 				font-family: "Franklin Gothic Medium", Arial, Helvetica, sans-serif;
@@ -39,6 +42,13 @@
 				position: absolute;
 				width: 100%;
 				height: 100%;
+			}
+			#canvas2 {
+				position: absolute;
+				width: 100%;
+				height: 100%;
+				mix-blend-mode: lighten;
+				transform: translate(calc(var(--block-size) * 0.5), 0px);
 			}
 			#shop-button {
 				position: absolute;
@@ -469,6 +479,7 @@
 			<div id="game" tabindex="0" onmouseup="joystick.mouseUp(event);" ontouchend="joystick.mouseUp(event);" onmousemove="joystick.mouseMove(event);" ontouchmove="joystick.mouseMove(event);" oncontextmenu="return false;">
 				<div id="canvas-wrapper" tabindex="0" onkeydown="keyDownFunction(event);" onclick="hideScroll();">
 					<canvas id="canvas"></canvas>
+					<canvas id="canvas2"></canvas>
 				</div>
 				<div id="scroll-container">
 					<div class="scroll">
@@ -833,7 +844,8 @@
 			varying vec2 v_texcoord;
 
 			void main() {
-				gl_Position = (u_matrix * a_position);
+				vec4 position = u_matrix * a_position;
+				gl_Position = position;
 				v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0.0, 1.0)).xy;
 			}
 		</script>
@@ -860,6 +872,7 @@
 			uniform float u_nightVisionTime;
 			uniform float u_lanternTime;
 			uniform int u_dimension; // 0-normal 1-upsidedown
+			uniform int u_anaglyphMode;
 			uniform bool u_removeBlue;
 			uniform bool u_removeWhite;
 
@@ -973,6 +986,12 @@
 				if (upsidedownifyPixel) {
 					color = invertColor(color, 1.0);
 				}
+				if (u_anaglyphMode == 1) {
+					color.r = 0.0;
+				} else if (u_anaglyphMode == 2) {
+					color.g = 0.0;
+					color.b = 0.0;
+				}
 				gl_FragColor = color;
 			}
 		</script>
@@ -981,6 +1000,9 @@
 			const canvas = document.getElementById("canvas");
 			canvas.width = innerWidth;
 			canvas.height = innerHeight;
+			const canvas2 = document.getElementById("canvas2");
+			canvas2.width = innerWidth;
+			canvas2.height = innerHeight;
 			
 			document.getElementById("canvas-wrapper").focus();
 	
@@ -1034,7 +1056,7 @@
 				}
 			};
 			class WebGLRenderer {
-				constructor() {
+				constructor(canvas) {
 					this.gl = canvas.getContext("webgl", {alpha: false});
 	
 					// init
@@ -1043,6 +1065,7 @@
 					this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 					this.gl.enable(this.gl.BLEND);
 					this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+					this.textures = {};
 				
 					// get shader code
 					this.vertexCode = document.getElementById("vertex").firstChild.nodeValue;
@@ -1086,6 +1109,7 @@
 					this.whitenessThresholdLocation = this.gl.getUniformLocation(this.program, "u_whitenessThreshold");
 					this.nightVisionTimeLocation = this.gl.getUniformLocation(this.program, "u_nightVisionTime");
 					this.lanternTimeLocation = this.gl.getUniformLocation(this.program, "u_lanternTime");
+					this.anaglyphModeLocation = this.gl.getUniformLocation(this.program, "u_anaglyphMode");
 					
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -1120,13 +1144,13 @@
 					if (!this.gl.getProgramParameter(this.program, this.gl.VALIDATE_STATUS)) alert(this.gl.getProgramInfoLog(this.program));
 				};
 	
-				loadTextures() {
+				loadTextures(textures) {
 					for (let texture in textures) {
-						textures[texture] = this.loadImageAndCreateTextureInfo(textures[texture], texture);
+						this.textures[texture] = this.loadImageAndCreateTextureInfo(textures[texture], texture);
 					};
 				};
 				getTexture(texture) {
-					return (typeof textures !== "undefined") ? textures[texture] : this.defaultTexture;
+					return (typeof this.textures[texture] !== "undefined") ? this.textures[texture] : this.defaultTexture;
 				};
 				loadImageAndCreateTextureInfo(url, name="tex") {
 					var tex = this.gl.createTexture();
@@ -1178,15 +1202,15 @@
 					uvHeight *= texInfo.height;
 					this.gl.useProgram(this.program);
 
-					this.gl.uniform2fv(this.playerPosLocation, [(playerX - cameraX) * blockSize, (playerY + 1 - cameraY) * blockSize + canvas.height]);
+					this.gl.uniform2fv(this.playerPosLocation, [(playerX - cameraX) * blockSize, (playerY + 1 - cameraY) * blockSize + this.gl.canvas.height]);
 					this.gl.uniform1f(this.portalTimeLocation, portalTime);
-					this.gl.uniform2fv(this.portalPosLocation, [(portalX - cameraX) * blockSize, (getRowY(level.rows, portalX) - cameraY) * blockSize + canvas.height]);
+					this.gl.uniform2fv(this.portalPosLocation, [(portalX - cameraX) * blockSize, (getRowY(level.rows, portalX) - cameraY) * blockSize + this.gl.canvas.height]);
 					this.gl.uniform2fv(this.screenSizeLocation, [this.gl.canvas.width, this.gl.canvas.height]);
 					this.gl.uniform1f(this.blockSizeLocation, blockSize);
 					this.gl.uniform1i(this.dimensionLocation, ["normal", "upside down"].indexOf(dimension));
 					this.gl.uniform1f(this.alphaLocation, settings.alpha ?? 1);
-					this.gl.uniform1f(this.darknessMinLocation, canvas.height - (dstY + (settings.darknessMin ?? 0) * dstHeight));
-					this.gl.uniform1f(this.darknessMaxLocation, canvas.height - (dstY + (settings.darknessMax ?? 1) * dstHeight));
+					this.gl.uniform1f(this.darknessMinLocation, this.gl.canvas.height - (dstY + (settings.darknessMin ?? 0) * dstHeight));
+					this.gl.uniform1f(this.darknessMaxLocation, this.gl.canvas.height - (dstY + (settings.darknessMax ?? 1) * dstHeight));
 					this.gl.uniform1f(this.darknessLocation, settings.darkness ?? 0);
 					this.gl.uniform1f(this.ambientDarknessLocation, (settings.sky ?? false) ? 0 : lerp(0, 0.99, getDarkness(gameTime)));
 					this.gl.uniform1i(this.removeBlueLocation, settings.removeBlue ?? 0);
@@ -1195,6 +1219,7 @@
 					this.gl.uniform1f(this.whitenessThresholdLocation, settings.whitenessThreshold ?? 0.95);
 					this.gl.uniform1f(this.nightVisionTimeLocation, potions["night vision potion"].time);
 					this.gl.uniform1f(this.lanternTimeLocation, lanternTime);
+					this.gl.uniform1i(this.anaglyphModeLocation, anaglyphMode);
 					
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 
@@ -1220,18 +1245,18 @@
 					this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 					
 					let skyImage = (getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight";
-					this.drawImage(this.getTexture(skyImage), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {sky: true});
+					this.drawImage(this.getTexture(skyImage), 0, 0, this.gl.canvas.width, this.gl.canvas.height, 0, 0, 1, 1, {sky: true});
 
 					let cloudsScroll = 1 / 8;
 					let cloudsOffset = (850 - cameraY) * -blockSize * cloudsScroll;
-					this.drawImage(this.getTexture("clouds"), 0, cloudsOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / cloudsScroll) + gameTime / 240, 0, 1, 1, {removeBlue: 1});
+					this.drawImage(this.getTexture("clouds"), 0, cloudsOffset,this.gl.canvas.width, this.gl.canvas.height, cameraX / (this.gl.canvas.width / blockSize / cloudsScroll) + gameTime / 240, 0, 1, 1, {removeBlue: 1});
 					let stoneBackgroundScroll = 1 / 4;
 					let stoneBackgroundOffset = (750 - cameraY) * -blockSize * stoneBackgroundScroll;
-					this.drawImage(this.getTexture("stoneBackground"), 0, Math.max(stoneBackgroundOffset, 0), canvas.width, canvas.height - Math.max(stoneBackgroundOffset, 0), cameraX / (canvas.width / blockSize / stoneBackgroundScroll), (Math.max(stoneBackgroundOffset, 0) - stoneBackgroundOffset) * stoneBackgroundScroll / canvas.height, 1, (canvas.height - Math.max(stoneBackgroundOffset, 0)) / canvas.height / 4);
+					this.drawImage(this.getTexture("stoneBackground"), 0, Math.max(stoneBackgroundOffset, 0), this.gl.canvas.width, this.gl.canvas.height - Math.max(stoneBackgroundOffset, 0), cameraX / (this.gl.canvas.width / blockSize / stoneBackgroundScroll), (Math.max(stoneBackgroundOffset, 0) - stoneBackgroundOffset) * stoneBackgroundScroll / this.gl.canvas.height, 1, (this.gl.canvas.height - Math.max(stoneBackgroundOffset, 0)) / this.gl.canvas.height / 4);
 					
-					this.drawImage(this.getTexture("hills"), 0, stoneBackgroundOffset, canvas.width, canvas.height, cameraX / (canvas.width / blockSize / stoneBackgroundScroll), 0.325, 1, 0.675);
+					this.drawImage(this.getTexture("hills"), 0, stoneBackgroundOffset, this.gl.canvas.width, this.gl.canvas.height, cameraX / (this.gl.canvas.width / blockSize / stoneBackgroundScroll), 0.325, 1, 0.675);
 	
-					let rowBuffer = range(Math.floor(cameraX), Math.floor(cameraX + canvas.width / blockSize));
+					let rowBuffer = range(Math.floor(cameraX), Math.floor(cameraX + this.gl.canvas.width / blockSize));
 					let deltaRow = Math.floor(Math.max(1 / blockSize, 1));
 					for (let i = 0; i < level.terrainFeatures.length; i += deltaRow) {
 						if (level.terrainFeatures[i] === null) continue;
@@ -1255,9 +1280,9 @@
 						let rowY = (rowYBlocks - cameraY) * -blockSize;
 						let bakedRowY = (rowYBlocks - cameraY) * -blockSize;
 						let groundUVSize = 25;
-						if (rowY < canvas.height) {
-							let height = canvas.height - Math.max(rowY, 0);
-							let darknessTop = height - (canvas.height - ((rowYBlocks + (level.waterLevel[rowBuffer[i]] ?? 0) * (15 / waterDarkness)) - cameraY) * -blockSize);
+						if (rowY < this.gl.canvas.height) {
+							let height = this.gl.canvas.height - Math.max(rowY, 0);
+							let darknessTop = height - (this.gl.canvas.height - ((rowYBlocks + (level.waterLevel[rowBuffer[i]] ?? 0) * (15 / waterDarkness)) - cameraY) * -blockSize);
 							this.drawImage(
 								this.getTexture(groundImage),
 								(rowBuffer[i] - cameraX) * blockSize,
@@ -1357,7 +1382,7 @@
 									case "sentry well":
 										let wellY = (Math.min(getRowY(level.rows, rowBuffer[i] - 1), getRowY(level.rows, rowBuffer[i] + 1)) - cameraY) * -blockSize;
 										this.drawImage(this.getTexture("sentryWell"), (rowBuffer[i] - cameraX) * blockSize, wellY - blockSize * 3, blockSize, blockSize * 3, 0, 0, 1, 1);
-										this.drawImage(this.getTexture("sentryWellPipe"), (rowBuffer[i] - cameraX) * blockSize, wellY, blockSize, canvas.height - wellY, 0, 0, 1, (canvas.height - wellY) / blockSize);
+										this.drawImage(this.getTexture("sentryWellPipe"), (rowBuffer[i] - cameraX) * blockSize, wellY, blockSize, this.gl.canvas.height - wellY, 0, 0, 1, (this.gl.canvas.height - wellY) / blockSize);
 										break;
 									case "mystery crate":
 										this.drawImage(this.getTexture("mysteryCrate"), (rowBuffer[i] - cameraX) * blockSize, rowY - blockSize, blockSize, blockSize);
@@ -1413,7 +1438,7 @@
 					};
 
 					for (let mob of level.mobs) {
-						if ((mob.x + 0.5 - cameraX) * blockSize > 0 && (mob.x - 0.5 - cameraX) * blockSize < canvas.width) {
+						if ((mob.x + 0.5 - cameraX) * blockSize > 0 && (mob.x - 0.5 - cameraX) * blockSize < this.gl.canvas.width) {
 							switch (mob.type) {
 								case "sentry":
 									if (mob.age >= 120) {
@@ -1465,9 +1490,9 @@
 							let waveOffset = Math.max(Math.sin(gameTime * 2 + rowBuffer[i] / 5) * 0.25, -level.waterLevel[rowBuffer[i]]);
 							let waterUVSize = 25;
 							let waterY = (bakedRows[rowBuffer[i]] + level.waterLevel[rowBuffer[i]] + waveOffset - cameraY) * -blockSize;
-							let waterHeight = Math.min((bakedRows[rowBuffer[i]] - cameraY) * -blockSize - waterY, canvas.height - Math.min(waterY, 0));
+							let waterHeight = Math.min((bakedRows[rowBuffer[i]] - cameraY) * -blockSize - waterY, this.gl.canvas.height - Math.min(waterY, 0));
 	
-							if (waterY < canvas.height) {
+							if (waterY < this.gl.canvas.height) {
 								let yOffset = Math.max(waterY, 0) - waterY;
 								this.drawImage(
 									this.getTexture("water"),
@@ -1499,11 +1524,12 @@
 					};*/
 	
 					if (health / maxHealth < 0.1) {
-						this.drawImage(this.getTexture("blood"), 0, 0, canvas.width, canvas.height, 0, 0, 1, 1, {alpha: clamp(1 - (health / maxHealth) / 0.1, 0, 1), sky: 1});
+						this.drawImage(this.getTexture("blood"), 0, 0, this.gl.canvas.width, this.gl.canvas.height, 0, 0, 1, 1, {alpha: clamp(1 - (health / maxHealth) / 0.1, 0, 1), sky: 1});
 					};
 				};
 			};
-			const renderer = new WebGLRenderer();
+			const renderer = new WebGLRenderer(canvas);
+			const renderer2 = new WebGLRenderer(canvas2);
 	
 			var keysDown = [];
 			function isDown(key) {
@@ -1762,8 +1788,8 @@
 			var playerY = 0;
 			var playerXV = 0;
 			var playerYV = 0;
-			var cameraX = playerX - (canvas.width / 2);
-			var cameraY = (playerY + 1) - (canvas.height / 2);
+			var cameraX = playerX - (innerWidth / 2);
+			var cameraY = (playerY + 1) - (innerHeight / 2);
 			var cameraPanX = 0;
 			var cameraPanY = 0;
 			var cameraSnapPending = true;
@@ -1958,6 +1984,7 @@
 			};
 			var lanternTime = 0;
 			var scrollShowing = false;
+			var anaglyphMode = 1;
 	
 			function generateOctaves() {
 				// octaves
@@ -3398,8 +3425,8 @@
 						mob.age++;
 					};
 	
-					let targetCameraX = playerX - canvas.width / blockSize / 2 + cameraPanX;
-					let targetCameraY = playerY + 1 + canvas.height / blockSize / 2 + cameraPanY;
+					let targetCameraX = playerX - innerWidth / blockSize / 2 + cameraPanX;
+					let targetCameraY = playerY + 1 + innerHeight / blockSize / 2 + cameraPanY;
 					cameraX = cameraSnapPending ? targetCameraX : lerp(cameraX, targetCameraX, 0.25);
 					cameraY = cameraSnapPending ? targetCameraY : lerp(cameraY, targetCameraY, 0.25);
 					cameraSnapPending = false;
@@ -3430,10 +3457,21 @@
 				soundSystem.tickAllSounds();
 			};
 			function renderScreen() {
-				//canvas.width = innerWidth;
-				//canvas.height = innerHeight;
-				//renderer.gl.viewport(0, 0, canvas.width, canvas.height);
+				document.documentElement.style.setProperty("--block-size", blockSize + "px");
+				canvas.width = innerWidth;
+				canvas.height = innerHeight;
+				renderer.gl.viewport(0, 0, canvas.width, canvas.height);
 				renderer.draw();
+				anaglyphMode = 0;
+
+				anaglyphMode = 1;
+				cameraX += 0.5;
+				canvas2.width = innerWidth;
+				canvas2.height = innerHeight;
+				renderer2.gl.viewport(0, 0, canvas2.width, canvas2.height);
+				renderer2.draw();
+				anaglyphMode = 2;
+				cameraX -= 0.5;
 			};
 			function drawScreen() {
 				if ((!shop && !obeliskShop && playing) || canvas.width !== innerWidth || canvas.height !== innerHeight) {
@@ -3481,13 +3519,13 @@
 			};
 			var oldfpsTime = 0;
 			function loop() {
-				try {
+				//try {
 					tick();
 					drawScreen();
-				} catch (e) {
-					alert(e.stack);
-					return;
-				};
+				//} catch (e) {
+				//	alert(e.stack);
+				//	return;
+				//};
 				frameCount++;
 				let now = performance.now();
 				if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

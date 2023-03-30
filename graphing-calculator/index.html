@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>gpg</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			#canvas {
+				width: 100vh;
+				height: 100vh;
+				outline: 2px solid blue;
+			}
+			#tooltip {
+				background-color: #FFFFFF;
+				border: 1px solid #AAAAAA;
+				border-radius: 5px;
+				color: black;
+				font-family: Arial, Helvetica, sans-serif;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				pointer-events: none;
+				padding: 2px;
+			}
+		</style>
+	</head>
+	<body onload="init();">
+		<canvas id="canvas"></canvas>
+		<div id="tooltip">asd</div>
+	</body>
+	<script id="vertex" type="x-shader/x-vertex">
+		attribute vec2 a_position;
+
+		void main() {
+			gl_Position = vec4(a_position, 0, 1); // vec4(u_matrix * vec3(a_position, 1), 1);
+		}
+	</script>
+	<script id="fragment" type="x-shader/x-fragment">
+		precision highp float;
+
+		uniform vec2 u_screenSize;
+		uniform vec2 u_scale;
+		uniform vec2 u_offset;
+
+		bool lineEquals(float a, float b, float width) {
+			return b < a + width / 2.0 || b > a - width / 2.0;
+		}
+		bool testCoordinate(float x, float y) {
+			return pow(x, 2.0) + pow(y, 2.0) < 5.0;//x / y - pow(x, y) < tan(pow(x, y));
+		}
+		void main() {
+			highp float x = (gl_FragCoord.x - u_screenSize.x / 2.0) * u_scale.x + u_offset.x;
+			highp float y = (gl_FragCoord.y - u_screenSize.y / 2.0) * u_scale.y + u_offset.y;
+			float brightness0 = testCoordinate(x, y) ? 0.0 : 1.0;
+			float brightness1 = testCoordinate(x + 0.5 * u_scale.x, y) ? 0.0 : 1.0;//34
+			float brightness2 = testCoordinate(x, y + 0.5 * u_scale.y) ? 0.0 : 1.0;//12
+			float brightness3 = testCoordinate(x + 0.5 * u_scale.x, y + 0.5 * u_scale.y) ? 0.0 : 1.0;
+			float avgBrightness = (brightness0 + brightness1 + brightness2 + brightness3) / 4.0;
+			gl_FragColor = vec4(1.0 - avgBrightness, 1.0, 1.0 - avgBrightness, 1.0);
+		}
+	</script>
+	<script>
+		function lerp(a, b, c) {
+			return (b - a) * c + a;
+		};
+		const canvas = document.getElementById("canvas");
+		canvas.width = innerHeight;
+		canvas.height = innerHeight;
+		const gl = canvas.getContext("webgl");
+ 
+		gl.viewport(0, 0, canvas.width, canvas.height);
+		gl.clearColor(0, 0, 0, 1);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		
+		// get shader code
+		var vertexCode = document.getElementById("vertex").firstChild.nodeValue;
+		var fragmentCode = document.getElementById("fragment").firstChild.nodeValue;
+
+		// create shaders and program
+		var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+		gl.shaderSource(vertexShader, vertexCode);
+		gl.compileShader(vertexShader);
+		
+		var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+		gl.shaderSource(fragmentShader, fragmentCode);
+		gl.compileShader(fragmentShader);
+
+		var program = gl.createProgram();
+		gl.attachShader(program, vertexShader);
+		gl.attachShader(program, fragmentShader);
+		gl.linkProgram(program);
+
+		// stuffs
+		var u_screenSizeLoc = gl.getUniformLocation(program, "u_screenSize");
+		var u_scaleLoc = gl.getUniformLocation(program, "u_scale");
+		var u_offsetLoc = gl.getUniformLocation(program, "u_offset");
+
+		// errors
+		if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+			alert(gl.getShaderInfoLog(vertexShader));
+		};
+		if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+			alert(gl.getShaderInfoLog(fragmentShader));
+		};
+		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+			alert(gl.getProgramInfoLog(program));
+		};
+		gl.validateProgram(program);
+
+
+		// vertexes and stuff
+
+		var vertices = new Float32Array([
+			-1, -1, 1, -1, -1, 1,
+			-1, 1, 1, 1, 1, -1
+		]);
+
+		var vbuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, vbuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+		var itemSize = 2;
+		var numItems = vertices.length / itemSize;
+
+		gl.useProgram(program);
+
+		var a_positionLoc = gl.getAttribLocation(program, "a_position");
+		gl.enableVertexAttribArray(a_positionLoc);
+		gl.vertexAttribPointer(a_positionLoc, itemSize, gl.FLOAT, false, 0, 0);
+
+		var scale = 1;
+		var offsetX = 0;
+		var offsetY = 0;
+		function zoom(e) {
+			let oldScale = scale;
+			if (Math.sign(e.deltaY) === 1) {
+				scale *= 1.05;
+			} else {
+				scale /= 1.05;
+			};
+			let scaleChange = scale - oldScale;
+			let rect = canvas.getBoundingClientRect();
+			let coord = cords(e.clientX - rect.left, e.clientY - rect.left)
+			offsetX -= -(coord.x * scaleChange);
+			offsetY -= -(coord.y * scaleChange);
+			document.getElementById("tooltip").innerText = coord.x + " " + coord.y;
+		};
+		function coords(x, y) {
+			return {
+				x: (x - canvas.width / 2) * scale + offsetX,
+				y: ((canvas.height - y) - canvas.height / 2) * scale + offsetY
+			};
+		};
+		function moveMouse(e) {
+			var tooltip = document.getElementById("tooltip");
+			var rect = canvas.getBoundingClientRect();
+			tooltip.style.left = e.clientX + 13 + "px";
+			tooltip.style.top = e.clientY + 16 + "px";
+			var coord = coords(e.clientX - rect.left, e.clientY - rect.top);
+			//tooltip.innerText = "(" + coord.x.toFixed(3) + ", " + coord.y.toFixed(3) + ")";
+		};
+		canvas.addEventListener("wheel", zoom);
+		canvas.addEventListener("mousemove", moveMouse);
+		function render() {
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.uniform2fv(u_screenSizeLoc, [canvas.width, canvas.height]);
+			gl.uniform2fv(u_scaleLoc, [scale, scale]);
+			gl.uniform2fv(u_offsetLoc, [offsetX, offsetY]);
+			// draw stuff
+			gl.drawArrays(gl.TRIANGLES, 0, numItems);
+			requestAnimationFrame(render);
+		};
+		render();
+	</script>
+</html>

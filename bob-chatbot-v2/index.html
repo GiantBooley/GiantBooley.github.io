@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Bob Chatbot V2</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#chatbot {
+				width: 100%;
+				height: 100%;
+				display: flex;
+				flex-direction: column;
+			}
+			#messages {
+				width: 100%;
+				flex-grow: 1;
+			}
+			#text-box-container {
+				flex-grow: 0;
+				width: 100%;
+			}
+			#text-box {
+				font-size: 30px;
+				padding: 10px;
+				width: 100%;
+				border-radius: 30px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="chatbot">
+			<div id="messages"></div>
+			<div id="text-box-container">
+				<input type="text" id="text-box">
+			</div>
+		</div>
+	</body>
+</html>

@@ -18,6 +18,7 @@
 				display: flex;
 				align-items: center;
 				justify-content: center;
+				overflow: hidden;
 			}
 			#canvas {
 				width: 100vh;
@@ -35,10 +36,15 @@
 				left: 0px;
 				pointer-events: none;
 				padding: 2px;
+				display: none;
+			}
+			input[type="range"] {
+				width: 600px;
 			}
 		</style>
 	</head>
-	<body onload="init();">
+	<body>
+		<input type="range" id="samples"min="1" max="32" step="1">
 		<canvas id="canvas"></canvas>
 		<div id="tooltip">asd</div>
 	</body>
@@ -55,20 +61,26 @@
 		uniform vec2 u_screenSize;
 		uniform vec2 u_scale;
 		uniform vec2 u_offset;
+		uniform float u_samples;
 
 		bool lineEquals(float a, float b, float width) {
 			return b < a + width / 2.0 || b > a - width / 2.0;
 		}
 		bool testCoordinate(float x, float y) {
-			return pow(x, 2.0) + pow(y, 2.0) < 5.0;//x / y - pow(x, y) < tan(pow(x, y));
+			float height = 0.0;
+			for (float n = 0.0; n < 50.0; n++) {
+				if (n >= u_samples) break;
+				height += sin(pow(2.0, n) * x) / pow(2.0, n);
+			};
+			return y < height;
 		}
 		void main() {
 			highp float x = (gl_FragCoord.x - u_screenSize.x / 2.0) * u_scale.x + u_offset.x;
 			highp float y = (gl_FragCoord.y - u_screenSize.y / 2.0) * u_scale.y + u_offset.y;
-			float brightness0 = testCoordinate(x, y) ? 0.0 : 1.0;
-			float brightness1 = testCoordinate(x + 0.5 * u_scale.x, y) ? 0.0 : 1.0;//34
-			float brightness2 = testCoordinate(x, y + 0.5 * u_scale.y) ? 0.0 : 1.0;//12
-			float brightness3 = testCoordinate(x + 0.5 * u_scale.x, y + 0.5 * u_scale.y) ? 0.0 : 1.0;
+			float brightness0 = testCoordinate(x, y) ? 1.0 : 0.0;
+			float brightness1 = testCoordinate(x + 0.5 * u_scale.x, y) ? 1.0 : 0.0;//34
+			float brightness2 = testCoordinate(x, y + 0.5 * u_scale.y) ? 1.0 : 0.0;//12
+			float brightness3 = testCoordinate(x + 0.5 * u_scale.x, y + 0.5 * u_scale.y) ? 1.0 : 0.0;
 			float avgBrightness = (brightness0 + brightness1 + brightness2 + brightness3) / 4.0;
 			gl_FragColor = vec4(1.0 - avgBrightness, 1.0, 1.0 - avgBrightness, 1.0);
 		}
@@ -108,6 +120,7 @@
 		var u_screenSizeLoc = gl.getUniformLocation(program, "u_screenSize");
 		var u_scaleLoc = gl.getUniformLocation(program, "u_scale");
 		var u_offsetLoc = gl.getUniformLocation(program, "u_offset");
+		var u_samplesLoc = gl.getUniformLocation(program, "u_samples");
 
 		// errors
 		if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
@@ -145,24 +158,38 @@
 		var scale = 1;
 		var offsetX = 0;
 		var offsetY = 0;
+		var mouseX = 0;
+		var mouseY = 0;
+		var mouseDown = false;
+		var mouseButton = 1;
 		function zoom(e) {
 			let oldScale = scale;
-			if (Math.sign(e.deltaY) === 1) {
-				scale *= 1.05;
-			} else {
-				scale /= 1.05;
-			};
-			let scaleChange = scale - oldScale;
+			let zoomAmount = 1.05;
+			
 			let rect = canvas.getBoundingClientRect();
-			let coord = cords(e.clientX - rect.left, e.clientY - rect.left)
-			offsetX -= -(coord.x * scaleChange);
-			offsetY -= -(coord.y * scaleChange);
-			document.getElementById("tooltip").innerText = coord.x + " " + coord.y;
+			let coordAbs = coords(e.clientX - rect.left, e.clientY - rect.top, true);
+			if (Math.sign(e.deltaY) === 1) {
+				offsetX -= coordAbs.x;
+				offsetY -= coordAbs.y;
+				scale *= zoomAmount;
+				let coord = coords(e.clientX - rect.left, e.clientY - rect.top, false);
+				let deltaScale = scale - oldScale;
+				offsetX += (coordAbs.x / zoomAmount) - deltaScale;
+				offsetY += (coordAbs.y / zoomAmount) - deltaScale;
+			} else {
+				offsetX += coordAbs.x;
+				offsetY += coordAbs.y;
+				scale /= zoomAmount;
+				let coord = coords(e.clientX - rect.left, e.clientY - rect.top, false);
+				let deltaScale = scale - oldScale;
+				offsetX -= (coordAbs.x / zoomAmount) - deltaScale;
+				offsetY -= (coordAbs.y / zoomAmount) - deltaScale;
+			};
 		};
-		function coords(x, y) {
+		function coords(x, y, absolute=false) {
 			return {
-				x: (x - canvas.width / 2) * scale + offsetX,
-				y: ((canvas.height - y) - canvas.height / 2) * scale + offsetY
+				x: (x - canvas.width / 2) * scale + offsetX * !absolute,
+				y: ((canvas.height - y) - canvas.height / 2) * scale + offsetY * !absolute
 			};
 		};
 		function moveMouse(e) {
@@ -170,16 +197,48 @@
 			var rect = canvas.getBoundingClientRect();
 			tooltip.style.left = e.clientX + 13 + "px";
 			tooltip.style.top = e.clientY + 16 + "px";
-			var coord = coords(e.clientX - rect.left, e.clientY - rect.top);
-			//tooltip.innerText = "(" + coord.x.toFixed(3) + ", " + coord.y.toFixed(3) + ")";
+			mouseX = e.clientX;
+			mouseY = e.clientY;
+			var coord = coords(e.clientX - rect.left, e.clientY - rect.top, false);
+			tooltip.innerText = "(" + coord.x.toFixed(3) + ", " + coord.y.toFixed(3) + ")";
+		};
+		function mouseEnter(e) {
+			tooltip.style.display = "block";
+		};
+		function mouseLeave(e) {
+			tooltip.style.display = "none";
+		};
+		function mouseDownFun(e) {
+			mouseDown = true;
+			mouseButton = e.which;
+		};
+		function mouseUpFun(e) {
+			mouseDown = false;
+		};
+		function contextMenu(e) {
+			e.preventDefault();
 		};
 		canvas.addEventListener("wheel", zoom);
 		canvas.addEventListener("mousemove", moveMouse);
+		canvas.addEventListener("mouseenter", mouseEnter);
+		canvas.addEventListener("mouseleave", mouseLeave);
+		canvas.addEventListener("mousedown", mouseDownFun);
+		canvas.addEventListener("mouseup", mouseUpFun);
+		canvas.addEventListener("contextmenu", contextMenu);
 		function render() {
+			if (mouseDown) {
+				zoom({
+					deltaY: mouseButton === 1 ? -1 : 1,
+					clientX: mouseX,
+					clientY: mouseY
+				});
+			};
+
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.uniform2fv(u_screenSizeLoc, [canvas.width, canvas.height]);
 			gl.uniform2fv(u_scaleLoc, [scale, scale]);
 			gl.uniform2fv(u_offsetLoc, [offsetX, offsetY]);
+			gl.uniform1f(u_samplesLoc, document.getElementById("samples").valueAsNumber);
 			// draw stuff
 			gl.drawArrays(gl.TRIANGLES, 0, numItems);
 			requestAnimationFrame(render);

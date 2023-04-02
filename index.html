@@ -1,206 +1,225 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 	<head>
-		<meta charset="UTF-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Bob Chatbot V2</title>
+		<title>Giantbooley</title>
 		<style>
 			* {
 				box-sizing: border-box;
 			}
-			html,body {
-				width: 100%;
-				height: 100%;
-			}
 			body {
+				background-color: cornsilk;
+				margin: 0px;
+			}
+			a {
+				background-color: #AAAAAA;
+				color: white;
+				padding: 5px;
+				text-decoration: none;
+				border-radius: 5px;
+				border: 3px ridge #666666;
+				box-shadow: 2px 2px 2px gray, inset 5px 5px 10px #666666;
+				transition-duration: 0.1s;
+				user-select: none;
+			}
+			a.new::after {
+				content: "NEW";
+				background-image: radial-gradient(orange, #FF0000);
+				border-radius: 3px;
+				border: 3px double white;
+				padding: 1px;
+				font-family: sans-serif;
+				margin-left: 3px;
+				font-size: 0.6rem;
+				display: inline;
+				position: absolute;
+				transform: translate(10px, 3px);
+				box-shadow: 2px 2px 2px gray, inset 5px 5px 10px #DD0000;
+				text-shadow: 0px 0px 10px white;
+				pointer-events: none;
+				text-align: center;
+				width: 3%;
+				height: 2em;
+			}
+			a.new:hover::after {
+				color: white;
+			}
+			a:hover {
+				color: cyan;
+				background-color: #888888;
+				text-shadow: 0px 0px 3px white;
+			} 
+			a:active {
+				background-color: #777777;
+			}
+			.category-unbloked {
+				opacity: 0;
+			}
+			.buttons {
+				line-height: 2.25;
+			}
+			.category-broken {
+				opacity: 0.5;
+			}
+			h2 {
 				margin: 0;
-				overflow: hidden;
 			}
-			#chatbot {
-				width: 100%;
-				height: 100%;
-				display: flex;
-				flex-direction: column;
-			}
-			#messages {
-				width: 100%;
-				flex-grow: 1;
-				font-size: 20px;
-				font-family: Arial, Helvetica, sans-serif;
-				padding: 10px;
-				border: 2px solid #A0A0A0;
-				border-radius: 10px;
-				overflow: auto;
-			}
-			#text-box-container {
-				flex-grow: 0;
-				width: 100%;
-				display: flex;
-				flex-direction: row;
-			}
-			#text-box {
-				font-size: 30px;
-				padding: 10px;
-				border-radius: 30px;
-				flex-grow: 1;
-				border: 2px solid #A0A0A0;
-			}
-			#text-box:focus {
-				outline: none;
-				border: 2px solid #9999FF;
-			}
-			#enter-button {
-				font-size: 30px;
-				padding: 10px;
-				aspect-ratio: 1 / 1;
-				background-color: white;
-				color: #A0A0A0;
-				border: 2px solid #A0A0A0;
-				border-radius: 50%;
-			}
-			#enter-button:hover {
-				color: #888888;
-				border: 2px solid #888888;
+			.category {
+				margin: 10px;
+				padding: 3px;
+				box-shadow: 2px 2px 10px black;
+				border: 3px ridge #666666;
+				border-radius: 5px;
+				background-color: cornsilk;
 			}
 		</style>
 	</head>
 	<body>
-		<div id="chatbot">
-			<div id="messages">
-				<b>Bob: </b>hi<br>
-			</div>
-			<div id="text-box-container">
-				<input type="text" id="text-box">
-				<button onclick="enter();" id="enter-button">></button>
+		<h1>GiantBooley's website</h1> 1000th commit 12/19/22
+		<p>friends github: <a href="https://wyattnewman.github.io/" class="external">wyattnewman.github.io (this is my website)</a></p>
+		<hr>
+		<div class="category category-games">
+			<h2>Ga<span>m</span>es (3)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./mining-simulator">Mining simulator</a><br>
+				<a href="./virus-simulator">Virus simulator</a><br>
+				<a href="./forest-simulator-3d">Forest simulator 3D</a>
 			</div>
 		</div>
-		<script>
-			function editDistance(s1, s2) {
-				var costs = new Array();
-				for (var i = 0; i <= s1.length; i++) {
-					var lastValue = i;
-					for (var j = 0; j <= s2.length; j++) {
-						if (i === 0) {
-							costs[j] = j;
-						} else {
-							if (j > 0) {
-								var newValue = costs[j - 1];
-								if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
-									newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-								};
-								costs[j - 1] = lastValue;
-								lastValue = newValue;
-							};
-						};
-					};
-					if (i > 0) costs[s2.length] = lastValue;
-				};
-				return costs[s2.length];
-			}
-			function similarity(s1, s2) {
-				var longer = s1;
-				var shorter = s2;
-				if (s1.length < s2.length) {
-					longer = s2;
-					shorter = s1;
-				};
-				var longerLength = longer.length;
-				if (longerLength === 0) {
-					return 1.0;
-				};
-				return (longerLength - editDistance(longer, shorter)) / parseFloat(longerLength);
-			};
-			function arrayRandom(arr) {
-				return arr[Math.floor(Math.random() * arr.length)];
-			};
-
-			class ChatBot {
-				constructor(responses={}) { 
-					/* 
-					 * why: {im melting: [its hot, heat], hi: [because]}
-					 * wbsl: {wysl: [message]}
-					 * wbsl ??= {}
-					 * wbsl.wysl ??= []
-					 * wbsl.wysl.push message
-					 * 
-					 */
-					this.responses = {
-						"say what you said": {"hi": ["hi"]},
-						...responses
-					};
-					this.error = "i didnt quite get that";
-					this.lastBobMessage = "hi";
-					this.lastYouMessage = "hello";
-				};
-				getResponse(message, train=false) {
-					var similar = this.getMostSimilar(message, this.lastBobMessage);
-					var correctedMessage = similar.preceder;
-					var correctedLastBobMessage = similar.message;
-					var bobResponse = arrayRandom(this.responses[correctedMessage][correctedLastBobMessage]);
-					if (train) {
-						this.learnResponse(this.lastYouMessage, this.lastBobMessage, message);
-					};
-					this.lastYouMessage = message;
-					this.lastBobMessage = bobResponse;
-					return bobResponse;
-				};
-				getMostSimilar(text, lastBobMessage) {
-					var preceder = Object.keys(this.responses).sort((a, b) => similarity(b, text) - similarity(a, text))[0];
-					var message = Object.keys(this.responses[preceder]).sort((a, b) => similarity(b, lastBobMessage) - similarity(a, lastBobMessage))[0];
-					return {preceder, message};
-				};
-				learnResponse(preceder, message, response) {
-					this.responses[message] ??= {};
-					this.responses[message][preceder] ??= [];
-					this.responses[message][preceder].push(response);
-				};
-			};
-			function writeOut(text) {
-				document.getElementById("messages").innerHTML += text;
-			};
-			function escapeHTML(un) {
-				return un
-					.replace(/&/g, "&amp;")
-					.replace(/</g, "&lt;")
-					.replace(/>/g, "&gt;")
-					.replace(/"/g, "&quot;")
-					.replace(/'/g, "&#039;");
-			};
-			var bob = new ChatBot();
-			var bobTyping = false;
-			async function enter(text=document.getElementById("text-box").value) {
-				var textbox = document.getElementById("text-box");
-				text = text.trim();
-				if (textbox.value.length > 0 && textbox.value.match(/\S/g) !== null && !bobTyping) {
-					var messages = document.getElementById("messages");
-					writeOut("<b>You: </b>" + escapeHTML(text) + "<br>");
-					textbox.value = "";
-					var bobResponse = bob.getResponse(text, true);
-					writeOut("<b>Bob: </b>");
-					bobTyping = true;
-					for (let i = 0; i < bobResponse.length; i++) {
-						writeOut(bobResponse[i]);
-						messages.scrollTo(0, messages.scrollHeight);
-						await wait(randInt(10, 80));
-					};
-					bobTyping = false;
-					writeOut("<br>");
-				};
-			};
-			async function wait(ms) {
-				return new Promise(res => setTimeout(res, ms));
-			};
-			function randInt(min, max) {
-				return Math.floor((max - min) * Math.random() + min);
-			};
-
-			document.getElementById("text-box").addEventListener("keydown", e => {
-				if (e.key === "Enter") {
-					enter();
+		<div class="category category-stuff">
+			<h2>Random stuff (39)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./fake-terminal">Fake terminal</a><br>
+				<a href="./fake-hack-decimal">Fake hack decimal</a><br>
+				<a href="./fake-hack-binary">Fake hack binary</a><br>
+				<a href="./bookmarklets">Bookmarklets</a><br>
+				<a href="./fake-hack-code">Fake code hack</a><br>
+				<a href="./click-the-button">Click the button</a><br>
+				<a href="./snake">Snake</a><br>
+				<a href="./big-techifier">Big techifier</a><br>
+				<a href="./chrome-simulator">Chrome simulator</a><br>
+				<a href="./bob-console">Bob console</a><br>
+				<a href="./light-bulb">Light bulb</a><br>
+				<a href="./paint">Paint</a><br>
+				<a href="./3d-button">3D button</a><br>
+				<a href="./infinite">1000 tabs</a><br>
+				<a href="./fractals">Fractals</a><br>
+				<a href="./movable-box">Box</a><br>
+				<a href="./spinning-thing-with-a-perfect-fit">Spinning thing</a><br>
+				<a href="./platformer">Platformer</a><br>
+				<a href="./loading-sign-1">Loading sign 1</a><br>
+				<a href="./loading-sign-2">Loading sign 2</a><br>
+				<a href="./terrain-generator">Terrain generator</a><br>
+				<a href="./no-signal">No signal</a><br>
+				<a href="./pung">Pung</a><br>
+				<a href="./3d-image">3D image</a><br>
+				<a href="./ames-window">Ames window</a><br>
+				<a href="./square-wheel">Square wheel</a><br>
+				<a href="./style-only">Style only</a><br>
+				<a href="./tic-tac-toe">Tic tac toe</a><br>
+				<a href="./apps">Apps</a><br>
+				<a href="./canvas">Canvas</a><br>
+				<a href="./no-close">No close</a><br>
+				<a href="./piano-tiles">Piano tiles</a><br>
+				<a href="./fat-guy">Fat guy</a><br>
+				<a href="./3d">3D</a><br>
+				<a href="./agar.io">Agar.io</a><br>
+				<a href="./ascii-game">Ascii game not working</a><br>
+				<a href="./browser/browser.html">Browser</a><br>
+				<a href="./minecraft">Mine Ccraft butoon</a><br>
+				<a href="./rtx">Rtx not working but it might work because i forgot what keys to press</a>
+>			</div>
+		</div>
+		<div class="category category-ai">
+			<h2>AI stuff (12)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./story-lengthener">Story lengthener</a><br>
+				<a href="./bob-chatbot">Bob chatbot</a><br>
+				<a href="./word-generator">Word generator</a><br>
+				<a href="./brain">Neural network cube</a><br>
+				<a href="./connect-4-ai">Connect 4 ai</a><br>
+				<a href="./dino-ai">Dinosaurous rex artificial intelligence</a><br>
+				<a href="./dino-ai-vector-distance">Dinosaurous rex artificial intelligence vector distance</a><br>
+				<a href="./keyboard-maker">Keyboard maker</a><br>
+				<a href="./lstm-chatbot">Larry sam tim mark chatbot</a><br>
+				<a href="./serpentes-artificial-intelligence">Serpentes artificial intelligence</a><br>
+				<a href="./similarity">Text doer similarity</a><br>
+				<a href="./word-ai">Average word ai but trash</a><br>
+				<a href="./bob-chatbot-v2">Bob chatbot V2</a>
+			</div>
+		</div>
+		<div class="category category-tools">
+			<h2>Tools stuff (23)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./tools">Other tools</a><br>
+				<a href="./url-encode-decode">URL encoder and decoder</a><br>
+				<a href="./number-shortener">Number shortener</a><br>
+				<a href="./javascript-tester">Javascript tester</a><br>
+				<a href="./upside-down-calculator">Upside down calculator generator</a><br>
+				<a href="./file-downloader">File downloader</a><br>
+				<a href="./html-viewer">HTML viewer</a><br>
+				<a href="./website-embedder">Website embedder</a><br>
+				<a href="./discord-text-emoji-generator">Discord text emoji generator</a><br>
+				<a href="./javascript-to-bookmarklet">Javascript to bookmarklet</a><br>
+				<a href="./letter-lookalike-generator">Letter lookalike generator</a><br>
+				<a href="./commentifier">Commentifier</a><br>
+				<a href="./pi-calculator">Pi calculator</a><br>
+				<a href="./giant-number">Giant number</a><br>
+				<a href="./cps-test">CPS test</a><br>
+				<a href="./length-comparer">Length comparer</a><br>
+				<a href="./wordle-solver">Wordle solver</a><br>
+				<a href="./nft-painter">NFT painter</a><br>
+				<a href="./graph-paper">Graph paper not working</a><br>
+				<a href="./request-sender">Request sender</a><br>
+				<a href="./tellraw-tester">Tellraw tester not working</a><br>
+				<a href="./teacher-translator">Teacher translator</a><br>
+				<a href="./graphing-calculator">Graphing calculator</a>
+			</div>
+		</div>
+		<div class="category category-unbloked">
+			<h2>Unbloked stuff (2)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./unbloked/y8/www.y8.com/games/slope.html">slope unbloked</a><br>
+				<a href="./unbloked/y8/www.y8.com/games/subway_surfers_world_tour_houston.html">subway surfers unbloked</a><br>
+			</div>
+		</div>
+		<div class="category category-broken">
+			<h2>Broken stuff (3)</h2>
+			<hr>
+			<div class="buttons">
+				<a href="./nvidia-gaugan/gaugan.org/gaugan2">nvidia gaugan</a><br>
+				<a href="./javascript-viewer">Javascript viewer</a><br>
+				<a href="./hex-editor">Hex editor</a><br>
+			</div>
+		</div>
+	</body>
+	<script>
+		if (localStorage.getItem("visitedLinks") == null) {
+			localStorage.setItem("visitedLinks", "[]");
+		};
+		var visited = JSON.parse(localStorage.getItem("visitedLinks"));
+		if (localStorage.getItem("firstVisit") == null) {
+			localStorage.setItem("firstVisit", "false");
+			document.querySelectorAll("a:not(.external)").forEach((element) => {
+				visited.push(element.href);
+				localStorage.setItem("visitedLinks", JSON.stringify(visited));
+			});
+		};
+		document.querySelectorAll("a:not(.external)").forEach((element) => {
+			element.addEventListener("click", function(){
+				if (!visited.includes(element.href)) {
+					visited.push(element.href);
+					localStorage.setItem("visitedLinks", JSON.stringify(visited));
 				};
 			});
-			document.getElementById("text-box").focus();
-		</script>
-	</body>
+			if (!visited.includes(element.href)) {
+				element.classList.add("new");
+			};
+		});
+		localStorage.setItem("visitedLinks", JSON.stringify(visited));
+	</script>
 </html>

@@ -56,7 +56,7 @@
 	<body>
 		<div id="settings">
 			<input type="text" id="equation"><button onclick="updateEquation();">OPERATE</button><label id="error"></label>
-			<input type="range" id="samples" min="1" max="100" step="1" onchange="render();">
+			<input type="range" id="samples" min="1" max="100" step="1" value="3">
 		</div>
 		<div id="canvases">
 			<canvas id="gl-canvas"></canvas>
@@ -138,6 +138,8 @@
 		const ctxCanvas = document.getElementById("ctx-canvas");
 		glCanvas.width = innerHeight;
 		glCanvas.height = innerHeight;
+		ctxCanvas.width = innerHeight;
+		ctxCanvas.height = innerHeight;
 		const gl = glCanvas.getContext("webgl") || glCanvas.getContext("experimental-webgl");
 		const ctx = ctxCanvas.getContext("2d");
 		const canvases = document.getElementById("canvases");
@@ -212,7 +214,7 @@
 			let oldScale = scale;
 			let zoomAmount = 1.05;
 			
-			let rect = glCanvas.getBoundingClientRect();
+			let rect = (mode === "gpu" ? glCanvas : ctxCanvas).getBoundingClientRect();
 			let coordAbs = coords(e.clientX - rect.left, e.clientY - rect.top, true);
 			if (Math.sign(e.deltaY) === 1) {
 				offsetX -= coordAbs.x;
@@ -241,7 +243,7 @@
 		};
 		function moveMouse(e) {
 			var tooltip = document.getElementById("tooltip");
-			var rect = glCanvas.getBoundingClientRect();
+			var rect = (mode === "gpu" ? glCanvas : ctxCanvas).getBoundingClientRect();
 			tooltip.style.left = e.clientX + 13 + "px";
 			tooltip.style.top = e.clientY + 16 + "px";
 			mouseX = e.clientX;
@@ -291,23 +293,28 @@
 				
 				gl.drawArrays(gl.TRIANGLES, 0, numItems);
 			} else if (mode === "cpu") {
-				ctx.putImageData(new ImageData(glCanvas.width, glCanvas.height), 0, 0);
-				ctxRender({
+				try {
+				ctx.putImageData(ctxRender({
 					u_screenSize: {x: glCanvas.width, y: glCanvas.height}, 
 					u_scale: {x: scale, y: scale}, 
 					u_offset: {x: offsetX, y: offsetY}, 
 					u_samples: document.getElementById("samples").valueAsNumber
-				});
+				}), 0, 0);
+				} catch (e) {
+					alert(e.stack)
+				}
 			};
 		};
 		function ctxRender(them) {
+			var imageData = new ImageData(ctxCanvas.width, ctxCanvas.height);
+
 			const u_screenSize = them.u_screenSize;
 			const u_scale = them.u_scale;
 			const u_offset = them.u_offset;
 			const u_samples = them.u_samples;
 
 			function mod(a, b) {
-				return a % b;
+				return ((a % b) + b) % b;
 			};
 			function pow(a, b) {
 				return a ** b;
@@ -334,10 +341,16 @@
 					let pow2n = pow(2.0, n);
 					height += sin(pow2n * x) / pow2n;
 				};
-				return /*s*/y<x/*e*/;
+				return /*s*/y<height/*e*/;
 			};
 			function vec4Lerp(a, b, t) {
-				return (b - a) * t + a;
+				var lerp = (a, b, t) => (b - a) * t + a;
+				return {
+					r: lerp(a.r, b.r, t),
+					g: lerp(a.g, b.g, t),
+					b: lerp(a.b, b.b, t),
+					a: lerp(a.a, b.a, t)
+				};
 			};
 			function log10(x) {
 				return log(x) / log(10.0);
@@ -378,13 +391,23 @@
 				};
 				return color;
 			};
-			main();
+			for (let x = 0; x < imageData.width; x++) {
+				for (let y = 0; y < imageData.height; y++) {
+					let color = main(x, imageData.height - y);
+					let index = (y * imageData.width + x) * 4;
+					imageData.data[index] = Math.floor(color.r * 255);
+					imageData.data[index + 1] = Math.floor(color.g * 255);
+					imageData.data[index + 2] = Math.floor(color.b * 255);
+					imageData.data[index + 3] = Math.floor(color.a * 255);
+				};
+			};
+			return imageData;
 		};
 		function tick() {
 			glCanvas.style.display = mode === "gpu" ? "block" : "none";
 			ctxCanvas.style.display = mode === "cpu" ? "block" : "none";
 			var newTime = performance.now();
-			deltaTime = newTime - oldTime;
+			deltaTime = (newTime - oldTime) * (1 / (1 / 60)) / 1000;
 			oldTime = newTime;
 			if (mouseDown) {
 				zoom({

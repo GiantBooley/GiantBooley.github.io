@@ -20,10 +20,17 @@
 				justify-content: center;
 				overflow: hidden;
 			}
-			#canvas {
+			canvas {
+				width: 100%;
+				height: 100%;
+			}
+			#canvases {
 				width: 100vh;
 				height: 100vh;
 				outline: 2px solid blue;
+			}
+			#ctx-canvas {
+				display: none;
 			}
 			#tooltip {
 				background-color: #FFFFFF;
@@ -39,16 +46,22 @@
 				display: none;
 			}
 			input[type="range"] {
-				width: 600px;
+				width: 100%;
+			}
+			#settings {
+				flex-grow: 1;
 			}
 		</style>
 	</head>
 	<body>
-		<div>
-			<input type="range" id="samples" min="1" max="20" step="1"><br>
-			<input type="range" id="iterations" min="1" max="250" step="1">
+		<div id="settings">
+			<input type="text" id="equation"><button onclick="updateEquation();">OPERATE</button><label id="error"></label>
+			<input type="range" id="samples" min="1" max="100" step="1" onchange="render();">
 		</div>
-		<canvas id="canvas"></canvas>
+		<div id="canvases">
+			<canvas id="gl-canvas"></canvas>
+			<canvas id="ctx-canvas"></canvas>
+		</div>
 		<div id="tooltip">asd</div>
 	</body>
 	<script id="vertex" type="x-shader/x-vertex">
@@ -65,28 +78,17 @@
 		uniform vec2 u_scale;
 		uniform vec2 u_offset;
 		uniform float u_samples;
-		uniform float u_iterations;
 
 		bool lineEquals(float a, float b, float width) {
 			return b < a + width / 2.0 && b > a - width / 2.0;
 		}
-		bool menger(float x, float y, float radius, float iterations) {
-			bool is = max(abs(x), abs(y)) < radius;
-			for (float i = 1.0; i < 250.0; i++) {
-				if (i >= iterations) {
-					break;
-				}
-				is = is ^^ max(abs(x), abs(y)) < radius / i;
-			}
-			return is;
-		}
 		bool testCoordinate(float x, float y) {
-			/*highp float height = 0.0;
-			for (highp float n = -8.0; n < 30.0; n++) {
-				if (n >= u_samples) break;
-				height += sin(pow(2.0, n) * x) / pow(2.0, n);
-			};*/
-			return menger(x, y, 10.0, u_iterations);// < height + cos(x / 1200.0) * 1200.0;
+			highp float height = 0.0;
+			for (highp float n = 0.0; n < 30.0; n++) {
+				float pow2n = pow(2.0, n);
+				height += sin(pow2n * x) / pow2n;
+			}
+			return /*s*/y<x/*e*/;
 		}
 		vec4 vec4Lerp(vec4 a, vec4 b, float t) {
 			return (b - a) * t + a;
@@ -104,16 +106,18 @@
 			highp float x = (gl_FragCoord.x - u_screenSize.x / 2.0) * u_scale.x + u_offset.x;
 			highp float y = (gl_FragCoord.y - u_screenSize.y / 2.0) * u_scale.y + u_offset.y;
 			vec4 color = vec4(1.0);
-			float avgBrightness = 0.0;
+			float aaBrightness = 0.0;
 			float aaX = 0.0;
 			float aaY = 0.0;
-			for (float aaX = 0.0; aaX < 1.0; aaX += 1.0 / 3.0) {
-				for (float aaY = 0.0; aaY < 1.0; aaY += 1.0 / 3.0) {
-					avgBrightness += testCoordinate(x + aaX * u_scale.x, y + aaY * u_scale.y) ? 1.0 : 0.0;
+			for (float aaX = 0.0; aaX < 1024.0; aaX++) {
+				if (aaX >= u_samples) break;
+				for (float aaY = 0.0; aaY < 1024.0; aaY++) {
+					if (aaY >= u_samples) break;
+					aaBrightness += testCoordinate(x + (aaX / u_samples) * u_scale.x, y + (aaY / u_samples) * u_scale.y) ? 1.0 : 0.0;
 				}
 			}
-			avgBrightness /= pow(3.0, 2.0);
-			color = vec4Lerp(vec4(1.0, 1.0, 1.0, 1.0), vec4(0.0, 0.8, 0.0, 1.0), avgBrightness);
+			aaBrightness /= pow(u_samples, 2.0);
+			color = vec4Lerp(vec4(1.0, 1.0, 1.0, 1.0), vec4(0.0, 0.8, 0.0, 1.0), aaBrightness);
 			if ((x / u_scale.x > -1.0 && x / u_scale.x < 1.0) || (y / u_scale.y > -1.0 && y / u_scale.y < 1.0)) {
 				color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.75);
 			} else {
@@ -130,57 +134,53 @@
 		}
 	</script>
 	<script>
-		function lerp(a, b, c) {
-			return (b - a) * c + a;
-		};
-		const canvas = document.getElementById("canvas");
-		canvas.width = innerHeight;
-		canvas.height = innerHeight;
-		const gl = canvas.getContext("webgl");
+		const glCanvas = document.getElementById("gl-canvas");
+		const ctxCanvas = document.getElementById("ctx-canvas");
+		glCanvas.width = innerHeight;
+		glCanvas.height = innerHeight;
+		const gl = glCanvas.getContext("webgl") || glCanvas.getContext("experimental-webgl");
+		const ctx = ctxCanvas.getContext("2d");
+		const canvases = document.getElementById("canvases");
+		
+		var mode = "gpu";
  
-		gl.viewport(0, 0, canvas.width, canvas.height);
+		gl.viewport(0, 0, glCanvas.width, glCanvas.height);
 		gl.clearColor(0, 0, 0, 1);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		
-		// get shader code
-		var vertexCode = document.getElementById("vertex").firstChild.nodeValue;
-		var fragmentCode = document.getElementById("fragment").firstChild.nodeValue;
-
-		// create shaders and program
-		var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-		gl.shaderSource(vertexShader, vertexCode);
-		gl.compileShader(vertexShader);
-		
+		var program, u_screenSizeLoc, u_scaleLoc, u_offsetLoc, u_samplesLoc;
 		var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-		gl.shaderSource(fragmentShader, fragmentCode);
-		gl.compileShader(fragmentShader);
+		var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+		var fragmentCode = document.getElementById("fragment").innerText;
+		function compileShader() {
+			gl.shaderSource(fragmentShader, fragmentCode);
+			gl.compileShader(fragmentShader);
+			var error = document.getElementById("error");
+			if (gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+				error.innerText = "";
+			} else {
+				error.innerText = gl.getShaderInfoLog(fragmentShader);
+				return;
+			};
 
-		var program = gl.createProgram();
-		gl.attachShader(program, vertexShader);
-		gl.attachShader(program, fragmentShader);
-		gl.linkProgram(program);
+			program = gl.createProgram();
+			gl.attachShader(program, fragmentShader);
+
+			gl.shaderSource(vertexShader, document.getElementById("vertex").innerText);
+			gl.compileShader(vertexShader);
+			gl.attachShader(program, vertexShader);
+			
+			gl.linkProgram(program);
+			gl.useProgram(program);
+
+			u_screenSizeLoc = gl.getUniformLocation(program, "u_screenSize");
+			u_scaleLoc = gl.getUniformLocation(program, "u_scale");
+			u_offsetLoc = gl.getUniformLocation(program, "u_offset");
+			u_samplesLoc = gl.getUniformLocation(program, "u_samples");
+		};
+		compileShader();
 
 		// stuffs
-		var u_screenSizeLoc = gl.getUniformLocation(program, "u_screenSize");
-		var u_scaleLoc = gl.getUniformLocation(program, "u_scale");
-		var u_offsetLoc = gl.getUniformLocation(program, "u_offset");
-		var u_samplesLoc = gl.getUniformLocation(program, "u_samples");
-		var u_iterationsLoc = gl.getUniformLocation(program, "u_iterations");
-
-		// errors
-		if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-			alert(gl.getShaderInfoLog(vertexShader));
-		};
-		if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-			alert(gl.getShaderInfoLog(fragmentShader));
-		};
-		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-			alert(gl.getProgramInfoLog(program));
-		};
-		gl.validateProgram(program);
-
-
-		// vertexes and stuff
 
 		var vertices = new Float32Array([
 			-1, -1, 1, -1, -1, 1,
@@ -193,8 +193,6 @@
 
 		var itemSize = 2;
 		var numItems = vertices.length / itemSize;
-
-		gl.useProgram(program);
 
 		var a_positionLoc = gl.getAttribLocation(program, "a_position");
 		gl.enableVertexAttribArray(a_positionLoc);
@@ -209,11 +207,12 @@
 		var mouseButton = 1;
 		var oldTime = 0;
 		var deltaTime = 1;
+		var samples = 3;
 		function zoom(e) {
 			let oldScale = scale;
 			let zoomAmount = 1.05;
 			
-			let rect = canvas.getBoundingClientRect();
+			let rect = glCanvas.getBoundingClientRect();
 			let coordAbs = coords(e.clientX - rect.left, e.clientY - rect.top, true);
 			if (Math.sign(e.deltaY) === 1) {
 				offsetX -= coordAbs.x;
@@ -232,22 +231,23 @@
 				offsetX -= (coordAbs.x / zoomAmount) - deltaScale;
 				offsetY -= (coordAbs.y / zoomAmount) - deltaScale;
 			};
+			render();
 		};
 		function coords(x, y, absolute=false) {
 			return {
-				x: (x - canvas.width / 2) * scale + offsetX * !absolute,
-				y: ((canvas.height - y) - canvas.height / 2) * scale + offsetY * !absolute
+				x: (x - glCanvas.width / 2) * scale + offsetX * !absolute,
+				y: ((glCanvas.height - y) - glCanvas.height / 2) * scale + offsetY * !absolute
 			};
 		};
 		function moveMouse(e) {
 			var tooltip = document.getElementById("tooltip");
-			var rect = canvas.getBoundingClientRect();
+			var rect = glCanvas.getBoundingClientRect();
 			tooltip.style.left = e.clientX + 13 + "px";
 			tooltip.style.top = e.clientY + 16 + "px";
 			mouseX = e.clientX;
 			mouseY = e.clientY;
 			var coord = coords(e.clientX - rect.left, e.clientY - rect.top, false);
-			tooltip.innerText = "(" + coord.x.toFixed(3) + ", " + coord.y.toFixed(3) + ")";
+			tooltip.innerText = "(" + coord.x.toFixed(5) + ", " + coord.y.toFixed(5) + ")";
 		};
 		function mouseEnter(e) {
 			tooltip.style.display = "block";
@@ -265,14 +265,124 @@
 		function contextMenu(e) {
 			e.preventDefault();
 		};
-		canvas.addEventListener("wheel", zoom);
-		canvas.addEventListener("mousemove", moveMouse);
-		canvas.addEventListener("mouseenter", mouseEnter);
-		canvas.addEventListener("mouseleave", mouseLeave);
-		canvas.addEventListener("mousedown", mouseDownFun);
-		canvas.addEventListener("mouseup", mouseUpFun);
-		canvas.addEventListener("contextmenu", contextMenu);
+		function updateEquation() {
+			var equation = document.getElementById("equation").value
+				.replaceAll(/\s/g, "")
+				.replaceAll(/(?<![.\d])\d+(?![.\d])/g, "$&.0")
+				.replaceAll(/(?<![<>])=/g, "==");
+			fragmentCode = fragmentCode.replaceAll(/\/\*s\*\/[\s\S]*\/\*e\*\//g, "/*s*/" + equation + "/*e*/");
+			if (mode === "gpu") compileShader();
+			render();
+		};
+		canvases.addEventListener("wheel", zoom);
+		canvases.addEventListener("mousemove", moveMouse);
+		canvases.addEventListener("mouseenter", mouseEnter);
+		canvases.addEventListener("mouseleave", mouseLeave);
+		canvases.addEventListener("mousedown", mouseDownFun);
+		canvases.addEventListener("mouseup", mouseUpFun);
+		canvases.addEventListener("contextmenu", contextMenu);
 		function render() {
+			if (mode === "gpu") {
+				gl.clear(gl.COLOR_BUFFER_BIT);
+				gl.uniform2fv(u_screenSizeLoc, [glCanvas.width, glCanvas.height]);
+				gl.uniform2fv(u_scaleLoc, [scale, scale]);
+				gl.uniform2fv(u_offsetLoc, [offsetX, offsetY]);
+				gl.uniform1f(u_samplesLoc, document.getElementById("samples").valueAsNumber);
+				
+				gl.drawArrays(gl.TRIANGLES, 0, numItems);
+			} else if (mode === "cpu") {
+				ctx.putImageData(new ImageData(glCanvas.width, glCanvas.height), 0, 0);
+				ctxRender({
+					u_screenSize: {x: glCanvas.width, y: glCanvas.height}, 
+					u_scale: {x: scale, y: scale}, 
+					u_offset: {x: offsetX, y: offsetY}, 
+					u_samples: document.getElementById("samples").valueAsNumber
+				});
+			};
+		};
+		function ctxRender(them) {
+			const u_screenSize = them.u_screenSize;
+			const u_scale = them.u_scale;
+			const u_offset = them.u_offset;
+			const u_samples = them.u_samples;
+
+			function mod(a, b) {
+				return a % b;
+			};
+			function pow(a, b) {
+				return a ** b;
+			};
+			function log(a) {
+				return Math.log(a);
+			};
+			function vec4(a, b, c, d) {
+				return b === undefined ? {r: a, g: a, b: a, a: a} : {r: a, g: b, b: c, a: d};
+			};
+			function sin(a) {
+				return Math.sin(a);
+			};
+			function ceil(a) {
+				return Math.ceil(a);
+			};
+
+			function lineEquals(a, b, width) {
+				return b < a + width / 2.0 && b > a - width / 2.0;
+			};
+			function testCoordinate(x, y) {
+				var height = 0.0;
+				for (let n = 0.0; n < 30.0; n++) {
+					let pow2n = pow(2.0, n);
+					height += sin(pow2n * x) / pow2n;
+				};
+				return /*s*/y<x/*e*/;
+			};
+			function vec4Lerp(a, b, t) {
+				return (b - a) * t + a;
+			};
+			function log10(x) {
+				return log(x) / log(10.0);
+			};
+			function roundUp(x) {
+				return pow(10.0, ceil(log10(x)));
+			};
+			function roundDown(x) {
+				return pow(10.0, floor(log10(x)));
+			};
+			function main(pixelX, pixelY) {
+				const x = (pixelX - u_screenSize.x / 2.0) * u_scale.x + u_offset.x;
+				const y = (pixelY - u_screenSize.y / 2.0) * u_scale.y + u_offset.y;
+				var color = vec4(1.0);
+				var aaBrightness = 0.0;
+				var aaX = 0.0;
+				var aaY = 0.0;
+				for (let aaX = 0.0; aaX < 1024.0; aaX++) {
+					if (aaX >= u_samples) break;
+					for (let aaY = 0.0; aaY < 1024.0; aaY++) {
+						if (aaY >= u_samples) break;
+						aaBrightness += testCoordinate(x + (aaX / u_samples) * u_scale.x, y + (aaY / u_samples) * u_scale.y) ? 1.0 : 0.0;
+					};
+				};
+				aaBrightness /= pow(u_samples, 2.0);
+				color = vec4Lerp(vec4(1.0, 1.0, 1.0, 1.0), vec4(0.0, 0.8, 0.0, 1.0), aaBrightness);
+				if ((x / u_scale.x > -1.0 && x / u_scale.x < 1.0) || (y / u_scale.y > -1.0 && y / u_scale.y < 1.0)) {
+					color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.75);
+				} else {
+					const scaleUp = roundUp(u_scale.x) * 10.0;
+					if (mod(x, scaleUp) < 2.0 * u_scale.x || mod(y, scaleUp) < 2.0 * u_scale.y) {
+						color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.1);
+					} else if (mod(x, scaleUp / 10.0) < 2.0 * u_scale.x || mod(y, scaleUp / 10.0) < 2.0 * u_scale.y) {
+						color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.05);
+					} else if (mod(x, scaleUp * 10.0) < 2.0 * u_scale.x || mod(y, scaleUp * 10.0) < 2.0 * u_scale.y) {
+						color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.2);
+					};
+				};
+				return color;
+			};
+			main();
+		};
+		function tick() {
+			glCanvas.style.display = mode === "gpu" ? "block" : "none";
+			ctxCanvas.style.display = mode === "cpu" ? "block" : "none";
 			var newTime = performance.now();
 			deltaTime = newTime - oldTime;
 			oldTime = newTime;
@@ -283,17 +393,13 @@
 					clientY: mouseY
 				});
 			};
-
-			gl.clear(gl.COLOR_BUFFER_BIT);
-			gl.uniform2fv(u_screenSizeLoc, [canvas.width, canvas.height]);
-			gl.uniform2fv(u_scaleLoc, [scale, scale]);
-			gl.uniform2fv(u_offsetLoc, [offsetX, offsetY]);
-			gl.uniform1f(u_samplesLoc, document.getElementById("samples").valueAsNumber);
-			gl.uniform1f(u_iterationsLoc, document.getElementById("iterations").valueAsNumber);
-			// draw stuff
-			gl.drawArrays(gl.TRIANGLES, 0, numItems);
-			requestAnimationFrame(render);
+			if (samples !== document.getElementById("samples").valueAsNumber) {
+				samples = document.getElementById("samples").valueAsNumber;
+				render();
+			};
+			requestAnimationFrame(tick);
 		};
 		render();
+		tick();
 	</script>
 </html>

@@ -136,10 +136,11 @@
 	<script>
 		const glCanvas = document.getElementById("gl-canvas");
 		const ctxCanvas = document.getElementById("ctx-canvas");
-		glCanvas.width = innerHeight;
-		glCanvas.height = innerHeight;
-		ctxCanvas.width = innerHeight;
-		ctxCanvas.height = innerHeight;
+		var resolution = 2;
+		glCanvas.width = innerHeight / resolution;
+		glCanvas.height = innerHeight / resolution;
+		ctxCanvas.width = innerHeight / resolution;
+		ctxCanvas.height = innerHeight / resolution;
 		const gl = glCanvas.getContext("webgl") || glCanvas.getContext("experimental-webgl");
 		const ctx = ctxCanvas.getContext("2d");
 		const canvases = document.getElementById("canvases");
@@ -237,8 +238,8 @@
 		};
 		function coords(x, y, absolute=false) {
 			return {
-				x: (x - glCanvas.width / 2) * scale + offsetX * !absolute,
-				y: ((glCanvas.height - y) - glCanvas.height / 2) * scale + offsetY * !absolute
+				x: (x / resolution - glCanvas.width / 2) * scale + offsetX * !absolute,
+				y: ((glCanvas.height - y / resolution) - glCanvas.height / 2) * scale + offsetY * !absolute
 			};
 		};
 		function moveMouse(e) {
@@ -276,6 +277,15 @@
 			if (mode === "gpu") compileShader();
 			render();
 		};
+		function setResolution(nuber) {
+			resolution = nuber;
+			glCanvas.width = innerHeight / resolution;
+			glCanvas.height = innerHeight / resolution;
+			ctxCanvas.width = innerHeight / resolution;
+			ctxCanvas.height = innerHeight / resolution;
+			gl.viewport(0, 0, glCanvas.width, glCanvas.height);
+			render();
+		};
 		canvases.addEventListener("wheel", zoom);
 		canvases.addEventListener("mousemove", moveMouse);
 		canvases.addEventListener("mouseenter", mouseEnter);
@@ -293,6 +303,7 @@
 				
 				gl.drawArrays(gl.TRIANGLES, 0, numItems);
 			} else if (mode === "cpu") {
+				ctx.clearRect(0, 0, ctxCanvas.width, ctxCanvas.height);
 				try {
 				ctx.putImageData(ctxRender({
 					u_screenSize: {x: glCanvas.width, y: glCanvas.height}, 
@@ -336,12 +347,12 @@
 				return b < a + width / 2.0 && b > a - width / 2.0;
 			};
 			function testCoordinate(x, y) {
-				var height = 0.0;
-				for (let n = 0.0; n < 30.0; n++) {
+				/*var height = 0.0;
+				for (let n = 0.0; n < 52.0; n++) {
 					let pow2n = pow(2.0, n);
 					height += sin(pow2n * x) / pow2n;
 				};
-				return /*s*/y<height/*e*/;
+				*/return /*s*/y*x<pow(x,y)/*e*/;
 			};
 			function vec4Lerp(a, b, t) {
 				var lerp = (a, b, t) => (b - a) * t + a;

@@ -55,8 +55,13 @@
 	</head>
 	<body>
 		<div id="settings">
+			<select id="mode">
+				<option value="gpu" selected>gpu</option>
+				<option value="cpu">cpu</option>
+			</select>
 			<input type="text" id="equation"><button onclick="updateEquation();">OPERATE</button><label id="error"></label>
-			<input type="range" id="samples" min="1" max="100" step="1" value="3">
+			<input type="range" id="samples" min="1" max="128" step="1" value="3"><br>
+			<input type="range" id="resolution" min="1" max="100" step="1" value="1">
 		</div>
 		<div id="canvases">
 			<canvas id="gl-canvas"></canvas>
@@ -268,13 +273,14 @@
 		function contextMenu(e) {
 			e.preventDefault();
 		};
+		var equation = "y<x";
 		function updateEquation() {
-			var equation = document.getElementById("equation").value
+			equation = document.getElementById("equation").value
 				.replaceAll(/\s/g, "")
 				.replaceAll(/(?<![.\d])\d+(?![.\d])/g, "$&.0")
 				.replaceAll(/(?<![<>])=/g, "==");
 			fragmentCode = fragmentCode.replaceAll(/\/\*s\*\/[\s\S]*\/\*e\*\//g, "/*s*/" + equation + "/*e*/");
-			if (mode === "gpu") compileShader();
+			compileShader();
 			render();
 		};
 		function setResolution(nuber) {
@@ -347,12 +353,12 @@
 				return b < a + width / 2.0 && b > a - width / 2.0;
 			};
 			function testCoordinate(x, y) {
-				/*var height = 0.0;
+				var height = 0.0;
 				for (let n = 0.0; n < 52.0; n++) {
 					let pow2n = pow(2.0, n);
 					height += sin(pow2n * x) / pow2n;
 				};
-				*/return /*s*/y*x<pow(x,y)/*e*/;
+				return /*s*/eval(equation)/*e*/;
 			};
 			function vec4Lerp(a, b, t) {
 				var lerp = (a, b, t) => (b - a) * t + a;
@@ -429,6 +435,13 @@
 			};
 			if (samples !== document.getElementById("samples").valueAsNumber) {
 				samples = document.getElementById("samples").valueAsNumber;
+				render();
+			};
+			if (resolution !== document.getElementById("resolution").valueAsNumber) {
+				setResolution(document.getElementById("resolution").valueAsNumber);
+			};
+			if (mode !== document.getElementById("mode").value) {
+				mode = document.getElementById("mode").value;
 				render();
 			};
 			requestAnimationFrame(tick);

@@ -19,11 +19,15 @@
 			#number {
 				width: 800px;
 			}
+			input[type=range] {
+				width: 1200px;
+			}
 		</style>
 	</head>
 	<body>
-		<input type="file" id="input" accept="image/*" onchange="doitfirstthingbecauseitisthethingidk();"><br>
-		<button onclick="doit();" id="button">do it</button>
+		<input type="file" id="file" accept="image/*"><br>
+		<input type="range" id="distortion" min="-10" max="10" step="0.01" value="0.8"><br>
+		<button onclick="doit();" id="button">do it</button><br>
 		<canvas id="canvas" width="800" height="600"></canvas>
 	</body>
 	<script id="vertex" type="x-shader/x-vertex">
@@ -50,17 +54,29 @@
 		float lerp(float a, float b, float t) {
 			return (b - a) * t + a;
 		}
+		float round(float x) {
+			return floor(x + 0.5);
+		}
+		float random(vec2 st) {
+			return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+		}
+		vec3 colorSearch(float brightness, vec2 uv) {
+			float rsnt = random(uv);
+			vec3 color = (rsnt < 0.666 ? (rsnt < 0.333 ? vec3(1.0, 0.0, 0.0) : vec3(0.0, 1.0, 0.0)) : vec3(0.0, 0.0, 1.0));
+			return color;
+		}
 		void main() {
 			vec2 uv = v_fragTexCoord;
 			uv -= 0.5;
-			uv.x /= lerp(u_distortion, 1.0, pow(uv.y * 2.0, 2.0));
-			uv.y /= lerp(u_distortion, 1.0, pow(uv.x * 2.0, 2.0));
+			//uv.x /= lerp(u_distortion, 1.0, pow(uv.y * 2.0, 2.0));
+			//uv.y /= lerp(u_distortion, 1.0, pow(uv.x * 2.0, 2.0));
 			uv += 0.5;
-			gl_FragColor = (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) ? vec4(0.0, 0.0, 0.0, 0.0) : texture2D(sampler, uv);
+			vec4 color = texture2D(sampler, uv);
+			color.rgb = colorSearch(round((color.r + color.g + color.b) * 255.0 / 3.0), uv);
+			gl_FragColor = (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) ? vec4(0.0, 0.0, 0.0, 0.0) : color;
 		}
 	</script>
 	<script>
-		try {
 		const canvas = document.getElementById("canvas");
 		const gl = canvas.getContext("webgl");
 
@@ -138,23 +154,36 @@
 		gl.enableVertexAttribArray(a_positionLoc);
 		gl.enableVertexAttribArray(a_texCoordLoc);
 
-		var texture = gl.createTexture();
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLIP);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLIP);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		function doit() {
+			var texture = gl.createTexture();
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+			
+			var file = document.getElementById("file").files[0];
+			var reader = new FileReader();
 
-		var imageData = new ImageData(new Uint8ClampedArray([0, 0, 0, 255, 255, 0, 255, 255, 255, 0, 255, 255, 0, 0, 0, 255]), 2, 2);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, imageData);
-		gl.bindTexture(gl.TEXTURE_2D, null);
+			reader.onloadend = () => {
+				var image = new Image();
+				image.onload = () => {
+					canvas.width = image.width;
+					canvas.height = image.height;
+					gl.viewport(0, 0, canvas.width, canvas.height);
+					gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+					gl.bindTexture(gl.TEXTURE_2D, null);
 
-		// draw stuff
-		gl.useProgram(program);
-		gl.uniform1f(u_distortionLoc, 0.95);
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.activeTexture(gl.TEXTURE0);
-		gl.drawArrays(gl.TRIANGLES, 0, 6);
-	} catch(e) {alert(e.stack)}
+					// draw stuff
+					gl.useProgram(program);
+					gl.uniform1f(u_distortionLoc, document.getElementById("distortion").valueAsNumber);
+					gl.bindTexture(gl.TEXTURE_2D, texture);
+					gl.activeTexture(gl.TEXTURE0);
+					gl.drawArrays(gl.TRIANGLES, 0, 6);
+				};
+				image.src = reader.result;
+			};
+			reader.readAsDataURL(file);
+		};
 	</script>
 </html>

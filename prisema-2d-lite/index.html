@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Prisema 2D Lite</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+		<script type="x-shader/x-vertex" id="vertex">
+			precision highp float;
+
+			attribute vec2 a_position;
+
+			void main() {
+				gl_Position = vec4(a_position, 0.0, 1.0);
+			}
+		</script>
+		<script type="x-shader/x-fragment" id="fragment">
+			precision mediump float;
+
+			uniform vec2 u_fov;
+			uniform vec3 u_playerPos;
+			uniform vec2 u_playerDir;
+			uniform vec2 u_screen;
+
+			vec4 pixel(float x, float y) {
+				return vec4(0.0);
+			}
+			vec4 getColor(float x, float y, float z) {
+				if (x > 200.0 || x < -200.0) {
+					if (mod(z, 10.0) < 2.0 || (mod(z + (y / 4.0), 10.0) < 2.0 && mod(z, 10.0) > 5.0) || (mod(z - (y / 4.0), 10.0) < 2.0 && mod(z, 10.0) < 5.0)) {
+						return vec4(0.8, 0.8, 0.2, 1.0);
+					}
+					return vec4(1.0, 1.0, 0.4, 1.0);
+				}
+				if (y > 200.0) { // roof
+					if (mod(x, 50.0) < 2.0 || mod(z, 50.0) < 2.0) {
+						return vec4(0.8, 0.8, 0.8, 1.0);
+					}
+					return vec4(0.93, 0.93, 0.9, 1.0);
+				}
+				if (y < -200.0) { // floor
+					if (x < 150.0 && x > -150.0 && z < 150.0 && z > -150.0) {
+						return vec4(0.0, 0.0, 0.0, 0.0);
+					}
+					if (sin(x * 0.1) > sin(z * 0.1)) {
+						return vec4(0.93, 0.93, 0.85, 1.0);
+					}
+					return vec4(0.9, 0.9, 0.8, 1.0);
+				}
+				if (z > 400.0 || z < -400.0) {
+					if (mod(x, 10.0) < 2.0 || (mod(x + (y / 4.0), 10.0) < 2.0 && mod(x, 10.0) > 5.0) || (mod(x - (y / 4.0), 10.0) < 2.0 && mod(x, 10.0) < 5.0)) {
+						return vec4(0.78, 0.78, 0.2, 1.0);
+					}
+					return vec4(1.0, 1.0, 0.3, 1.0);
+				}
+				return vec4(0.0, 0.0, 0.0, 0.0);
+			}
+			float dsin(float degrees) {
+				return sin(radians(degrees));
+			}
+			float dcos(float degrees) {
+				return cos(radians(degrees));
+			}
+			void main() {
+				vec2 pixel = (gl_FragCoord.xy - u_screen / 2.0) / (u_screen / 2.0);
+				vec3 ray = u_playerPos;
+				vec2 rayDir = vec2(
+					pixel.y * (u_fov.y / 2.0) + u_playerDir.x,
+					pixel.x * (u_fov.x / 2.0) + u_playerDir.y
+				);
+				vec3 rayVel = vec3(
+					dsin(rayDir.y) * dcos(rayDir.x),
+					dsin(rayDir.x),
+					dcos(rayDir.y) * dcos(rayDir.x)
+				);
+				vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
+				float thems = 0.0;
+				float renderDistance = 300.0;
+				for (float i = 0.0; i < 100000.0; i++) {
+					color = getColor(ray.x, ray.y, ray.z);
+					if (color.a > 0.0 || i > renderDistance) {
+						break;
+					}
+					thems++;
+					float resZ = 4.0;
+					ray += rayVel * resZ;
+				}
+				gl_FragColor = vec4(color.rgb * max(-1.0 / renderDistance * thems + 1.0, 0.0), 1.0);
+			}
+		</script>
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
+		<script>
+			const canvas = document.getElementById("canvas");
+			canvas.width = innerWidth;
+			canvas.height = innerHeight;
+			const gl = canvas.getContext("webgl") || canvas.getContext("webgl-experimental");
+			
+			var playerX = 0;
+			var playerY = 0;
+			var playerZ = 0;
+			var playerDirX = 0;
+			var playerDirY = 0;
+			var keysDown = {};
+
+			gl.viewport(0, 0, canvas.width, canvas.height);
+			gl.clearColor(0, 0, 0, 1);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+
+			var program = gl.createProgram();
+			var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+			var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+			gl.shaderSource(fragmentShader, document.getElementById("fragment").firstChild.nodeValue);
+			gl.shaderSource(vertexShader, document.getElementById("vertex").firstChild.nodeValue);
+			gl.compileShader(fragmentShader);
+			gl.compileShader(vertexShader);
+			gl.attachShader(program, fragmentShader);
+			gl.attachShader(program, vertexShader);
+
+			var vertices = new Float32Array([
+				-1, -1, 1, -1, -1, 1,
+				-1, 1, 1, 1, 1, -1
+			]);
+			var vertexBuffer = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+			gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+			var a_positionLoc = gl.getAttribLocation(program, "a_position");
+			gl.enableVertexAttribArray(a_positionLoc);
+			gl.vertexAttribPointer(a_positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+			gl.linkProgram(program);
+			gl.useProgram(program);
+
+			if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+				alert(gl.getShaderInfoLog(vertexShader));
+			};
+			if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+				alert(gl.getShaderInfoLog(fragmentShader));
+			};
+			if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+				alert(gl.getProgramInfoLog(program));
+			};
+			
+			var u_fovLoc = gl.getUniformLocation(program, "u_fov");
+			var u_playerPosLoc = gl.getUniformLocation(program, "u_playerPos");
+			var u_playerDirLoc = gl.getUniformLocation(program, "u_playerDir");
+			var u_screenLoc = gl.getUniformLocation(program, "u_screen");
+
+			function keyDown(e) {
+				keysDown[e.key] = true;
+			};
+			function keyUp(e) {
+				keysDown[e.key] = false;
+			};
+			function isDown(key) {
+				return keysDown[key] ?? false;
+			};
+			document.body.addEventListener("keydown", keyDown);
+			document.body.addEventListener("keyup", keyUp);
+			function radians(degrees) {
+				return degrees * (Math.PI / 180);
+			};
+
+			function render() {
+				gl.uniform2fv(u_fovLoc, [75, 75]);
+				gl.uniform3fv(u_playerPosLoc, [playerX, playerY, playerZ]);
+				gl.uniform2fv(u_playerDirLoc, [playerDirX, playerDirY]);
+				gl.uniform2fv(u_screenLoc, [canvas.width, canvas.height]);
+				gl.uniform2fv(u_fovLoc, [110, 110 * canvas.height / canvas.width]);
+				gl.drawArrays(gl.TRIANGLES, 0, 6);
+			};
+			function tick() {
+				var rotationSpeed = 2;
+				if (isDown("ArrowUp")) {
+					playerDirX += rotationSpeed;
+					playerDirX = Math.min(Math.max(playerDirX, -90), 90);
+				};
+				if (isDown("ArrowDown")) {
+					playerDirX -= rotationSpeed;
+					playerDirX = Math.min(Math.max(playerDirX, -90), 90);
+				};
+				if (isDown("ArrowLeft")) {
+					playerDirY -= rotationSpeed;
+				};
+				if (isDown("ArrowRight")) {
+					playerDirY += rotationSpeed;
+				};
+				var speed = 2;
+				if (isDown("w")) {
+					playerX += Math.sin(radians(playerDirY)) * speed;
+					playerZ += Math.cos(radians(playerDirY)) * speed;
+				};
+				if (isDown("s")) {
+					playerX -= Math.sin(radians(playerDirY)) * speed;
+					playerZ -= Math.cos(radians(playerDirY)) * speed;
+				};
+				if (isDown("a")) {
+					playerX -= Math.sin(radians(playerDirY + 90)) * speed;
+					playerZ -= Math.cos(radians(playerDirY + 90)) * speed;
+				};
+				if (isDown("d")) {
+					playerX += Math.sin(radians(playerDirY + 90)) * speed;
+					playerZ += Math.cos(radians(playerDirY + 90)) * speed;
+				};
+				render();
+				requestAnimationFrame(tick);
+			};
+			tick();
+		</script>
+	</body>
+</html>

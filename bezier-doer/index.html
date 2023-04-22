@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>bezier doert</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="canvas"></canvas>
+	</body>
+	<script>
+		const canvas = document.getElementById("canvas");
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+		const ctx = canvas.getContext("2d");
+		function randomP() {
+			return [Math.random() * canvas.width, Math.random() * canvas.height];
+		};
+		
+		var points = [
+		];
+		for (let i = 0; i < 7; i++) {
+			points.push(randomP());
+		};
+		var mouseX = 0;
+		var mouseY = 0;
+		var mouseDown = false;
+		var activePoint = null;
+		var dotMode = true;
+		var t = 0.5;
+		var deltaT = 0.004;
+
+		function lerp(a, b, t) {
+			return [(b[0] - a[0]) * t + a[0], (b[1] - a[1]) * t + a[1]];
+		};
+		function getT(t) {
+			var thems = [...points];
+			for (let i = 1; i < points.length; i++) {
+				let thems2 = [];
+				for (let j = 0; j < points.length - i; j++) {
+					thems2.push(lerp(thems[j], thems[j + 1], t));
+				};
+				thems = thems2;
+			};
+			return thems[0];
+		};
+		function mouseDwn(e) {
+			mouseDown = true;
+			for (let i = 0; i < points.length; i++) {
+				if (distance(points[i], [mouseX, mouseY]) < 8) {
+					activePoint = points[i];
+				};
+			};
+		};
+		function mouseUp(e) {
+			mouseDown = false;
+			activePoint = null;
+		};
+		function mouseMove(e) {
+			mouseX = e.clientX;
+			mouseY = e.clientY;
+		};
+		function distance(p1, p2) {
+			return Math.sqrt((p2[0] - p1[0]) ** 2 + (p2[1] - p1[1]) ** 2);
+		};
+		document.body.addEventListener("mousedown", mouseDwn);
+		document.body.addEventListener("mouseup", mouseUp);
+		document.body.addEventListener("mousemove", mouseMove);
+		ctx.font = "15px Arial";
+		ctx.textAlign = "center";
+		function doit() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			t += deltaT;
+			if (t >= 1 || t <= 0) {
+				deltaT *= -1;
+			};
+			for (let i = 0; i < points.length; i++) {
+				if (mouseDown && activePoint) {
+					activePoint[0] = mouseX;
+					activePoint[1] = mouseY;
+				};
+				ctx.beginPath();
+				ctx.arc(...points[i], 4, 0, 2 * Math.PI);
+				ctx.fillStyle = "black";
+				ctx.fill();
+				ctx.fillText(i, points[i][0], points[i][1] - 6);
+			};
+			if (dotMode) {
+				ctx.beginPath();
+				ctx.moveTo(...getT(0));
+				for (let t = 0; t < 1; t += 0.001) {
+					ctx.lineTo(...getT(t));
+				};
+				
+				ctx.strokeStyle = "rgba(0, 0, 0, 1)";
+				ctx.stroke();
+				var thems = [...points];
+				for (let i = 1; i < points.length; i++) {
+					let thems2 = [];
+					for (let j = 0; j < points.length - i; j++) {
+						thems2.push(lerp(thems[j], thems[j + 1], t));
+
+						ctx.strokeStyle = "rgba(0, 0, 0, 0.2)";
+						ctx.beginPath();
+						ctx.moveTo(...thems[j]);
+						ctx.lineTo(...thems[j + 1]);
+						ctx.stroke();
+						ctx.beginPath();
+						ctx.arc(...lerp(thems[j], thems[j + 1], t), 7, 0, Math.PI * 2);
+						ctx.stroke();
+					};
+					thems = thems2;
+				};
+				ctx.beginPath();
+				ctx.arc(...thems[0], 8, 0, Math.PI * 2);
+				ctx.fillStyle = `hsl(${t * 360}, 30%, 50%)`;
+				ctx.fill();
+			} else {
+				ctx.beginPath();
+				ctx.moveTo(...getT(0));
+				for (let t = 0; t < 1; t += 0.001) {
+					ctx.lineTo(...getT(t));
+				};
+				ctx.stroke();
+			};
+			requestAnimationFrame(doit);
+		};
+		try {
+			doit();
+		} catch(e) {alert(e.stack)};
+	</script>
+</html>

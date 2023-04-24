@@ -16,30 +16,44 @@
 			body {
 				margin: 0;
 				overflow: hidden;
+				display: flex;
+				flex-direction: row;
 			}
 			#canvas {
-				width: 100%;
 				height: 100%;
+				flex-grow: 1;
+			}
+			#settings {
+				height: 100%;
+				flex-grow: 0;
 			}
 		</style>
 	</head>
 	<body>
 		<canvas id="canvas"></canvas>
+		<div id="settings">
+			<label for="how-many">howmany:</label>
+			<input type="number" id="how-many" value="5">
+			<button onclick="reset();">reset</button>
+		</div>
 	</body>
 	<script>
 		const canvas = document.getElementById("canvas");
-		canvas.width = innerWidth;
+		canvas.width = canvas.getBoundingClientRect().width;
 		canvas.height = innerHeight;
 		const ctx = canvas.getContext("2d");
 		function randomP() {
 			return [Math.random() * canvas.width, Math.random() * canvas.height];
 		};
 		
-		var points = [
-		];
-		for (let i = 0; i < 7; i++) {
-			points.push(randomP());
+		var points = [];
+		function reset() {
+			points = [];
+			for (let i = 0; i < document.getElementById("how-many").valueAsNumber; i++) {
+				points.push(randomP());
+			};
 		};
+		reset();
 		var mouseX = 0;
 		var mouseY = 0;
 		var mouseDown = false;
@@ -97,8 +111,13 @@
 					activePoint[0] = mouseX;
 					activePoint[1] = mouseY;
 				};
+				if (points[i] === activePoint) {
+					ctx.arc(points[i][0] + 2, points[i][1] + 2, 5, 0, 2 * Math.PI);
+					ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+					ctx.fill();
+				};
 				ctx.beginPath();
-				ctx.arc(...points[i], 4, 0, 2 * Math.PI);
+				ctx.arc(...points[i], points[i] === activePoint ? 5 : 3, 0, 2 * Math.PI);
 				ctx.fillStyle = "black";
 				ctx.fill();
 				ctx.fillText(i, points[i][0], points[i][1] - 6);
@@ -111,6 +130,7 @@
 				};
 				
 				ctx.strokeStyle = "rgba(0, 0, 0, 1)";
+				ctx.lineWidth = 1;
 				ctx.stroke();
 				var thems = [...points];
 				for (let i = 1; i < points.length; i++) {
@@ -118,19 +138,22 @@
 					for (let j = 0; j < points.length - i; j++) {
 						thems2.push(lerp(thems[j], thems[j + 1], t));
 
-						ctx.strokeStyle = "rgba(0, 0, 0, 0.2)";
 						ctx.beginPath();
 						ctx.moveTo(...thems[j]);
 						ctx.lineTo(...thems[j + 1]);
+						ctx.strokeStyle = points.length - i === 1 ? "rgba(255, 0, 0, 1)" : "rgba(0, 0, 0, 0.2)";
+						ctx.lineWidth = points.length - i === 1 ? 2 : 1;
 						ctx.stroke();
+						
 						ctx.beginPath();
 						ctx.arc(...lerp(thems[j], thems[j + 1], t), 7, 0, Math.PI * 2);
+						ctx.lineWidth = 2;
 						ctx.stroke();
 					};
 					thems = thems2;
 				};
 				ctx.beginPath();
-				ctx.arc(...thems[0], 8, 0, Math.PI * 2);
+				ctx.arc(...thems[0], 6, 0, Math.PI * 2);
 				ctx.fillStyle = `hsl(${t * 360}, 30%, 50%)`;
 				ctx.fill();
 			} else {

@@ -33,6 +33,7 @@
 	<script>
 		const canvas = document.getElementById("canvas");
 		const ctx = canvas.getContext("2d");
+		ctx.globalCompositeOperation = 'destination-over';
 		var mouseX = 0;
 		var mouseY = 0;
 
@@ -43,9 +44,13 @@
 		/*var gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
 			gradient.addColorStop("0", "yellow");
 			gradient.addColorStop("1" ,"transparent");*/
-		ctx.strokeStyle = "rgba(255, 255, 0, 1)";
+		ctx.strokeStyle = "rgba(255, 255, 0)";
 		ctx.font = '200px Arial';
-		ctx.lineWidth = 1;
+		ctx.lineWidth = 5;
+
+		ImageData.prototype.getPixel = function(x, y, offset) {
+			return this.data[(Math.floor(y) * this.width + Math.floor(x)) * 4 + offset];
+		};
 		
 		function drawLine(first, second) {
 			ctx.beginPath();
@@ -58,7 +63,9 @@
 			mouseY = e.clientY;
 		};
 		function drawScene() {
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			ctx.fillStyle = "rgba(50, 50, 50, 1)";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			ctx.fillStyle = "rgba(10, 10, 10, 1)";
 			ctx.fillRect(70, 180, 100, 100);
 
 			ctx.fillRect(0, canvas.height-10, 200, 10);
@@ -66,7 +73,7 @@
 			ctx.fillRect(10, canvas.height-210, 200, 10);
 			ctx.fillRect(200, canvas.height-190, 10, canvas.height-190);
 
-			ctx.fillText("loading.....", 300, 300);
+			ctx.fillText(";!BKKQTUT", 300, 300);
 			ctx.beginPath();
 			ctx.arc(1000, 500, 50, 0, 2 * Math.PI);
 			ctx.fill();
@@ -75,41 +82,37 @@
 		function render() {
 			drawScene();
 			let rays = [];
-			for (let angle = 0; angle < 360; angle += 0.1) { // for every ray
-				let xv = Math.sin(angle*(Math.PI/180))*1;
-				let yv = Math.cos(angle*(Math.PI/180))*1;
+			var data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+			for (let angle = 0; angle < 360; angle += 3) { // for every ray
+				let xv = Math.sin(angle*(Math.PI/180))*5;
+				let yv = Math.cos(angle*(Math.PI/180))*5;
 				let x = mouseX;
 				let y = mouseY;
 				let rayinitx = x;
 				let rayinity = y;
-				let data = Object.values(ctx.getImageData(x, y, 1, 1).data);
+				//let data = ctx.getImageData(x, y, 1, 1);
 				let collisions = 0;
 				let opacity = 1;
-				/*while (!(data[0] == 10 && data[1] == 10 && data[2] == 10 && data[3] == 255) && (x > 0 && x < canvas.width && y > 0 && y < canvas.height)) {
-					x += xv;
-					y += yv;
-					data = Object.values(ctx.getImageData(x, y, 1, 1).data);
-				};*/
 				while (x > 0 && x < canvas.width && y > 0 && y < canvas.height) { // for every movement of every ray
 					x += xv;
-					data = Object.values(ctx.getImageData(x, y, 1, 1).data);
+					//data = ctx.getImageData(x, y, 1, 1);
 					let collide = false;
-					if (data[0] == 10 && data[1] == 10 && data[2] == 10 && data[3] == 255) {
+					if (data.getPixel(x, y, 0) == 10 && data.getPixel(x, y, 1) == 10 && data.getPixel(x, y, 2) == 10 && data.getPixel(x, y, 3) == 255) {
 						xv *= -1;
 						x += xv;
 						collide = true;
 					};
 
 					y += yv;
-					data = Object.values(ctx.getImageData(x, y, 1, 1).data);
-					if (data[0] == 10 && data[1] == 10 && data[2] == 10 && data[3] == 255) {
+					//data = ctx.getImageData(x, y, 1, 1);
+					if (data.getPixel(x, y, 0) == 10 && data.getPixel(x, y, 1) == 10 && data.getPixel(x, y, 2) == 10 && data.getPixel(x, y, 3) == 255) {
 						yv *= -1;
 						y += yv;
 						collide = true;
 					};
 					if (collide) {
-						opacity -= 1/5;
 						rays.push([[rayinitx, rayinity], [x, y], opacity]);
+						opacity -= 1/51;
 						rayinitx = x;
 						rayinity = y;
 						if (opacity <= 0) {
@@ -121,12 +124,14 @@
 				rayinitx = x;
 				rayinity = y;
 			};
-			//ctx.clearRect(0, 0, canvas.width, canvas.height);
+			//ctx.fillRect(0, 0, canvas.width, canvas.height);
 			rays.forEach(ray => {
 				ctx.strokeStyle = `rgba(255, 255, 0, ${ray[2]})`;
 				drawLine(ray[0], ray[1]);
+				//ctx.strokeRect(ray[1][0], ray[1][1], 1, 1);
 			});
 		};
+		//setInterval(render, 100);
 		document.body.addEventListener("keypress", function(e){
 			if (e.code == "Space") {
 				render();

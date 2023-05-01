@@ -774,6 +774,15 @@
 									<td><div><button onclick="chugPotion('bird potion');">chug</button><button onclick="brewPotion('bird potion');">brew (12 gems)</button></div></td>
 								</tr>
 							</table>
+							<h2>🙛————— S<span class="small">PAC</span>E —————🙙</h2>
+							<table>
+								<th>thing</th><th>how many</th><th></th>
+								<tr>
+									<td><label>rocket ship</label></td>
+									<td><label id="rocket-ship-howmany">0</label></td>
+									<td><div><button onclick="chugPotion('night vision potion');">place</button><button onclick="brewPotion('night vision potion');">purchase (100 gems)</button></div></td>
+								</tr>
+							</table>
 						</div>
 					</div>
 				</div>
@@ -1251,14 +1260,14 @@
 				draw() {
 					this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 					
-					let skyImage = (getDarkness(gameTime) < 0.25 && getLayer(playerY) < 11 && getLayer(playerY) > -11) ? "skyDay" : "skyNight";
+					let skyImage = getDarkness(gameTime) < 0.25 ? "skyDay" : "skyNight";
 					this.drawImage(this.getTexture(skyImage), 0, 0, this.gl.canvas.width, this.gl.canvas.height, 0, 0, 1, 1, {sky: true});
 
 					let cloudsScroll = 1 / 8;
 					let cloudsOffset = (850 - cameraY) * -blockSize * cloudsScroll;
 					this.drawImage(this.getTexture("clouds"), 0, cloudsOffset,this.gl.canvas.width, this.gl.canvas.height, cameraX / (this.gl.canvas.width / blockSize / cloudsScroll) + gameTime / 240, 0, 1, 1, {removeBlue: 1});
 					let stoneBackgroundScroll = 1 / 4;
-					let stoneBackgroundOffset = (750 - cameraY) * -blockSize * stoneBackgroundScroll;
+					let stoneBackgroundOffset = (0 - cameraY) * -blockSize * stoneBackgroundScroll;
 					this.drawImage(this.getTexture("stoneBackground"), 0, Math.max(stoneBackgroundOffset, 0), this.gl.canvas.width, this.gl.canvas.height - Math.max(stoneBackgroundOffset, 0), cameraX / (this.gl.canvas.width / blockSize / stoneBackgroundScroll), (Math.max(stoneBackgroundOffset, 0) - stoneBackgroundOffset) * stoneBackgroundScroll / this.gl.canvas.height, 1, (this.gl.canvas.height - Math.max(stoneBackgroundOffset, 0)) / this.gl.canvas.height / 4);
 					
 					this.drawImage(this.getTexture("hills"), 0, stoneBackgroundOffset, this.gl.canvas.width, this.gl.canvas.height, cameraX / (this.gl.canvas.width / blockSize / stoneBackgroundScroll), 0.325, 1, 0.675);
@@ -1279,10 +1288,10 @@
 					// grass
 					for (let i = 0; i < rowBuffer.length; i += deltaRow) {
 						let rowYBlocks = getRowY(level.rows, rowBuffer[i]);
-						let layer = getLayer(rowYBlocks);
-						let footprinty = (layer === 9) && rowYBlocks < getRowY(level.originalRows, rowBuffer[i]);
-						let ice = (layer === 9) && Math.round((rowYBlocks - 900) * 1000) / 1000 <= Math.round((getRowY(level.originalRows, rowBuffer[i]) - 900) * 0.9 * 1000) / 1000;
-						let groundImage = footprinty ? (ice ? "snowMegaFootprinty" : "snowFootprinty") : layers[layer][0];
+						let biome = getBiome(rowBuffer[i], rowYBlocks);
+						let footprinty = (biome === "snow") && rowYBlocks < getRowY(level.originalRows, rowBuffer[i]);
+						let ice = (biome === "snow") && Math.round((rowYBlocks) * 1000) / 1000 <= Math.round((getRowY(level.originalRows, rowBuffer[i]) - 5) * 1000) / 1000;
+						let groundImage = footprinty ? (ice ? "snowMegaFootprinty" : "snowFootprinty") : biomes[biome][0];
 
 						let rowY = (rowYBlocks - cameraY) * -blockSize;
 						let bakedRowY = (rowYBlocks - cameraY) * -blockSize;
@@ -1806,37 +1815,43 @@
 			var cameraPanY = 0;
 			var cameraSnapPending = true;
 			var onGround = false;
-			var layers = {
-				"-13": ["sun", 0.07, -0.0175],
-				"-12": ["mercury", 0.35, -0.012],
-				"-11": ["venus", 0.3, -0.01],
-				"-10": ["ice", 0.03, -0.012],
-				"-9": ["mountain", 0.1, -0.012],
-				"-8": ["stone", 0.35, -0.012],
-				"-7": ["grass", 0.35, -0.012],
-				"-6": ["dirt", 0.2, -0.012],
-				"-5": ["stones", 0.25, -0.012],
-				"-4": ["stone", 0.3, -0.012],
-				"-3": ["darkStone", 0.35, -0.012],
-				"-2": ["magma", 0.23, -0.012],
-				"-1": ["lava", 0.1, -0.012],
-				"0": ["ironNickelAlloy", 0.14, -0.012],
-				"1": ["lava", 0.1, -0.012],
-				"2": ["magma", 0.23, -0.012],
-				"3": ["darkStone", 0.35, -0.012],
-				"4": ["stone", 0.3, -0.012],
-				"5": ["stones", 0.25, -0.012],
-				"6": ["dirt", 0.2, -0.012],
-				"7": ["grass", 0.35, -0.012],
-				"8": ["stone", 0.35, -0.012],
-				"9": ["snow", 0.12, -0.012],
-				"10": ["ice", 0.03, -0.012],
-				"11": ["moon", 0.3, -0.007],
-				"12": ["mars", 0.25, -0.009],
-				"13": ["jupiter", 0.07, -0.0175],
-				"14": ["saturn", 0.07, -0.016],
-				"15": ["uranus", 0.07, -0.013],
-				"16": ["neptune", 0.07, -0.014]
+			var biomes = {
+				"ice":					["ice", 0.03, -0.012],
+				"snow":					["snow", 0.12, -0.012],
+				"mountain":				["mountain", 0.1, -0.012],
+				"grass":				["grass", 0.35, -0.012],
+				"dirt":					["dirt", 0.2, -0.012],
+				"stones":				["stones", 0.25, -0.012],
+				"stone":				["stone", 0.3, -0.012],
+				"dark stone":			["darkStone", 0.35, -0.012],
+				"magma":				["magma", 0.23, -0.012],
+				"lava":					["lava", 0.1, -0.012],
+				"iron nickel alloy":	["ironNickelAlloy", 0.14, -0.012]
+			};
+			function getBiome(x, y) {
+			    if (y < 0) {
+					if (y < -128) {
+						if (y < -256) {
+							if (y < -384) {
+								if (y < -512) {
+									if (y < -640) {
+										return "iron nickel alloy";
+									};
+									return "lava";
+								};
+								return "magma";
+							};
+							return "dark stone";
+						};
+						return "stone";
+					};
+			        return "stones";//them[clamp(Math.floor((y + 128) / 128 * them.length), 0, them.length - 1)];
+			    } else {
+					var perlinHeight = perlinGetVal(level.biomeGenerator, x / 500);
+					var them = ["ice", "snow", "mountain", "grass", "dirt"];
+					return them[Math.floor(perlinHeight * them.length)];
+				};
+				return "grass";
 			};
 			var level = {
 				rows: [],
@@ -1850,7 +1865,9 @@
 				golems: [],
 				perlinOffset: 0,
 				levelRNG: mb32.new(),
-				featureRNG: mb32.new()
+				featureRNG: mb32.new(),
+				biomeRNG: mb32.new(),
+				biomeGenerator: {}
 			};
 			var coins = 0;
 			var gems = 0;
@@ -2000,12 +2017,14 @@
 			var anaglyphOffset = 0.6;
 			var anaglyph = getURLParam("anaglyph") !== null;
 			var crates = 0;
+			var opStep = false;
+			var mobReferences = {};
 	
 			function generateOctaves() {
 				// octaves
 				level.octaves = [];
-				for (let i = 0; i < 15; i++) {
-					level.octaves.push(perlinNoise1D());
+				for (let i = 0; i < 5; i++) {
+					level.octaves.push(perlinNoise1D(level.levelRNG));
 				};
 				
 				// perin offset
@@ -2013,13 +2032,13 @@
 				for (let i = 0; i < 50000; i++) {
 					tempRows[i] = getPerlinHeight(i);
 				};
-				level.perlinOffset = parseInt(Object.keys(tempRows).sort((a, b) => Math.abs(tempRows[a] - 750) - Math.abs(tempRows[b] - 750))[0]);
+				level.perlinOffset = parseInt(Object.keys(tempRows).sort((a, b) => Math.abs(tempRows[a] - 0) - Math.abs(tempRows[b] - 0))[0]);
 			};
 			function getPerlinHeight(x) {
 				let perlinHeight = 0;
 				for (let j = 0; j < level.octaves.length; j++) {
-					let amplitude = 1400;
-					let wavelength = 4700;
+					let amplitude = 255;//1400 4700
+					let wavelength = 521;
 					perlinHeight += ((perlinGetVal(level.octaves[j], (x + level.perlinOffset) / (wavelength / (2 ** j))) - 0.5) * 2 * amplitude) / (2 ** j);
 				};
 				return perlinHeight;
@@ -2165,7 +2184,7 @@
 				return Math.min(Math.max(number, min), max);
 			};
 			function getLayer(y) {
-				return clamp(Math.floor(y / 100), Math.min(...Object.keys(layers)), Math.max(...Object.keys(layers)));
+				return clamp(Math.floor(y / 100), Math.min(...Object.keys(biomes)), Math.max(...Object.keys(biomes)));
 			};
 			function lerp(a, b, c) {
 				return a * (1 - c) + b * c;
@@ -2174,11 +2193,11 @@
 				return c / (b - a) + a;
 			};
 	
-			function perlinNoise1D() {
+			function perlinNoise1D(rng) {
 				let MAX_VERTICES = 1024;
 				let r = [];
 				for (let i = 0; i < MAX_VERTICES; ++i) {
-					r.push(mb32.rng(level.levelRNG));
+					r.push(mb32.rng(rng));
 				};
 				return {MAX_VERTICES, r};
 			};
@@ -2510,6 +2529,7 @@
 					mob.mission = missions[Math.floor(mb32.rng(level.featureRNG) * missions.length)];
 				};
 				level.mobs.push(mob);
+				return mob;
 			};
 			function notificate(message, time=180) {
 				notification = message;
@@ -2639,6 +2659,8 @@
 				};
 				level.featureRNG = mb32.new(seed);
 				level.levelRNG = mb32.new(seed);
+				level.biomeRNG = mb32.new(seed);
+				level.biomeGenerator = perlinNoise1D(level.biomeRNG);
 				generateOctaves();
 				playerY = getRowY(level.rows, 0);
 				playing = true;
@@ -2671,10 +2693,14 @@
 			function getRowY(rows, x) {
 				x = Math.floor(x);
 				let y = (x >= 0 && x < rows.length) ? rows[x] : Math.round(getPerlinHeight(x));
-				let pitStart = -25;
+				/* let pitStart = -25;
 				let pitEnd = -5;
 				if (x > pitStart && x <= pitEnd) {
 					y = Math.round(lerp(y - 2000000, y, clamp(Math.abs(x - (pitStart + pitEnd) / 2) / ((pitEnd - pitStart) / 2), 0, 1)));
+				}; */
+				if (x < -10) {
+					let offsetHeight = getRowY(level.rows, -10);
+					y = Math.round((y - offsetHeight) * (-0.00005 * (x + 10) + 1) + offsetHeight);
 				};
 				return y;
 			};
@@ -2771,11 +2797,14 @@
 			function hackerConsoleKeyDown(e) {
 				if (e.key === "Enter") {
 					try {
-						let args = e.target.value.split(" ").map(it => /^[-+]?[0-9]+\.?([0-9]+)?$/g.test(it) ? parseFloat(it) : it);
+						let args = e.target.value.split(/ |(?<=[\d.])(?=[^\d.])|(?<=[^\d.])(?=[\d.])/g).map(it => /^[-+]?[0-9]+\.?([0-9]+)?$/g.test(it) ? parseFloat(it) : it);
 						switch (args[0]) {
 							case "spawn":
 								let mobX = playerX + (args[2] ?? 0);
-								spawnMob(args[1], mobX, getRowY(level.rows, mobX));
+								let mob = spawnMob(args[1], mobX, getRowY(level.rows, mobX));
+								if (args[2] === "as") {
+									mobReferences[args[3]] = mob;emblemk
+								};
 								break;
 							case "place":
 								switch (args[1]) {
@@ -2837,6 +2866,20 @@
 									case "crate":
 										crates += args[2] ?? 1;
 								};
+								break;
+							case "opstep":
+								opStep = !opStep;
+								break;
+							case "divingsuit":
+								divingSuit = !divingSuit;
+								break;
+							case "kill":
+								health = 0;
+								dead = true;
+								break;
+							case "killall":
+								level.mobs = [];
+								break;
 						};
 					} catch (e) {
 						notificate("command error");
@@ -2979,7 +3022,7 @@
 					// X MOVEMENT //
 					
 					let playerSpeed = basePlayerSpeed + (boots === "running shoes") * 0.04 + (potions["speed potion"].time > 0) * 0.1;
-					let groundFriction = (boots === "spike boots") ? 0.9 : layers[getLayer(playerY)][1];
+					let groundFriction = (boots === "spike boots") ? 0.9 : biomes[getBiome(playerX, playerY)][1];
 	
 					let sign = controls.right - controls.left;
 					let maxXV = (inLadder ? sign * (boots === "magnet boots" ? 0 : inLadderSpeed) : (flying ? (sign * basePlayerSpeed * 1.5) : (sign * playerSpeed)));
@@ -2992,7 +3035,7 @@
 					let hittableRows = getHittableRows(playerX + playerXV);
 					let max = hittableRows.reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b);
 					if ((hittableRows[0] !== undefined && getRowY(bakedRows, hittableRows[0]) > playerY) || (hittableRows[1] !== undefined && getRowY(bakedRows, hittableRows[1]) > playerY)) {
-						if (onGround && playerY >= getRowY(bakedRows, max) - ((boots === "stepping boots") ? baseStepHeight * 2 : baseStepHeight) && potions["spider potion"].time <= 0) {
+						if ((onGround || opStep) && playerY >= getRowY(bakedRows, max) - ((boots === "stepping boots") ? baseStepHeight * 2 : baseStepHeight) && potions["spider potion"].time <= 0) {
 							playerY = getRowY(bakedRows, max);
 						} else {
 							playerXV = Math.ceil(playerX + (playerXV / 2)) - 0.5 - playerX;
@@ -3025,9 +3068,9 @@
 					};
 	
 					//gravity
-					let layer = getLayer(playerY);
-					let gravity = layers[layer][2];
-					if (layer === 0 && boots === "magnet boots") {
+					let biome = getBiome(playerX, playerY);
+					let gravity = biomes[biome][2];
+					if (biome === "iron nickel alloy" && boots === "magnet boots") {
 						gravity -= 0.012;
 					};
 					if (inWater) {
@@ -3060,10 +3103,10 @@
 					};
 					trampoline = level.features[max] === 18 && onGround;
 					if (onGround && !trampoline) {
-						if (getLayer(level.rows[max]) === 9 && level.rows[max] - 900 > (level.originalRows[max] - 900) * 0.9 && boots !== "tennis rackets") {
+						if (getBiome(max, level.rows[max]) === "snow" && level.rows[max] > level.originalRows[max] - 5 && boots !== "tennis rackets") {
 							let howmany = 0;
-							let left = getLayer(getRowY(level.rows, max - 1)) == 9;
-							let right = getLayer(getRowY(level.rows, max + 1)) == 9;
+							let left = getBiome(max - 1, getRowY(level.rows, max - 1)) === "snow";
+							let right = getBiome(max + 1, getRowY(level.rows, max + 1)) === "snow";
 							if (left) {
 								howmany += 0.0025;
 								level.rows[max - 1] += 0.0025;
@@ -3561,13 +3604,13 @@
 			};
 			var oldfpsTime = 0;
 			function loop() {
-				//try {
+				try {
 					tick();
 					drawScreen();
-				//} catch (e) {
-				//	alert(e.stack);
-				//	return;
-				//};
+				} catch (e) {
+					alert(e.stack);
+					return;
+				};
 				frameCount++;
 				let now = performance.now();
 				if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

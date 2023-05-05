@@ -31,6 +31,7 @@
 				position: absolute;
 				pointer-events: none;
 				font-family: sans-serif;
+				color: white;
 			}
 		</style>
 	</head>
@@ -42,6 +43,9 @@
 	</body>
 	<script src="./gl-matrix.js"></script>
 	<script>
+		onerror = alert;
+		const { mat4 } = glMatrix;
+		glMatrix = glMatrix.glMatrix;
 		const canvas = document.getElementById("canvas");
 		canvas.width = innerWidth;
 		canvas.height = innerHeight;
@@ -108,9 +112,9 @@
 			}
 			void main() {
 				vec3 p = position;
-				float brightness = 1.0 / (distance(p, vec3(0.0, 1.0, 0.0)) + 1.0);
-				vec3 lightColor = vec3(1.0, 0.9, 0.8) * brightness;
-				gl_FragColor = vec4(1.0 * lightColor, 1.0);
+				float brightness = 3.0 / (distance(p, vec3(0.0, 0.9, 0.0)) + 1.0);
+				vec3 lightColor = vec3(1.0, 0.847, 0.604) * brightness;
+				gl_FragColor = vec4(color * lightColor, 1.0);
 			}
 		`;
 
@@ -122,22 +126,22 @@
 
 		gl.compileShader(vertexShader);
 		if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-			console.error("error compiling vertex shader because", gl.getShaderInfoLog(vertexShader));
+			alert("error compiling vertex shader because", gl.getShaderInfoLog(vertexShader));
 		};
 		gl.compileShader(fragmentShader);
 		if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-			console.error("error compiling fragment shader because", gl.getShaderInfoLog(fragmentShader));
+			alert("error compiling fragment shader because", gl.getShaderInfoLog(fragmentShader));
 		};
 		var program = gl.createProgram();
 		gl.attachShader(program, vertexShader);
 		gl.attachShader(program, fragmentShader);
 		gl.linkProgram(program);
 		if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-			console.error("error linking program because", gl.getProgramInfoLog(program));
+			alert("error linking program because", gl.getProgramInfoLog(program));
 		};
 		gl.validateProgram(program);
 		if (!gl.getProgramParameter(program, gl.VALIDATE_STATUS)) {
-			console.error("error validating program because", gl.getProgramInfoLog(program));
+			alert("error validating program because", gl.getProgramInfoLog(program));
 		};
 
 		/* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- *\
@@ -149,40 +153,40 @@
 
 		var triangleVertices = [ // x, y, z, r, g, b
 			// Top
-			-1.0, 1.0, -1.0,		0.0, 0.0, 1.0,
-			-1.0, 1.0, 1.0,			0.0, 0.0, 1.0,
-			1.0, 1.0, 1.0,			0.0, 0.0, 1.0,
-			1.0, 1.0, -1.0,			0.0, 0.0, 1.0,
+			-1.0, 1.0, -1.0,		0.616, 0.616, 0.596,
+			-1.0, 1.0, 1.0,			0.616, 0.616, 0.596,
+			1.0, 1.0, 1.0,			0.616, 0.616, 0.596,
+			1.0, 1.0, -1.0,			0.616, 0.616, 0.596,
 
 			// Left
-			-1.0, 1.0, 1.0,			0.0, 1.0, 0.0,
-			-1.0, -1.0, 1.0,		0.0, 1.0, 0.0,
-			-1.0, -1.0, -1.0,		0.0, 1.0, 0.0,
-			-1.0, 1.0, -1.0,		0.0, 1.0, 0.0,
+			-1.0, 1.0, 1.0,			0.729, 0.722, 0.643,
+			-1.0, -1.0, 1.0,		0.729, 0.722, 0.643,
+			-1.0, -1.0, -1.0,		0.729, 0.722, 0.643,
+			-1.0, 1.0, -1.0,		0.729, 0.722, 0.643,
 
 			// Right
-			1.0, 1.0, 1.0,			0.0, 1.0, 1.0,
-			1.0, -1.0, 1.0,			0.0, 1.0, 1.0,
-			1.0, -1.0, -1.0,		0.0, 1.0, 1.0,
-			1.0, 1.0, -1.0,			0.0, 1.0, 1.0,
+			1.0, 1.0, 1.0,			0.729, 0.722, 0.643,
+			1.0, -1.0, 1.0,			0.729, 0.722, 0.643,
+			1.0, -1.0, -1.0,		0.729, 0.722, 0.643,
+			1.0, 1.0, -1.0,			0.729, 0.722, 0.643,
 
 			// Front
-			1.0, 1.0, 1.0,			1.0, 0.0, 0.0,
-			1.0, -1.0, 1.0,			1.0, 0.0, 0.0,
-			-1.0, -1.0, 1.0,		1.0, 0.0, 0.0,
-			-1.0, 1.0, 1.0,			1.0, 0.0, 0.0,
+			1.0, 1.0, 1.0,			0.729, 0.722, 0.643,
+			1.0, -1.0, 1.0,			0.729, 0.722, 0.643,
+			-1.0, -1.0, 1.0,		0.729, 0.722, 0.643,
+			-1.0, 1.0, 1.0,			0.729, 0.722, 0.643,
 
 			// Back
-			1.0, 1.0, -1.0,			1.0, 0.0, 1.0,
-			1.0, -1.0, -1.0,		1.0, 0.0, 1.0,
-			-1.0, -1.0, -1.0,		1.0, 0.0, 1.0,
-			-1.0, 1.0, -1.0,		1.0, 0.0, 1.0,
+			1.0, 1.0, -1.0,			0.729, 0.722, 0.643,
+			1.0, -1.0, -1.0,		0.729, 0.722, 0.643,
+			-1.0, -1.0, -1.0,		0.729, 0.722, 0.643,
+			-1.0, 1.0, -1.0,		0.729, 0.722, 0.643,
 
 			// Bottom
-			-1.0, -1.0, -1.0,		1.0, 1.0, 0.0,
-			-1.0, -1.0, 1.0,		1.0, 1.0, 0.0,
-			1.0, -1.0, 1.0,			1.0, 1.0, 0.0,
-			1.0, -1.0, -1.0,		1.0, 1.0, 0.0,
+			-1.0, -1.0, -1.0,		0.533, 0.502, 0.435,
+			-1.0, -1.0, 1.0,		0.533, 0.502, 0.435,
+			1.0, -1.0, 1.0,			0.533, 0.502, 0.435,
+			1.0, -1.0, -1.0,		0.533, 0.502, 0.435
 		];
 		
 		var triangleIndices =[
@@ -251,17 +255,13 @@
 		var worldMatrix = new Float32Array(16);
 		var viewMatrix = new Float32Array(16);
 		var projMatrix = new Float32Array(16);
-		glMatrix.mat4.identity(worldMatrix);
-		glMatrix.mat4.lookAt(viewMatrix, [0, 0, -8], [0, 0, 0], [0, 1, 0]);
-		glMatrix.mat4.perspective(projMatrix, glMatrix.glMatrix.toRadian(80), canvas.width / canvas.height, 0.1, 1000.0);
+		mat4.identity(worldMatrix);
+		mat4.lookAt(viewMatrix, [0, 0, -8], [0, 0, 0], [0, 1, 0]);
+		mat4.perspective(projMatrix, glMatrix.toRadian(72), canvas.width / canvas.height, 0.1, 1000.0);
 
 		gl.uniformMatrix4fv(matWorldUniformLocation, gl.FALSE, worldMatrix);
 		gl.uniformMatrix4fv(matViewUniformLocation, gl.FALSE, viewMatrix);
 		gl.uniformMatrix4fv(matProjUniformLocation, gl.FALSE, projMatrix);
-
-		var xRotationMatrix = new Float32Array(16);
-		var yRotationMatrix = new Float32Array(16);
-		//var zRotationMatrix = new Float32Array(16);
 
 		/* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=  *\
 		|| #   #  ###  ##### ##  #       ###   ##### ##  # ####  ##### ###         #      ###   ###  ####  ||
@@ -271,41 +271,93 @@
 		\* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
 
 		var identityMatrix = new Float32Array(16);
-		glMatrix.mat4.identity(identityMatrix);
+		mat4.identity(identityMatrix);
 		var angleX = 0;
 		var angleY = 0;
 		//var angleZ = 0;
 		var playerX = 0;
 		var playerY = 0;
 		var playerZ = -8;
+		var playerXV = 0;
+		var playerZV = 0;
+		var angleXV = 0;
+		var angleYV = 0;
+		canvas.addEventListener("click", async () => {
+			await canvas.requestPointerLock({
+				unadjustedMovement: true,
+			});
+		});
+		canvas.addEventListener("mousemove", e => {
+			angleXV -= e.movementY / 1000;
+			angleYV -= e.movementX / 1000;
+			checkAngle();
+		});
+		function checkAngle() {
+			if (angleX < -Math.PI / 2) {
+				angleX = -Math.PI / 2;
+				angleXV = 0;
+			};
+			if (angleX > Math.PI / 2) {
+				angleX = Math.PI / 2;
+				angleXV = 0;
+			};
+		};
 		function loop() {
-			angleY += (isDown("ArrowLeft") - isDown("ArrowRight")) * 0.05;
-			angleX += (isDown("ArrowUp") - isDown("ArrowDown")) * 0.05;
+			angleXV *= 0.8;
+			angleYV *= 0.8;
+			angleYV += (isDown("ArrowLeft") - isDown("ArrowRight")) * 0.05;
+			angleXV += (isDown("ArrowUp") - isDown("ArrowDown")) * 0.05;
+			angleX += angleXV;
+			angleY += angleYV;
+			checkAngle();
 			//if (angleX < Math.PI / -2) angleX = Math.PI / -2;
 			//if (angleX > Math.PI / 2) angleX = Math.PI / 2;
 			//if (angleY < -Math.PI) angleY += Math.PI * 2;
 			//if (angleY > Math.PI) angleY -= Math.PI * 2;
 			//angleZ += (isDown("d") - isDown("a")) * 0.05;
-			playerX += (isDown("d") - isDown("a")) * 0.1;
-			playerY += (isDown(" ") - isDown("Shify")) * 0.1;
-			playerZ += (isDown("w") - isDown("s")) * 0.1;
+			var speed = 0.01;
+			playerXV *= 0.7;
+			playerZV *= 0.7;
+			if (isDown("w")) {
+				playerXV -= Math.sin(angleY) * speed;
+				playerZV += Math.cos(angleY) * speed;
+			};
+			if (isDown("s")) {
+				playerXV += Math.sin(angleY) * speed;
+				playerZV -= Math.cos(angleY) * speed;
+			};
+			if (isDown("d")) {
+				playerXV += Math.cos(angleY) * speed;
+				playerZV += Math.sin(angleY) * speed;
+			};
+			if (isDown("a")) {
+				playerXV -= Math.cos(angleY) * speed;
+				playerZV -= Math.sin(angleY) * speed;
+			};
+			playerX += playerXV;
+			playerZ += playerZV;
+			//playerX += (isDown("w") - isDown("s")) * Math.sin(angleY) * 0.1;
+			//playerX += (isDown("d") - isDown("a")) * Math.cos(angleY) * 0.1;
+			//playerY += (isDown(" ") - isDown("Shift")) * 0.1;
+			//playerZ += (isDown("w") - isDown("s")) * Math.cos(angleY) * 0.1;
+			//playerZ += (isDown("d") - isDown("a")) * Math.sin(angleY) * 0.1;
 			document.querySelector("p").innerText = `angleX: ${angleX}\nangleY: ${angleY}\nplayerX: ${playerX}\nplayerY: ${playerY}\nplayerZ: ${playerZ}`;
 
-			glMatrix.mat4.perspective(projMatrix, glMatrix.glMatrix.toRadian(45), canvas.width / canvas.height, 0.1, 1000.0);
-			//glMatrix.mat4.fromZRotation(viewMatrix, 0.1);
-			glMatrix.mat4.lookAt(viewMatrix, [playerX, 0, playerZ], [angleY*0, angleX*0, 0], [0, 1, 0]);
-			//glMatrix.mat4.translate(viewMatrix, playerX, playerY, playerZ);
+			mat4.perspective(projMatrix, glMatrix.toRadian(71.5), canvas.width / canvas.height, 0.001, 1000.0);
+			//mat4.identity(viewMatrix);
+			
+			mat4.identity(viewMatrix);
+			mat4.rotateX(viewMatrix, viewMatrix, -angleX);
+			mat4.rotateY(viewMatrix, viewMatrix, -angleY);
+			mat4.rotateZ(viewMatrix, viewMatrix, 0);
+			mat4.translate(viewMatrix, viewMatrix, [-playerX, -playerY, playerZ]);
+
 
 			gl.uniformMatrix4fv(matWorldUniformLocation, gl.FALSE, worldMatrix);
 			gl.uniformMatrix4fv(matViewUniformLocation, gl.FALSE, viewMatrix);
 			gl.uniformMatrix4fv(matProjUniformLocation, gl.FALSE, projMatrix);
-
-			glMatrix.mat4.rotate(xRotationMatrix, identityMatrix, 0+angleX, [1, 0, 0]);
-			glMatrix.mat4.rotate(yRotationMatrix, identityMatrix, 0+angleY, [0, 1, 0]);
-			//glMatrix.mat4.rotate(zRotationMatrix, identityMatrix, angleZ, [0, 0, 1]);
 			
 
-			glMatrix.mat4.mul(worldMatrix, xRotationMatrix, yRotationMatrix/*, zRotationMatrix*/);
 			gl.uniformMatrix4fv(matWorldUniformLocation, gl.FALSE, worldMatrix);
 
 			gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);

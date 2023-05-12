@@ -50,13 +50,12 @@
 		</style>
 	</head>
 	<body>
-		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true; if (event.key === ' ') {renderreal()}" onkeyup="keysDown[event.key] = false;">
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true; if (event.key == ' ') {renderreal()}" onkeyup="keysDown[event.key] = false;">
 			<canvas id="canvas"></canvas>
 		</div>
 		<canvas id="time-map"></canvas>
 		<div id="settings">
 			<label for="fps">fps: </label><b id="fps">0</b><br>
-			<label for="percent">percent: </label><b id="percent">0%</b><br>
 			<label for="fovX">fov x:</label><input type="range" id="fovX" min="0" max="360" value="90"><br>
 			<label for="fovY">fov y:</label><input type="range" id="fovY" min="0" max="360" value="90"><br>
 			<label for="resX">res x:</label><input type="range" id="resX" min="0" max="360" value="10"><br>
@@ -90,22 +89,24 @@
 		var finalRender = false;
 		var fps = 0;
 
-		Math.mod = function(n, t) {
+		Math.mod = function mod(n, t) {
 			return ((n % t) + t) % t;
 		};
 
 		function toggleTimeMap() {
-			if (window.getComputedStyle(document.getElementById("time-map"), null).getPropertyValue("display") === "block") {
-				document.getElementById("time-map").style.display = "none";
+			if (window.getComputedStyle(document.getElementById('time-map'), null).getPropertyValue('display') == 'block') {
+				document.getElementById('time-map').style.display = 'none';
 			} else {
-				document.getElementById("time-map").style.display = "block";
+				document.getElementById('time-map').style.display = 'block';
 			};
 		};
 		function isDown(key) {
 			return keysDown[key] ?? false;
 		};
 		function getPixel(x, y, z) {
-			// [r, g, b, a, reflectiveness]
+			/*
+				[r, g, b, a, reflectiveness]
+			*/
 			if (x > 200 || x < -200) {
 				if (Math.mod(z, 10) < 2 || (Math.mod(z + (y / 4), 10) < 2 && Math.mod(z, 10) > 5) || (Math.mod(z - (y / 4), 10) < 2 && Math.mod(z, 10) < 5)) {
 					return [200, 200, 50, 1, 0];
@@ -144,11 +145,10 @@
 		function average(number1, number2) {
 			return (number1 + number2) / 2;
 		};
-		function lerp(a, b, t) {
-			return (b - a) * t + a;
+		function inbetween(first, second, percent) {
+			return ((second - first) * percent) + first;
 		};
 		function render(clear) {
-			try {
 			let time = performance.now();
 			
 
@@ -167,21 +167,20 @@
 				let oldPlayerZ = playerZ;
 
 				playerX += playerSpeed * (isDown("w") - isDown("s")) * Math.sin(deg2rad(playerDirY));
-				let pixel = getPixel(playerX, playerY, playerZ);
-				if (pixel[3] !== 0) {
+				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
 					playerX = oldPlayerX;
 				};
 				playerZ += playerSpeed * (isDown("w") - isDown("s")) * Math.cos(deg2rad(playerDirY));
-				if (pixel[3] !== 0) {
+				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
 					playerZ = oldPlayerZ;
 				};
 				
 				playerX += playerSpeed * (isDown("d") - isDown("a")) * Math.sin(deg2rad(playerDirY + 90));
-				if (pixel[3] !== 0) {
+				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
 					playerX = oldPlayerX;
 				};
 				playerZ += playerSpeed * (isDown("d") - isDown("a")) * Math.cos(deg2rad(playerDirY + 90));
-				if (pixel[3] !== 0) {
+				if (getPixel(playerX, playerY, playerZ)[3] !== 0) {
 					playerZ = oldPlayerZ;
 				};
 			
@@ -192,7 +191,7 @@
 				tmctx.clearRect(0, 0, timeMap.width, timeMap.height);
 			};
 
-			let singleRay = function(pixelX, pixelY, imageData) {
+			let singleRay = function singleRay(pixelX, pixelY) {
 				let rayDirX = (pixelY * (fovY / .5 / canvas.width)) + playerDirX;
 				let rayDirY = ((pixelX * (fovX / 2 / canvas.height)) + playerDirY);
 				let rayXV = resZ * Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
@@ -205,60 +204,54 @@
 				let bounceColors = [];
 				let bounces = 0;
 				let maxBounces = 2;
-				while (getPixel(rayX, rayY, rayZ)[3] === 0) {
+				while (!(getPixel(rayX, rayY, rayZ)[3] != 0)) {
 					rayX += rayXV;
-					let pixel = getPixel(rayX, rayY, rayZ);
-					if (pixel[3] !== 0 && bounces < maxBounces) {
+					if (rayX > -50 && rayX < 50 && rayY > -50 && rayY < 50 && rayZ > -50 && rayZ < 50) {
+						rayXV *= 1.1;
+						rayXV *= 1.1;
+						rayXV *= 1;
+					};
+					if (getPixel(rayX, rayY, rayZ)[3] != 0 && bounces < maxBounces) {
 						rayXV *= -1;
-						bounceColors.push(pixel);
+						bounceColors.push(getPixel(rayX, rayY, rayZ));
 						rayX += rayXV;
 						bounces++;
 					};
 					rayY += rayYV;
-					pixel = getPixel(rayX, rayY, rayZ);
-					if (pixel[3] !== 0 && bounces < maxBounces) {
+					if (getPixel(rayX, rayY, rayZ)[3] != 0 && bounces < maxBounces) {
 						rayYV *= -1;
-						bounceColors.push(pixel);
+						bounceColors.push(getPixel(rayX, rayY, rayZ));
 						rayY += rayYV;
 						bounces++;
 					};
 					rayZ += rayZV;
-					pixel = getPixel(rayX, rayY, rayZ);
-					if (pixel[3] !== 0 && bounces < maxBounces) {
+					if (getPixel(rayX, rayY, rayZ)[3] != 0 && bounces < maxBounces) {
 						rayZV *= -1;
-						bounceColors.push(pixel);
+						bounceColors.push(getPixel(rayX, rayY, rayZ));
 						rayZ += rayZV;
 						bounces++;
 					};
 				};
 
 				let color = [
-					lerp(bounceColors[0][0], bounceColors[1][0], bounceColors[0][4]),
-					lerp(bounceColors[0][1], bounceColors[1][1], bounceColors[0][4]),
-					lerp(bounceColors[0][2], bounceColors[1][2], bounceColors[0][4]),
+					inbetween(bounceColors[0][0], bounceColors[1][0], bounceColors[0][4]),
+					inbetween(bounceColors[0][1], bounceColors[1][1], bounceColors[0][4]),
+					inbetween(bounceColors[0][2], bounceColors[1][2], bounceColors[0][4]),
 					bounceColors[0][3]
 				];
 
 				/*let colorOffset = 1.3;
 
-				if (getPixel(rayX - rayXV, rayY, rayZ)[3] === 0) {
+				if (getPixel(rayX - rayXV, rayY, rayZ)[3] == 0) {
 					color[0] *= colorOffset;
 					color[1] *= colorOffset;
 					color[2] *= colorOffset;
-				} else if (getPixel(rayX, rayY, rayZ - rayZV)[3] === 0) {
+				} else if (getPixel(rayX, rayY, rayZ - rayZV)[3] == 0) {
 					color[0] /= colorOffset;
 					color[1] /= colorOffset;
 					color[2] /= colorOffset;
 				};*/
 				
-				if (imageData) {
-					let index = Math.floor((pixelY + canvas.width / 2) * canvas.width + (pixelX + canvas.width / 2)) * 4;
-					imageData.data[index] = color[0] * 255;
-					imageData.data[index + 1] = color[1] * 255;
-					imageData.data[index + 2] = color[2] * 255;
-					imageData.data[index + 3] = color[3] * 255;
-					return;
-				};
 				ctx.fillStyle = `rgba(${color.join(", ")})`;
 				ctx.fillRect(pixelX + (canvas.width / 2), pixelY + (canvas.height / 2), canvas.width / resX, canvas.height / resY);
 			};
@@ -266,22 +259,18 @@
 			if (finalRender) {
 				let pixelX = canvas.width / -2;
 				let pixelY = canvas.height / -2;
-				let imageData = new ImageData(canvas.width, canvas.height);
-				let loopX = setInterval(() => {
-					//for (let i = 0; i < 1; i++) {
+				let loopX = setInterval(function(){
+					//for (let i = 0; i < 10; i++) {
 						for (let pixelX = canvas.width / -2; pixelX < canvas.width; pixelX += canvas.width / resX) {
-							//let timeReal = performance.now();
-							singleRay(pixelX, pixelY, imageData);
-							//let colorReal = (performance.now() - timeReal) * 1000;
-							//tmctx.fillStyle = `rgba(${colorReal}, ${colorReal}, ${colorReal}, 1)`;
-							//tmctx.fillRect(pixelX + (timeMap.width / 2), pixelY + (timeMap.height / 2), timeMap.width / resX, timeMap.height / resY);
+							let timeReal = performance.now();
+							singleRay(pixelX, pixelY);
+							let colorReal = (performance.now() - timeReal) * 1000;
+							tmctx.fillStyle = `rgba(${colorReal}, ${colorReal}, ${colorReal}, 1)`;
+							tmctx.fillRect(pixelX + (timeMap.width / 2), pixelY + (timeMap.height / 2), timeMap.width / resX, timeMap.height / resY);
 						};
 						pixelY += canvas.height / resY;
-						document.getElementById("percent").innerText = (((pixelY + canvas.height / 2) / canvas.height) * 100).toFixed(2) + "%";
-						if (pixelY + canvas.height / 2 >= canvas.height) {
-							ctx.putImageData(imageData, 0, 0);
-							alert("end")
-							clearInterval(loopX);
+						if (!(pixelY < canvas.height)) {
+							clearInterval(loopY);
 						};
 					//};
 				}, 0);
@@ -296,7 +285,6 @@
 			fps = 1000 / (performance.now() - time);
 			document.getElementById("fps").innerText = fps;
 			return performance.now() - time;
-		} catch(e) {alert(e.stack)}
 		};
 		var bud = setInterval(render, 10, true);
 		function renderreal() {

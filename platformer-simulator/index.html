@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Pla Tfo Rme Rsi Mul Ato R v1</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			#canvas-wrapper {
+				width: min(100vw, calc(100vh * 16 / 9));
+				height: calc(min(100vw, calc(100vh * 16 / 9)) * 9 / 16);
+				outline: none;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keyDown(event);" onkeyup="keyUp(event);">
+			<canvas id="canvas"></canvas>
+		</div>
+		<script>
+			const canvas = document.getElementById("canvas");
+			const ctx = canvas.getContext("2d");
+			function resizeCanvas() {
+				var rect = canvas.getBoundingClientRect();
+				canvas.width = rect.width;
+				canvas.height = rect.height;
+			};
+			resizeCanvas();
+			window.onresize = resizeCanvas;
+
+			var levels = [
+				[
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,2,0,0,0,0,2,0,0,0,0,0,
+					1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+				],
+				[
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,
+					1,1,1,1,1,1,1,1,1,1,0,1,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,1,0,0,0,0,2,0,
+					0,0,0,0,0,0,0,0,0,1,0,0,0,1,1,0,
+					0,0,2,0,0,0,2,0,0,1,0,0,1,1,1,0,
+					1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+				],
+				[
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,1,0,1,0,0,0,0,0,1,
+					0,0,0,0,0,2,1,1,1,1,2,2,2,2,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+				],
+				[
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,2,0,0,0,2,0,0,0,2,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,2,0,0,0,2,0,0,0,2,0,0,0,
+					1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,
+					1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+				],
+				[
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,
+					0,0,3,1,1,1,1,1,1,1,1,4,0,0,0,0,
+					1,1,1,1,1,1,1,1,1,1,1,1,4,0,0,0,
+					1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+				],
+				[
+					0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,2,0,2,0,0,0,0,0,0,0,
+					1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+				],
+				[
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,2,1,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,
+					0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,
+					0,0,0,0,0,1,1,0,2,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+				],
+			];
+			var playerXV = 0;
+			var playerYV = 0;
+			var playerX = 0;
+			var playerY = 5;
+			var onGround = false;
+			var keysDown = {};
+			var levelNumber = 0;
+
+			function keyDown(e) {
+				keysDown[e.key] = true;
+			};
+			function keyUp(e) {
+				keysDown[e.key] = false;
+			};
+			function isDown(key) {
+				return keysDown[key] ?? false;
+			};
+			function intersects(a,b,c,d,p,q,r,s) {
+				var det, gamma, lambda;
+				det = (c - a) * (s - q) - (r - p) * (d - b);
+				if (det === 0) {
+					return false;
+				} else {
+					lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+					gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+					return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+				};
+			};
+			function lineizeLevel(level) {
+				var lines = [];
+				for (let i = 0; i < level.length; i++) {
+					let x = i % 16;
+					let y = 8 - Math.floor(i / 16);
+					switch (level[i]) {
+						case 1:
+							lines.push(x, y, x, y + 1);
+							lines.push(x, y + 1, x + 1, y + 1);
+							lines.push(x + 1, y + 1, x + 1, y);
+							lines.push(x + 1, y, x, y);
+							break;
+						case 3:
+							lines.push(x + 1, y, x + 1, y + 1);
+							lines.push(x, y, x + 1, y);
+							lines.push(x, y, x + 1, y + 1);
+							break;
+						case 4:
+							lines.push(x, y, x, y + 1);
+							lines.push(x + 1, y, x, y);
+							lines.push(x + 1, y, x, y + 1);
+					};
+				};
+				return lines;
+			};
+			function getPlayerLines() {
+				return [playerX - 0.4, playerY, playerX - 0.4, playerY + 1.8, playerX - 0.4, playerY + 1.8, playerX + 0.4, playerY + 1.8, playerX + 0.4, playerY + 1.8, playerX + 0.4, playerY, playerX + 0.4, playerY, playerX - 0.4, playerY];
+			};
+			function reset() {
+				playerX = 0;
+				playerY = 5;
+				playerXV = 0;
+				playerYV = 0;
+				onGround = false;
+			};
+			function die() {
+				reset();
+			};
+			function colliding(lines) {
+				var playerLines = getPlayerLines();
+				for (let i = 0; i < lines.length; i += 4) {
+					for (let j = 0; j < playerLines.length; j += 4) {
+						if (intersects(playerLines[j], playerLines[j + 1], playerLines[j + 2], playerLines[j + 3], lines[i], lines[i + 1], lines[i + 2], lines[i + 3])) {
+							return true;
+						};
+					};
+				};
+				return playerX < 0;
+			};
+
+			function tick() {
+				var lines = lineizeLevel(levels[levelNumber]);
+				playerXV += (isDown("ArrowRight") - isDown("ArrowLeft")) * 0.02;
+				if (onGround && isDown("ArrowUp")) {
+					playerYV += 0.19;
+				};
+				playerX += playerXV;
+				if (colliding(lines)) {
+					playerY += 0.1;
+					if (colliding(lines) || !onGround) {
+						playerY -= 0.1;
+						playerX -= playerXV;
+						playerXV = 0;
+					} else {
+						let i = 100;
+						while (i > 0 && !colliding(lines)) {
+							i++;
+							playerY -= 0.01;
+						};
+						playerY += 0.01;
+					};
+				};
+				playerY += playerYV;
+				if (colliding(lines)) {
+					onGround = (playerYV < 0);
+					playerY -= playerYV;
+					playerYV = 0;
+				} else {
+					onGround = false;
+				};
+				var redLines = lineizeLevel(levels[levelNumber].map(it => it === 2 ? 1 : 0));
+				if (colliding(redLines)) {
+					die();
+				};
+				
+				playerXV *= 0.8;
+				playerYV -= 0.01;
+				if (playerX + 0.4 > 16) {
+					levelNumber++;
+					reset();
+				};
+			};
+			function render() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.save();
+				ctx.scale(canvas.width / 16, canvas.height / -9);
+				ctx.translate(0, -9);
+
+				ctx.fillStyle = "#A0A0A0";
+				ctx.fillRect(0, 0, 16, 9);
+				for (let i = 0; i < levels[levelNumber].length; i++) {
+					let x = i % 16;
+					let y = 8 - Math.floor(i / 16);
+					switch (levels[levelNumber][i]) {
+						case 1:
+							ctx.fillStyle = "#000000";
+							ctx.fillRect(x, y, 1, 1);
+							break;
+						case 2:
+							ctx.fillStyle = "#FF0000";
+							ctx.fillRect(x, y, 1, 1);
+							break;
+						case 3:
+							ctx.fillStyle = "#000000";
+							ctx.beginPath();
+							ctx.moveTo(x, y);
+							ctx.lineTo(x + 1, y);
+							ctx.lineTo(x + 1, y + 1);
+							ctx.lineTo(x, y);
+							ctx.fill();
+							break;
+						case 4:
+							ctx.fillStyle = "#000000";
+							ctx.beginPath();
+							ctx.moveTo(x + 1, y);
+							ctx.lineTo(x, y);
+							ctx.lineTo(x, y + 1);
+							ctx.lineTo(x + 1, y);
+							ctx.fill();
+					};
+				};
+				ctx.fillStyle = "#447733";
+				ctx.fillRect(playerX - 0.4, playerY, 0.8, 1.8);
+
+				/*ctx.strokeStyle = "#FFFFFF";
+				ctx.lineWidth = 0.03;
+				var lines = lineizeLevel(levels[levelNumber]);
+				for (let i = 0; i < lines.length; i += 4) {
+					ctx.beginPath();
+					ctx.moveTo(lines[i], lines[i + 1]);
+					ctx.lineTo(lines[i + 2], lines[i + 3]);
+					ctx.stroke();
+				};
+				var playerLines = getPlayerLines();
+				for (let i = 0; i < playerLines.length; i += 4) {
+					ctx.beginPath();
+					ctx.moveTo(playerLines[i], playerLines[i + 1]);
+					ctx.lineTo(playerLines[i + 2], playerLines[i + 3]);
+					ctx.stroke();
+				};*/
+
+				ctx.restore();
+			};
+			function loop() {
+				tick();
+				try {
+					render();
+				} catch (e) {
+					alert(e.stack);
+				};
+				requestAnimationFrame(loop);
+			};
+			loop();
+		</script>
+	</body>
+</html>

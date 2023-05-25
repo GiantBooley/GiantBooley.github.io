@@ -4,7 +4,7 @@
 		<meta charset="UTF-8">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Pla Tfo Rme Rsi Mul Ato R v3</title>
+		<title>Pla Tfo Rme Rsi Mul Ato R v4</title>
 		<style>
 			* {
 				box-sizing: border-box;
@@ -116,13 +116,13 @@
 				],
 				[
 					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,2,1,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,
 					0,0,0,0,0,0,0,0,2,1,1,1,1,1,1,1,
 					0,0,0,0,0,1,1,0,2,1,1,1,1,1,1,1,
+					1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,
+					1,1,1,0,5,5,5,5,5,5,5,5,5,5,5,5,
+					1,1,1,0,5,5,5,5,5,5,5,5,5,5,5,5,
 					1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 				],
 				[
@@ -177,14 +177,21 @@
 			var onGround = false;
 			var keysDown = {};
 			var levelNumber = 0;
-			var time = 0;
+			var ticks = 0;
+			var showingReplay = false;
+			var replay = [];
+			var levelReplay = [];
 
 			function keyDown(e) {
 				keysDown[e.key] = true;
 				if (e.key === "r") {
 					reset();
-					time = 0;
+					ticks = 0;
 					levelNumber = 0;
+					replay = [];
+				} else if (e.key === "f") {
+					ticks = 0;
+					showingReplay = true;
 				};
 			};
 			function keyUp(e) {
@@ -241,6 +248,7 @@
 			};
 			function die() {
 				reset();
+				levelReplay = [];
 			};
 			function colliding(lines) {
 				var playerLines = getPlayerLines();
@@ -256,10 +264,18 @@
 
 			function tick() {
 				var lines = lineizeLevel(levels[levelNumber]);
+				
+				var spiderWeb = false;
+				var spiderWebLines = lineizeLevel(levels[levelNumber].map(it => it === 5 ? 1 : 0));
+				if (colliding(spiderWebLines)) {
+					spiderWeb = true;
+				};
+				
 				playerXV += (isDown("ArrowRight") - isDown("ArrowLeft")) * 0.02;
 				if (onGround && isDown("ArrowUp")) {
 					playerYV += 0.19;
 				};
+				if (spiderWeb) playerXV *= 0.3;
 				playerX += playerXV;
 				if (colliding(lines)) {
 					playerY += 0.1;
@@ -276,6 +292,7 @@
 						playerY += 0.01;
 					};
 				};
+				if (spiderWeb) playerYV *= 0.3;
 				playerY += playerYV;
 				if (colliding(lines)) {
 					onGround = (playerYV < 0);
@@ -293,11 +310,14 @@
 				playerYV -= 0.01;
 				if (playerX + 0.4 > 16) {
 					levelNumber++;
+					replay.push(...levelReplay);
+					levelReplay = [];
 					reset();
 				};
 				if (levelNumber < levels.length - 1) {
-					time += 1 / 60;
+					ticks++;
 				};
+				levelReplay.push([playerX, playerY, levelNumber]);
 			};
 			function render() {
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -336,6 +356,30 @@
 							ctx.lineTo(x, y + 1);
 							ctx.lineTo(x + 1, y);
 							ctx.fill();
+							break;
+						case 5:
+							ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+							ctx.lineWidth = 0.1;
+							ctx.beginPath();
+							ctx.moveTo(x, y);
+							ctx.lineTo(x + 1, y + 1);
+							ctx.stroke();
+
+							ctx.beginPath();
+							ctx.moveTo(x + 1, y);
+							ctx.lineTo(x, y + 1);
+							ctx.stroke();
+
+							ctx.beginPath();
+							ctx.moveTo(x + 0.5, y);
+							ctx.lineTo(x + 0.5, y + 1);
+							ctx.stroke();
+
+							ctx.beginPath();
+							ctx.moveTo(x, y + 0.5);
+							ctx.lineTo(x + 1, y + 0.5);
+							ctx.stroke();
+							break;
 					};
 				};
 				ctx.fillStyle = "#447733";
@@ -361,15 +405,24 @@
 				ctx.restore();
 				ctx.fillStyle = "white";
 				ctx.font = "30px Arial";
-				ctx.fillText("LEVEL " + levelNumber + ", " + time.toFixed(2) + "s", 10, 30);
+				ctx.fillText("LEVEL " + levelNumber + ", " + (ticks / 60).toFixed(2) + "s", 10, 30);
+			};
+			function replayTick() {
+				playerX = replay[ticks][0];
+				playerY = replay[ticks][1];
+				levelNumber = replay[ticks][2];
+				ticks++;
+				if (ticks > replay.length - 1) {
+					showingReplay = false;
+				};
 			};
 			function loop() {
-				tick();
-				try {
-					render();
-				} catch (e) {
-					alert(e.stack);
-				};
+				if (showingReplay) {
+					replayTick();
+				} else {
+					tick();
+				}
+				render();
 				requestAnimationFrame(loop);
 			};
 			loop();

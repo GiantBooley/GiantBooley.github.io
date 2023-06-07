@@ -57,6 +57,7 @@
 		</div>
 	</body>
 	<script>
+		onerror = alert
 		const canvas = document.getElementById("canvas");
 		canvas.width = innerHeight;
 		canvas.height = innerHeight;
@@ -67,7 +68,6 @@
 		var tiles = [];
 		var gameOver = false;
 		var keyDown = null;
-		var tick = 0;
 		var pb = 0;
 		var score = 0;
 		var pianoSounds = [
@@ -77,9 +77,8 @@
 			new Audio("./piano3.mp3")
 		];
 		var clicks = [];
+		var respawnTime = 0;
 
-		var row = 0;
-		var rows = [1,4,1,2,3,1,4,1,3,2,4,1,2,3,1,4,3,2,3,2,1,4,2,1,4,3,1,2,3,1,3,2,4,2,3,2];
 		var howManyRows = 4;
 
 		document.getElementById("canvas-wrapper").addEventListener("keydown", function(e){
@@ -104,65 +103,77 @@
 			ctx.fillText("score: " + score, 100, 200);
 			ctx.fillText("pb: " + pb, 100, 300);
 			for (let i = 0; i < 3; i++) {
-				pianoSounds.forEach(sound => sound.cloneNode(true).play());
+				//pianoSounds.forEach(sound => sound.cloneNode(true).play());
 			};
-			setTimeout(function(){
-				tiles = [];
-				gameOver = false;
-				tick = 0;
-				score = 0;
-				row = 0;
-				loop();
-			}, 3000);
+			respawnTime = 100;
 		};
-
-		function loop() {
-			tick++;
+		var speed = 10;
+		function reset() {
+			tiles = [];
+			gameOver = false;
+			score = 0;
+			speed = 10;
+		};
+		function tick() {
 			howManyRows = document.getElementById("rows").valueAsNumber;
-			let speed = 10; /// + (tick / (canvas.height)) / tick;
+			speed *= 1.1;
 			let createTile = false;
 			let hitTile = false;
-			let gameWidth = canvas.width;
-			let tileSize = gameWidth / howManyRows;
-			let gameHeight = canvas.height;
+			let tileSize = canvas.width / howManyRows;
 			let hitOffset = document.getElementById("hit-offset").valueAsNumber;
 
-			tiles.forEach((tile, i) => {
-				tile.y += speed;
-				if (tile.y >= 0 && !tile.createdATile) {
-					createTile = true;
-					tile.createdATile = true;
+			respawnTime = Math.max(respawnTime - 1, 0);
+			if (respawnTime <= 0 && gameOver) {
+				reset();
+			};
+
+			if (!gameOver) {
+				for (let i = 0; i < tiles.length; i++) {
+					tiles[i].y += speed;
+					if (tiles[i].y >= 0 && !tiles[i].createdATile) {
+						createTile = true;
+						tiles[i].createdATile = true;
+					};
+					if (
+						(tiles[i].y > (canvas.height - hitOffset) - tileSize && tiles[i].y < canvas.height - hitOffset && keyDown == tiles[i].col)
+						||
+						clicks.some(click => (click[0] > tiles[i].col * tileSize && click[0] < (tiles[i].col + 1) * tileSize && click[1] > tiles[i].y && click[1] < tiles[i].y + tileSize))
+						||
+						(tiles[i].y > canvas.height - tileSize && document.getElementById("bot").checked)
+					) {
+						tiles.splice(i, 1);
+						pianoSounds[tiles[i].col]?.cloneNode(true)?.play();
+						score++;
+						hitTile = true;
+					};
+					if (tiles[i].y > canvas.height) {
+						die();
+					};
 				};
-				if (
-					(tile.y > (gameHeight - hitOffset) - tileSize && tile.y < gameHeight - hitOffset && keyDown == tile.col)
-					||
-					clicks.some(click => (click[0] > tile.col * tileSize && click[0] < (tile.col + 1) * tileSize && click[1] > tile.y && click[1] < tile.y + tileSize))
-					||
-					(tile.y > gameHeight - tileSize && document.getElementById("bot").checked)
-				) {
-					tiles.splice(i, 1);
-					pianoSounds[tile.col]?.cloneNode(true)?.play();
-					score++;
-					hitTile = true;
-					return;
+				if (keyDown !== null && !hitTile) {
+					ctx.fillStyle = "red";
+					ctx.fillRect(tileSize * keyDown, (canvas.height - hitOffset) - tileSize, tileSize, tileSize);
+					die();
+					keyDown = null;
 				};
-				if (tile.y > gameHeight) {
+				if (clicks.length > 0 && !hitTile) {
+					ctx.fillStyle = "red";
+					ctx.fillRect(Math.floor(clicks[0][0] / tileSize) * tileSize, canvas.width - tileSize, tileSize, tileSize);
 					die();
 				};
-			});
-			if (keyDown !== null && !hitTile) {
-				ctx.fillStyle = "red";
-				ctx.fillRect(tileSize * keyDown, (gameHeight - hitOffset) - tileSize, tileSize, tileSize);
-				die();
-				keyDown = null;
-			};
-			if (clicks.length > 0 && !hitTile) {
-				ctx.fillStyle = "red";
-				ctx.fillRect(Math.floor(clicks[0][0] / tileSize) * tileSize, gameWidth - tileSize, tileSize, tileSize);
-				die();
-			};
-			if (gameOver) return;
 
+				if (createTile || tiles.length == 0) {
+					tiles.push({
+						col: Math.floor(Math.random() * howManyRows),
+						y: -tileSize,
+						createdATile: false
+					});
+				};
+			};
+		};
+		function render() {
+			let hitOffset = document.getElementById("hit-offset").valueAsNumber;
+			let tileSize = canvas.width / howManyRows;
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.fillStyle = "blue";
 			tiles.forEach(tile => {
@@ -170,27 +181,20 @@
 			});
 			ctx.fillStyle = "white";
 			for (let i = 1; i < howManyRows; i++) {
-				ctx.fillRect((tileSize * i) - 1, 0, 2, gameHeight);
+				ctx.fillRect((tileSize * i) - 1, 0, 2, canvas.height);
 			};
-			ctx.fillRect(0, gameHeight - (hitOffset + 1), gameWidth, 2);
-			ctx.fillText(score, gameWidth / 2 - 30, 100);
-
-			if (createTile || tiles.length == 0) {
-				tiles.push({
-					col: Math.floor(Math.random() * howManyRows), // (rows[row++] - 1), //
-					y: -tileSize,
-					createdATile: false
-				});
-			};
+			ctx.fillRect(0, canvas.height - (hitOffset + 1), canvas.width, 2);
+			ctx.fillText(score, canvas.width / 2 - 30, 100);
 
 			keyDown = null;
 			clicks = [];
-			if (!gameOver) {
-				//setTimeout(function(){
-					requestAnimationFrame(loop);
-				//}, 500);
-			};
 		};
-		requestAnimationFrame(loop);
+
+		function loop() {
+			tick();
+			render();
+			requestAnimationFrame(loop);
+		};
+		loop();
 	</script>
 </html>

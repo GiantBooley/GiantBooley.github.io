@@ -1,0 +1,151 @@
+<!DOCTYPE html>https://click.discord.com/ls/click?upn=qDOo8cnwIoKzt0aLL1cBeJWc43CAiLlKYSQGUErhKV7fF2lroxEuEaMS14HcVQRW4c7RQ6-2FWLnJijRbNLlB-2BfniceI8RR2gER7UkzYngIvEjnZ7yufeJeT5YLJopv2-2FV1v8k9jq779TqcnBuhFbcD-2FCP3Hf9CssIBD8GD8TZnYI-3DugDJ_mSUR7xty6VZ7GucFNuqtL5OH2W1JAAYg9EPzzivDlE9chp6NutpBn87-2FqzYoRRARmOCq1TdPINm4NvbeGCU1YNNRhrEOtaFO-2Bj1covlcjgC2t5MKxMCYdmyN4TXTJvGCLL58-2FilS9c3E3hvSczoK8YnpgEGUv8Ldwn23LYp5hJYLpqCNWjhlRk1w-2Bx6SRlDEzMNsSkNw5fKE3EEwq7YqwPtn2Im1AK6AAUu7S35h1QbTwv13ZZBXwz2Xvp1Amzg09a9Rx7pQeTXGGN3AV17CnA-3D-3D
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>it</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#canvas-wrapper {
+				width: 100%;
+				height: 100%;
+				outline: none;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+			#output {
+				display: none;
+				z-index: 10;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+			}
+		</style>
+	</html>
+	<body>
+		<div id="canvas-wrapper" tabindex="0" onkeydown="keysDown[event.key] = true;" onkeyup="keysDown[event.key] = false;">
+			<canvas id="canvas"></canvas>
+		</div>
+	</body>
+	<script>
+		/* -v-v-v-v-v-v- *\
+		|  +X: RIGHT,     |
+		>  +Y: UP,        <
+		|  +Z: BACKWARDS  |
+		\* -^-^-^-^-^-^- */
+		const rect3D = class rect3D {
+			constructor(faces) {
+				this.top = faces.top;
+				this.bottom =  faces.bottom;
+				this.left = faces.left;
+				this.right = faces.right
+				this.front = faces.front;
+				this.back = faces.back;
+			};
+			isPointIntersecting(x, y, z) {
+				return (x < this.right && x > this.left && y > this.bottom && y < this.top && z > this.back && z < this.front);
+			};
+		}; 
+
+		const canvas = document.getElementById("canvas");
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+		const ctx = canvas.getContext("2d");
+
+		var fovX = 90;
+		var fovY = 60;
+		var resX = 90;
+		var resY = 90;
+		var playerX = 0; // do keys down and move
+		var playerY = 0;
+		var playerZ = 0;
+		var playerDirX = 0;
+		var playerDirY = 0;
+		var playerDirZ = 0;
+		var renderDistance = 50;
+
+		var cube = new rect3D({
+			top: 2,
+			bottom: -2,
+			left: -2,
+			right: 2,
+			front: 6,
+			back: 4
+		});
+		var keysDown = {};
+		function isDown(key) {
+			return keysDown[key] ?? false;
+		};
+		function deg2rad(degrees) {
+			return degrees * (Math.PI / 180);
+		};
+		function randomNumber(min, max) {
+			return Math.random() * (max - min + 1) + min;
+		};
+
+		function render() {
+			playerX += (isDown("s") - isDown("w")) * Math.sin(deg2rad(playerDirY)) * 1;
+			playerZ += (isDown("s") - isDown("w")) * Math.cos(deg2rad(playerDirY)) * 1;
+			playerX += (isDown("d") - isDown("a")) * Math.sin(deg2rad(playerDirY + 90)) * 1;
+			playerZ += (isDown("d") - isDown("a")) * Math.cos(deg2rad(playerDirY + 90)) * 1;
+
+			playerDirY += (isDown("ArrowRight") - isDown("ArrowLeft")) * 3;
+			playerDirX += (isDown("ArrowUp") - isDown("ArrowDown")) * 3;
+			playerDirY = playerDirY % 360;
+			playerDirX = playerDirX % 360;
+
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+			for (let rayDirX = playerDirX - (fovX / 2); rayDirX < fovX; rayDirX++) {
+				for (let rayDirY = playerDirY - (fovY / 2); rayDirY < fovY; rayDirY++) {
+					let rayDirZ = playerDirZ;
+
+					let rayX = playerX;
+					let rayY = playerY;
+					let rayZ = playerZ;
+
+					let rayXV = Math.sin(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
+					let rayYV = Math.sin(deg2rad(rayDirX));
+					let rayZV = Math.cos(deg2rad(rayDirY)) * Math.cos(deg2rad(rayDirX));
+
+					while (!(cube.isPointIntersecting(rayX, rayY, rayZ) || (rayX > playerX + renderDistance || rayX < playerX - renderDistance || rayY > playerY + renderDistance || rayY < playerY - renderDistance || rayZ > playerZ + renderDistance || rayZ < playerZ - renderDistance))) {
+						rayX += rayXV;
+						rayY += rayYV;
+						rayZ += rayZV;
+					};
+
+					let buffer = [];
+					if (cube.isPointIntersecting(rayX, rayY, rayZ)) {
+						buffer.push([rayDirX, rayDirY, "green"]);
+					} else {
+						buffer.push([rayDirX, rayDirY, "skyblue"]);
+					};
+
+					/*for (let pixelX = 0; pixelX < canvas.width / fov; pixelX++) {
+						for (let pixelY = 0; pixelY < canvas.width / fov; pixelY++) {
+							ctx.fillRect(pixelX, pixelY, 1, 1);
+						};
+					};*/
+					buffer.forEach(it => {
+						ctx.fillStyle = it[2];
+						ctx.fillRect(it[0] * (canvas.width / fovX), it[1] * (canvas.height / fovY), canvas.width / fovX, canvas.height / fovY);
+					});
+				};
+			};
+		};
+		setInterval(render, 10);
+	</script>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Sky Rising Simulator</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			#canvas-wrapper {
+				width: min(100vw, calc(100vh * 16 / 9));
+				height: calc(min(100vw, calc(100vh * 16 / 9)) * 9 / 16);
+				outline: none;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="canvas-wrapper" tabindex="0">
+			<canvas id="canvas"></canvas>
+		</div>
+		<script>
+			const canvas = document.getElementById("canvas");
+			canvas.width = innerWidth;
+			canvas.height = innerHeight;
+			const ctx = canvas.getContext("2d");
+			const wrapper = document.getElementById("canvas-wrapper");
+			wrapper.focus();
+			
+			var player = {
+				x: 16,
+				y: 0,
+				xv: 0,
+				yv: 0.1,
+				score: 0
+			};
+			var keysDown = {};
+			var obstacles = [];
+			function randomizeObstacles() {
+				obstacles = [];
+				for (let i = 1; i < 1000; i++) {
+					obstacles.push({
+						"x": Math.random() * 32,
+						"y": Math.random() * 1000
+					});
+				};
+			};
+			randomizeObstacles();
+			wrapper.addEventListener("keydown", e => {
+				keysDown[e.key] = true;
+			});
+			wrapper.addEventListener("keyup", e => {
+				keysDown[e.key] = false;
+			});
+			function isDown(key) {
+				return keysDown[key] ?? false;
+			};
+			function die() {
+				player = {
+					x: 16,
+					y: 0,
+					xv: 0,
+					yv: 0.1,
+					score: 0
+				};
+				randomizeObstacles();
+			};
+			function tick() {
+				player.xv *= 0.8;
+				var speed = 0.05;
+				player.xv += (isDown("ArrowRight") - isDown("ArrowLeft")) * speed;
+				player.yv += 0.0001;
+				player.x += player.xv;
+				if (player.x < 0) {
+					player.x = 0;
+				};
+				if (player.x > 32) {
+					player.x = 32;
+				};
+				player.y += player.yv;
+				player.score += Math.floor(player.y / 10) - player.score;
+				for (let i = 0; i < obstacles.length; i++) {
+					if (player.x + 0.2 > obstacles[i].x - 1.5 && player.x - 0.2 < obstacles[i].x + 1.5 && player.y < obstacles[i].y + 2 && player.y + 1 > obstacles[i].y) {
+						die();
+					};
+				};
+			};
+			function render() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.save();
+				ctx.scale(canvas.width / 32, canvas.height / -18);
+				ctx.translate(0, -18);
+				
+				ctx.fillStyle = "rgb(200, 200, 250)";
+				ctx.fillRect(0, 0, 32, 18);
+				
+				ctx.translate(0, 3 - player.y);
+				
+				ctx.fillStyle = "rgb(10, 10, 10)";
+				ctx.fillRect(player.x - 0.2, player.y, 0.4, 1);
+				ctx.fillStyle = "rgb(100, 200, 100)";
+				ctx.fillRect(0, -10, 32, 10);
+				
+				ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+				for (let i = 0; i < obstacles.length; i++) {
+					ctx.fillRect(obstacles[i].x - 1.5, obstacles[i].y, 3, 2);
+				};
+				ctx.restore();
+				
+				ctx.font = "40px arial";
+				ctx.fillStyle = "black";
+				ctx.fillText(player.score, canvas.width / 2, 50);
+			};
+			function loop() {
+				tick();
+				render();
+				
+				requestAnimationFrame(loop);
+			};
+			loop();
+		</script>
+	</body>
+</html>

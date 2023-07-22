@@ -780,7 +780,7 @@
 								<tr>
 									<td><label>rocket ship</label></td>
 									<td><label id="rocket-ship-howmany">0</label></td>
-									<td><div><button onclick="chugPotion('night vision potion');">place</button><button onclick="brewPotion('night vision potion');">purchase (100 gems)</button></div></td>
+									<td><div><button onclick="placeRocket();">place</button><button onclick="purchaseRockets();">purchase (100 gems)</button></div></td>
 								</tr>
 							</table>
 						</div>
@@ -1493,7 +1493,7 @@
 								case "leprechaun":
 									this.drawImage(this.getTexture("leprechaun"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1.5 - cameraY) * -blockSize, blockSize, blockSize * 1.5);
 									break;
-								case "possessed doll":
+								case "possessed_doll":
 									this.drawImage(this.getTexture(mob.possessed ? "possessedDollStanding" : "possessedDollSitting"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 1.5 - cameraY) * -blockSize, blockSize, blockSize * 1.5);
 									break;
 								case "merchant":
@@ -1586,16 +1586,13 @@
 					let y = clamp(cot(this.angle), -1, 1);
 					if (this.angle > -Math.PI && this.angle < -Math.PI / 2) {
 						x *= -1;
-						gems = 0;
 					};
 					if (this.angle > Math.PI / 2 && this.angle < Math.PI) {
 						x *= -1;
 						y *= -1;
-						gems = 1
 					};
 					if (this.angle > 0 && this.angle < Math.PI / 2) {
 						y *= -1;
-						gems = 3;
 					};
 					return {
 						"x": x * this.strength,
@@ -1635,7 +1632,7 @@
 					this.activeSounds = [];
 				};
 				emitSound(sound, origin) {
-					if (distance(origin, [playerX, playerY] < 150)) {
+					if (distance(origin, [playerX, playerY]) < 150) {
 						var newSound = sound.createInstance(origin);
 						newSound.element.addEventListener("ended", e => {
 							this.activeSounds.splice(this.activeSounds.indexOf(newSound), 1);
@@ -1936,7 +1933,7 @@
 			var notification = "";
 			var notificationTime = 0;
 			var gameTime = 0;
-			var developerMode = true;
+			var developerMode = false;
 			var dybbukTime = 0;
 			var crouching = false;
 			var obeliskShop = false;
@@ -2009,7 +2006,13 @@
 				"sentryIdle": new Sound("./sounds/sentryIdle.mp3"),
 				"death": new Sound("./sounds/death.mp3"),
 				"sentryAmbient": new Sound("./sounds/sentryAmbient.mp3"),
-				"humanoidAmbient": new Sound("./sounds/humanoidAmbient.mp3")
+				"humanoidAmbient": new Sound("./sounds/humanoidAmbient.mp3"),
+				"coin1": new Sound("./sounds/coin1.mp3"),
+				"coin2": new Sound("./sounds/coin2.mp3"),
+				"coin3": new Sound("./sounds/coin3.mp3"),
+				"coin4": new Sound("./sounds/coin4.mp3"),
+				"coin5": new Sound("./sounds/coin5.mp3"),
+				"step": new Sound("./sounds/step.mp3")
 			};
 			var lanternTime = 0;
 			var scrollShowing = false;
@@ -2019,6 +2022,8 @@
 			var crates = 0;
 			var opStep = false;
 			var mobReferences = {};
+			var godmode = false;
+			var stepTime = 0;
 	
 			function generateOctaves() {
 				// octaves
@@ -2154,7 +2159,7 @@
 						spawnMob("mimic", i + 0.5 + (mb32.rng(level.featureRNG) - 0.5) * 1.5, level.rows[i] + (mb32.rng(level.featureRNG) - 0.5) * 1.5);
 					};
 					if (mb32.rng(level.featureRNG) < 1 / 3000) {
-						spawnMob("possessed doll", i + 0.5, level.rows[i]);
+						spawnMob("possessed_doll", i + 0.5, level.rows[i]);
 					};
 					if (mb32.rng(level.featureRNG) < 1 / 3000) {
 						level.terrainFeatures[i] = "tree1";
@@ -2415,7 +2420,8 @@
 					portalTime,
 					portalSkew,
 					lanternTime,
-					crates
+					crates,
+					rockets
 				};
 			};
 			function saveSlot(slot) {
@@ -2468,6 +2474,7 @@
 				portalSkew = save.portalSkew ?? portalSkew;
 				lanternTime = save.lanternTime ?? lanternTime;
 				crates = save.crates ?? crates;
+				rockets = save.rockets ?? rockets;
 			};
 			function clearSlot(slot) {
 				localStorage.removeItem("forestSimulator3DSaveSlot" + slot);
@@ -2520,7 +2527,7 @@
 					mob.deltaX = 0;
 				} else if (type === "leprechaun") {
 					mob.coins = arguments[3];
-				} else if (type === "possessed doll") {
+				} else if (type === "possessed_doll") {
 					mob.possessed = false;
 				} else if (type === "merchant") {
 					mob.missionStarted = false;
@@ -2810,6 +2817,10 @@
 								switch (args[1]) {
 									case "feature":
 										level.features[Math.floor(playerX + (args[3] ?? 0))] = (args[2] ?? 0);
+										break;
+									case "water":
+										level.waterLevel[Math.floor(playerX + (args[3] ?? 0))] = (args[2] ?? 0);
+										break;
 								};
 								break;
 							case "tp":
@@ -2879,6 +2890,9 @@
 								break;
 							case "killall":
 								level.mobs = [];
+								break;
+							case "godmode":
+								godmode = !godmode;
 								break;
 						};
 					} catch (e) {
@@ -3000,7 +3014,7 @@
 				controls.right = clamp((magnitudes.keyboard.right + magnitudes.joystick.right + magnitudes.gamepad.right) * (possessionTime <= 0) + magnitudes.possession.right, 0, 1);
 				document.getElementById("cursor").style.left = cursorX - 15 + "px";
 				document.getElementById("cursor").style.top = cursorY - 15 + "px";
-				if (!shop && !dead && !obeliskShop && playing) {
+				if (!shop && (!dead || godmode) && !obeliskShop && playing) {
 					if (playerX >= level.rows.length) {
 						generateLevel();
 					};
@@ -3052,6 +3066,13 @@
 						playerXV *= 0.2;
 					};
 					playerX += playerXV;
+
+					stepTime++;
+					if (stepTime > 30 && onGround && Math.abs(playerXV) > 0.1) {
+						soundSystem.emitSound(sounds.step, [playerX, playerY]);
+						stepTime = 0;
+					};
+					stepTime++;
 					
 					// Y MOVEMENT //
 	
@@ -3194,6 +3215,7 @@
 							if (level.features[i] === 1 && (boots === "magnet boots" || playerY < level.rows[i] + 1)) {
 								if (dybbukTime <= 0) {
 									coins += (dimension === "upside down") ? 2 : 1;
+									soundSystem.emitSound(sounds["coin" + Math.floor(Math.random() * 5 + 1)], [playerX, playerY]);
 								};
 								level.features[i] = 0;
 							};
@@ -3471,7 +3493,7 @@
 									level.mobs.splice(level.mobs.indexOf(mob));
 								};
 								break;
-							case "possessed doll":
+							case "possessed_doll":
 								mob.possessed = (possessionDoll !== mob) && (gameTime % 600 >= 450 && gameTime % 600 < 550);
 								if (!mob.possessed && possessionTime <= 0 && possessionDoll === mob) {
 									mob.possessed = true;
@@ -3558,7 +3580,7 @@
 				};
 			};
 			function drawScreen() {
-				if ((!shop && !obeliskShop && playing) || canvas.width !== innerWidth || canvas.height !== innerHeight) {
+				if ((!shop && !obeliskShop && playing) || ((canvas.width !== innerWidth || canvas.height !== innerHeight) && playing)) {
 					renderScreen();
 				};
 				
@@ -3604,13 +3626,13 @@
 			};
 			var oldfpsTime = 0;
 			function loop() {
-				try {
+				//try {
 					tick();
 					drawScreen();
-				} catch (e) {
-					alert(e.stack);
-					return;
-				};
+				//} catch (e) {
+				//	alert(e.stack);
+				//	return;
+				//};
 				frameCount++;
 				let now = performance.now();
 				if (Math.floor(fpsUpdateTime / 1000) !== Math.floor(now / 1000)) {

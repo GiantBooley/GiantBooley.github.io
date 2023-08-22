@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Sky Rising Simulator</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			#canvas-wrapper {
+				width: min(100vw, calc(100vh * 16 / 9));
+				height: calc(min(100vw, calc(100vh * 16 / 9)) * 9 / 16);
+				outline: none;
+			}
+			#canvas {
+				width: 100%;
+				height: 100%;
+			}
+			#images {
+				display: none;
+			}
+		</style>
+		<div id="images">
+			<img src="https://static.vecteezy.com/system/resources/thumbnails/008/376/219/small/sugar-cotton-blue-clouds-design-background-fluffy-sky-texture-elegant-pastel-decoration-backdrop-trendy-wallpaper-free-vector.jpg" id="img-cloud">
+		</div>
+	</head>
+	<body>
+		<div id="canvas-wrapper" tabindex="0">
+			<canvas id="canvas"></canvas>
+		</div>
+		<script>
+			const canvas = document.getElementById("canvas");
+			canvas.width = innerWidth;
+			canvas.height = innerHeight;
+			const ctx = canvas.getContext("2d");
+			const wrapper = document.getElementById("canvas-wrapper");
+			wrapper.focus();
+			
+			var cloudImage = document.getElementById("img-cloud");
+			var delta = .3;
+			var player = {
+				x: 16,
+				y: 0,
+				xv: 0,
+				yv: 0.1,
+				score: 0,
+				pb: 0,
+				obstacles: [],
+				replay: [],
+				dead: false
+			};
+			var sounds = {
+				clickDown: new Audio("./sky_clickdown.mp3"),
+				clickUp: new Audio("./sky_clickup.mp3")
+			};
+			var keysDown = {};
+			var mouseDown = false;
+			var replay = [];
+			var replayTick = 0;
+			var replayis = false;
+			var numer = 0;
+			function randomizeObstacles(player) {
+				player.obstacles = [];
+				for (let i = 1; i < 5000; i++) {
+					player.obstacles.push({
+						"x": Math.random() * 32,
+						"y": Math.random() * 5000
+					});
+				};
+			};
+			randomizeObstacles(player);
+			var savePlayers = [structuredClone(player)];
+			wrapper.addEventListener("keydown", e => {
+				keysDown[e.key] = true;
+				if (e.key === "ArrowUp") {
+					savePlayers.push(structuredClone(player));
+				};
+				if (e.key === "ArrowDown") {
+					savePlayers.pop();
+				};
+				if (e.key === "f") {
+					replayis = !replayis;
+				};
+			});
+			wrapper.addEventListener("keyup", e => {
+				keysDown[e.key] = false;
+			});
+			wrapper.addEventListener("mousedown", e => {
+				mouseDown = true;
+			});
+			wrapper.addEventListener("mouseup", e => {
+				mouseDown = false;
+			});
+			wrapper.addEventListener("touchstart", e => {
+				mouseDown = true;
+			});
+			wrapper.addEventListener("touchend", e => {
+				mouseDown = false;
+			});
+			function isDown(key) {
+				return keysDown[key] ?? false;
+			};
+			function die() {
+				if (savePlayers.length === 0) {
+					player = {
+						x: 16,
+						y: 0,
+						xv: 0,
+						yv: 0.1,
+						score: 0,
+						pb: Math.max(player.score, player.pb),
+						obstacles: [],
+						replay: [],
+						dead: false
+					};
+					randomizeObstacles(player);
+				} else {
+					var score = player.score;
+					var pb = player.pb;
+					player = structuredClone(savePlayers[savePlayers.length - 1]);
+					player.pb = Math.max(score, pb);
+				};
+			};
+			function lerp(a, b, t) {
+				return (b - a) * t + a;
+			};
+			function tick(player, delta, controlMouse, mouse) {
+				player.xv *= 0.8**delta;
+				speed = 0.05;
+				var ai = false;
+				if (!controlMouse && ai) {
+					mouseDown = (getTrajectoryTicks(false) < getTrajectoryTicks(true));
+				};
+				player.xv += ((controlMouse ? mouse : mouseDown) * 2 - 1) * speed * delta;//(isDown("ArrowRight") - isDown("ArrowLeft")) * speed;
+				//player.yv += 0.0001 * delta;
+				player.x += player.xv * delta;
+				if (player.x < 0) {
+					player.x = 0;
+				};
+				if (player.x > 32) {
+					player.x = 32;
+				};
+				player.y += player.yv * delta;
+				player.score += Math.floor(player.y / 10) - player.score;
+				for (let i = 0; i < player.obstacles.length; i++) {
+					if (player.x === 0 || player.x === 32 || (player.x + 0.2 > player.obstacles[i].x - 1.5 && player.x - 0.2 < player.obstacles[i].x + 1.5 && player.y < player.obstacles[i].y + 2 && player.y + 1 > player.obstacles[i].y)) {
+						if (controlMouse) {
+							player.dead = true;
+						} else {
+							die();
+						};
+						break;
+					};
+				};
+				numer++;
+				if (Math.abs(Math.round(numer * delta) - numer * delta) < 0.0001) {
+					player.replay.push({x: player.x, y: player.y, score: player.score, mouse: mouseDown});
+				};
+			};
+			function getTrajectoryTicks(mouse) {
+				var playerClone = structuredClone(player);
+				var howManyTicks = 0;
+				while (!playerClone.dead) {
+					tick(playerClone, 2, true, mouse);
+					howManyTicks++;
+				};
+				return howManyTicks;
+			};
+			function render() {
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				ctx.save();
+				ctx.scale(canvas.width / 32, canvas.height / -18);
+				ctx.translate(0, -18);
+				
+				ctx.fillStyle = "rgb(200, 200, 250)";
+				ctx.fillRect(0, 0, 32, 18);
+				
+				ctx.translate(0, 3 - player.y);
+				
+				ctx.fillStyle = "rgb(10, 10, 10)";
+				ctx.fillRect(player.x - 0.2, player.y, 0.4, 1);
+				ctx.fillStyle = "rgb(100, 200, 100)";
+				ctx.fillRect(0, -10, 32, 10);
+				
+				for (let i = 0; i < player.obstacles.length; i++) {
+					if (player.obstacles[i].y > player.y - 5 && player.obstacles[i].y < player.y + 15)
+					ctx.drawImage(cloudImage, player.obstacles[i].x - 1.5, player.obstacles[i].y, 3, 2);
+				};
+				ctx.restore();
+				
+				ctx.font = "40px arial";
+				ctx.fillStyle = "black";
+				ctx.fillText(player.score, canvas.width / 2, 50);
+				ctx.fillText("pants bundle: " + player.pb, canvas.width / 16, 50);
+			};
+			function replayDoTick() {
+				player.x = player.replay[replayTick].x;
+				player.y = player.replay[replayTick].y;
+				player.score = player.replay[replayTick].score;
+				if (!player.replay[replayTick - 1]?.mouse && player.replay[replayTick].mouse) {
+					sounds.clickDown.cloneNode().play();
+				};
+				if (player.replay[replayTick - 1]?.mouse && !player.replay[replayTick].mouse) {
+					sounds.clickUp.cloneNode().play();
+				};
+			};
+			function loop() {
+				delta = isDown("ArrowRight") ? 0.25 : (isDown("ArrowLeft") ? 0.1 : 1.0);
+				if (replayis) {
+					replayDoTick();
+					replayTick = (replayTick + 1) % player.replay.length;
+				} else {
+					tick(player, delta, false);
+				};
+				render();
+				
+				requestAnimationFrame(loop);
+			};
+			loop();
+		</script>
+	</body>
+</html>

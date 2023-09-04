@@ -72,6 +72,7 @@
 			var replayTick = 0;
 			var replayis = false;
 			var numer = 0;
+			var ai = false;
 			function randomizeObstacles(player) {
 				player.obstacles = [];
 				for (let i = 1; i < 5000; i++) {
@@ -92,17 +93,31 @@
 					savePlayers.pop();
 				};
 				if (e.key === "f") {
-					replayis = !replayis;
+					toggleReplay();
+				};
+				if (e.key === "a") {
+					ai = !ai;
 				};
 			});
+			function toggleReplay() {
+				if (replayis = !replayis) {
+					replayTick = 0;
+				} else {
+					player.x = player.replay[0].x;
+					player.y = player.replay[0].y;
+					player.score = player.replay[0].score;
+				};
+			};
 			wrapper.addEventListener("keyup", e => {
 				keysDown[e.key] = false;
 			});
 			wrapper.addEventListener("mousedown", e => {
 				mouseDown = true;
+				sounds.clickDown.cloneNode().play();
 			});
 			wrapper.addEventListener("mouseup", e => {
 				mouseDown = false;
+				sounds.clickUp.cloneNode().play();
 			});
 			wrapper.addEventListener("touchstart", e => {
 				mouseDown = true;
@@ -130,22 +145,29 @@
 				} else {
 					var score = player.score;
 					var pb = player.pb;
+					var oldReplay = [...player.replay];
+					if (score > pb) {
+						toggleReplay();
+					};
 					player = structuredClone(savePlayers[savePlayers.length - 1]);
-					player.pb = Math.max(score, pb);
+					player.pb = pb;
+					if (score > pb) {
+						player.pb = score;
+						player.replay = oldReplay;
+					};
 				};
 			};
 			function lerp(a, b, t) {
 				return (b - a) * t + a;
 			};
 			function tick(player, delta, controlMouse, mouse) {
-				player.xv *= 0.8**delta;
 				speed = 0.05;
-				var ai = false;
 				if (!controlMouse && ai) {
 					mouseDown = (getTrajectoryTicks(false) < getTrajectoryTicks(true));
 				};
-				player.xv += ((controlMouse ? mouse : mouseDown) * 2 - 1) * speed * delta;//(isDown("ArrowRight") - isDown("ArrowLeft")) * speed;
-				//player.yv += 0.0001 * delta;
+				//player.yv += speed * 0.02 * delta;
+				player.xv *= 0.8**delta;
+				player.xv += ((controlMouse ? mouse : mouseDown) * 2 - 1) * speed * (player.yv / 0.1) * delta;//(isDown("ArrowRight") - isDown("ArrowLeft")) * speed;
 				player.x += player.xv * delta;
 				if (player.x < 0) {
 					player.x = 0;
@@ -205,20 +227,26 @@
 				ctx.fillStyle = "black";
 				ctx.fillText(player.score, canvas.width / 2, 50);
 				ctx.fillText("pants bundle: " + player.pb, canvas.width / 16, 50);
+				if (replayis) {
+					ctx.fillStyle = "red";
+					ctx.fillText("REPLAY", canvas.width * 0.8, 50);
+				};
 			};
 			function replayDoTick() {
-				player.x = player.replay[replayTick].x;
-				player.y = player.replay[replayTick].y;
-				player.score = player.replay[replayTick].score;
-				if (!player.replay[replayTick - 1]?.mouse && player.replay[replayTick].mouse) {
-					sounds.clickDown.cloneNode().play();
-				};
-				if (player.replay[replayTick - 1]?.mouse && !player.replay[replayTick].mouse) {
-					sounds.clickUp.cloneNode().play();
+				if (typeof player.replay[replayTick] !== "undefined") {
+					player.x = player.replay[replayTick].x;
+					player.y = player.replay[replayTick].y;
+					player.score = player.replay[replayTick].score;
+					if (!player.replay[replayTick - 1]?.mouse && player.replay[replayTick].mouse) {
+						sounds.clickDown.cloneNode().play();
+					};
+					if (player.replay[replayTick - 1]?.mouse && !player.replay[replayTick].mouse) {
+						sounds.clickUp.cloneNode().play();
+					};
 				};
 			};
 			function loop() {
-				delta = isDown("ArrowRight") ? 0.25 : (isDown("ArrowLeft") ? 0.1 : 1.0);
+				delta = (isDown("ArrowRight") && isDown("ArrowLeft")) ? 0.025 : (isDown("ArrowRight") ? 0.25 : (isDown("ArrowLeft") ? 0.1 : 1.0));
 				if (replayis) {
 					replayDoTick();
 					replayTick = (replayTick + 1) % player.replay.length;

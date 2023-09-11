@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Thirsty Red Chair</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#canvas,#canvas-wrapper {
+				width: 100%;
+				height: 100%;
+				outline: none;
+			}
+		</style>
+		<script type="x-shader/x-vertex" id="vertex-shader">
+			precision mediump float;
+
+			attribute vec2 a_position;
+			attribute vec2 a_texcoord;
+
+			uniform vec2 u_screen;
+			uniform vec2 u_camera;
+
+			varying vec2 v_texcoord;
+			void main() {
+				vec4 position = vec4((a_position - u_camera) / 10.0, 0.0, 1.0);
+				position.x *= u_screen.y / u_screen.x;
+				gl_Position = position;
+				v_texcoord = a_texcoord / 32.0;
+			}
+		</script>
+		<script type="x-shader/x-fragment" id="fragment-shader">
+			precision mediump float;
+
+			varying vec2 v_texcoord;
+
+			uniform sampler2D u_atlas;
+
+			void main() {
+				vec4 color = texture2D(u_atlas, v_texcoord);
+				if (color.a < 0.8) {
+					discard;
+				};
+				gl_FragColor = color;
+			}
+		</script>
+		<script src="perlin.js"></script>
+	</head>
+	<body>
+		<div id="canvas-wrapper" tabindex="0">
+			<canvas id="canvas"></canvas>
+		</div>
+		<script>
+			const canvas = document.getElementById("canvas");
+			canvas.width = innerWidth;
+			canvas.height = innerHeight;
+			const gl = canvas.getContext("webgl");
+
+			var keys = {};
+			const wrapper = document.getElementById("canvas-wrapper");
+			wrapper.addEventListener("keydown", function(e){
+				keys[e.key] = true;
+			});
+			wrapper.addEventListener("keyup", function(e){
+				keys[e.key] = false;
+			});
+			function isDown(key) {
+				return keys[key] ?? false;
+			};
+
+			gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+			function createShader(gl, type, source) {
+				var shader = gl.createShader(type);
+				gl.shaderSource(shader, source);
+				gl.compileShader(shader);
+				var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+				if (success) {
+					return shader;
+				};
+				console.log(gl.getShaderInfoLog(shader));
+				gl.deleteShader(shader);
+			};
+			function createProgram(gl, vertexShader, fragmentShader) {
+				var program = gl.createProgram();
+				gl.attachShader(program, vertexShader);
+				gl.attachShader(program, fragmentShader);
+				gl.linkProgram(program);
+				var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+				if (success) {
+					return program;
+				};
+			
+				console.log(gl.getProgramInfoLog(program));
+				gl.deleteProgram(program);
+			};
+			var vertexShaderCode = document.getElementById("vertex-shader").firstChild.nodeValue;
+			var fragmentShaderCode = document.getElementById("fragment-shader").firstChild.nodeValue;
+			var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderCode);
+			var fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderCode);
+			var program = createProgram(gl, vertexShader, fragmentShader);
+
+			var a_positionLoc = gl.getAttribLocation(program, "a_position");
+			var a_texcoordLoc = gl.getAttribLocation(program, "a_texcoord");
+			var u_screenLoc = gl.getUniformLocation(program, "u_screen");
+			var u_cameraLoc = gl.getUniformLocation(program, "u_camera");
+
+			var atlas = gl.createTexture();
+			gl.bindTexture(gl.TEXTURE_2D, atlas);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+			var image = new Image();
+			image.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAAQACAMAAABIw9uxAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAASUExURbW1tX9/f4OX7///AAAAAAAAAEQAMasAAAAGdFJOU///////ALO/pL8AAAAJcEhZcwAADsIAAA7CARUoSoAAAA3xSURBVHhe7dzbjptYFEXRcnfy/7/cBja+FupnmGMoim2Eztuacjmu/Dzc1j9f/vkff4HTmpnf3W4CADEz88XtnoBvs/NDcw5wQjPzjQBAy8x8IwDQMjPfCAC0zMw3v30IMDs/NOcAJzQzH7fvDwJn54fmHOCEZuZPAgAdM/Onz7cAs/NDcw5wQjPzh6+vA83OD805wAnNzB/u6xcAqJiZPyzrfyvA7PzQnAOc0Mx8t23/tQCz80NzDnBCH2/4JwD7xdvtNjs/NOcAJ7RsfNa+mOdzbXmYnR+ac4ATeq599Xi6Pln+mp0fmnOAE1p2/pz9SwDuz9YyzM4PzTnACT3WvnlJwXwhYHZ+aM4BTmgd+zMBzwDs12bnh+Yc4ITWqS+W3wPazAUBgMtbp/6wTP5ZgNXs/NCcA5zQzHyzTf+9ALPzQ3MOcEIz89U+/LcfBWbnh+Yc4IS2lW/e3/tPAWbnh+Yc4ITWkW/e978XYHZ+aM4BTmid+uYzAFsBZueH5hzghLapr94//FssV2bnh+Yc4IRm6puvBAgAXNqy8udH/t8F8OvAcGHL/Nehr9P/3P/9yuz80JwDnNDsfCvA9/79CABX9vPv7s88fpj7gAsSAAh7BOB7/9uVuQ+4IAGAsF8DMM/Xh7kPuKAlAMvQ/wgA9DwCsIx9JwDQIAAQdg/AunMBgCABgDABgDABgLA9AG8FEABo+C0A+3cCBAAu7hGAlwLszwQALu7nfe4rAYAIAYCwZwCeBAAifgvATgDg4gQAwp7/CvBluz73ARckABB2HIC5PPcBF3QPwEEBBAAubwnArwXYr819wAWtAfguwPO/CJz7gAvaAvBZgJeXcx9wQXsA3grw+mLuAy5oAvCagPcYzH3ABT0CsAx/My/H3Adc0EsAfjf3ARckABD2M49AkABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABAmABA1t+//wGuLN2Dgawy9QAAAABJRU5ErkJggg==";
+			image.addEventListener("load", function(){
+				gl.bindTexture(gl.TEXTURE_2D, atlas);
+				gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+				gl.generateMipmap(gl.TEXTURE_2D);
+			});
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+			
+			var level = {
+				"blox": []
+			};
+			var player = {
+				"x": 0,
+				"y": 0,
+				"width": 0.5,
+				"height": 0.5
+			};
+			var camera = {
+				"x": 0,
+				"y": 0
+			};
+			noise.seed(Math.random());
+			for (let x = 0; x < 1000; x++) {
+				level.blox[x] = [];
+				for (let y = 0; y < 1000; y++) {
+					level.blox[x][y] = noise.perlin2(x / 4,y / 4 ) > 0 ? 1 : 0;
+				};
+			};
+
+			function render() {
+				var positionBuffer = gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+				var positions = [
+				];
+				addCube = (x, y, w, h, u, v, s, t) => {
+					positions.push(
+						x, y + h, u + s, v,
+						x, y, u + s, v + t,
+						x + w, y, u, v + t,
+						x, y + h, u + s, v,
+						x + w, y + h, u, v,
+						x + w, y, u, v + t
+					);
+				};
+				addCube(-1000, -1000, 2000, 2000, 1, 0, 1, 1);
+				for (let x = 0; x < level.blox.length; x++) {
+					for (let y = 0; y < level.blox[x].length; y++) {
+						if (x > camera.x - 10 && x < camera.x + 10 && y > camera.y - 10 && y < camera.y + 10 && level.blox[x][y] === 1) {
+							addCube(x, y, 1, 1, 0, 0, 1, 1);
+						};
+					};
+				};
+				addCube(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height, 0, 1, 1, 1);
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+				
+				var uvBuffer = gl.createBuffer();
+				gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+				gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+				gl.enableVertexAttribArray(a_texcoordLoc);
+				gl.vertexAttribPointer(a_texcoordLoc, 2, gl.FLOAT, false, 16, 2 * Float32Array.BYTES_PER_ELEMENT);
+
+				gl.uniform2fv(u_screenLoc, [canvas.width, canvas.height]);
+				gl.uniform2fv(u_cameraLoc, [camera.x, camera.y]);
+
+				gl.clearColor(0, 0, 0, 1);
+				gl.clear(gl.COLOR_BUFFER_BIT);
+				gl.useProgram(program);
+
+				gl.enableVertexAttribArray(a_positionLoc);
+				gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+				gl.vertexAttribPointer(a_positionLoc, 2, gl.FLOAT, false, 16, 0);
+				gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
+			};
+			function tick() {
+				var oldPlayerX = player.x;
+				var oldPlayerY = player.y;
+				player.x += (isDown("ArrowRight") - isDown("ArrowLeft")) * 0.1;
+				player.y += (isDown("ArrowUp") - isDown("ArrowDown")) * 0.1;
+				for (let x = 0; x < level.blox.length; x++) {
+					for (let y = 0; y < level.blox[x].length; y++) {
+						if (level.blox[x][y] === 1 && player.x + player.width / 2 > x && player.x - player.width / 2 < x + 1 && player.y + player.height / 2 > y && player.y - player.height / 2 < y + 1) {
+							player.x = oldPlayerX;
+							player.y = oldPlayerY;
+						};
+					};
+				};
+				camera.x = player.x;
+				camera.y = player.y;
+			};
+			function loop() {
+				tick();
+				render();
+				requestAnimationFrame(loop);
+			};
+			loop();
+		</script>
+	</body>
+</html>

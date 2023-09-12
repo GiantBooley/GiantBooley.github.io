@@ -141,11 +141,14 @@
 				"y": 0
 			};
 			noise.seed(Math.random());
-			for (let x = 0; x < 1000; x++) {
+			for (let x = 0; x < 500; x++) {
 				level.blox[x] = [];
-				for (let y = 0; y < 1000; y++) {
+				for (let y = 0; y < 500; y++) {
 					level.blox[x][y] = noise.perlin2(x / 4,y / 4 ) > 0 ? 1 : 0;
 				};
+			};
+			function lerp(a, b, t) {
+				return (b - a) * t + a;
 			};
 
 			function render() {
@@ -190,21 +193,25 @@
 				gl.enableVertexAttribArray(a_positionLoc);
 				gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 				gl.vertexAttribPointer(a_positionLoc, 2, gl.FLOAT, false, 16, 0);
-				gl.drawArrays(gl.TRIANGLES, 0, positions.length / 2);
+				gl.drawArrays(gl.TRIANGLES, 0, positions.length / 4);
 			};
 			function tick() {
-				var oldPlayerX = player.x;
-				var oldPlayerY = player.y;
-				player.x += (isDown("ArrowRight") - isDown("ArrowLeft")) * 0.1;
-				player.y += (isDown("ArrowUp") - isDown("ArrowDown")) * 0.1;
+				var newPlayerX = player.x + (isDown("ArrowRight") - isDown("ArrowLeft")) * 0.1;
+				var newPlayerY = player.y + (isDown("ArrowUp") - isDown("ArrowDown")) * 0.1;
+				var xCollision = false;
+				var yCollision = false;
 				for (let x = 0; x < level.blox.length; x++) {
 					for (let y = 0; y < level.blox[x].length; y++) {
-						if (level.blox[x][y] === 1 && player.x + player.width / 2 > x && player.x - player.width / 2 < x + 1 && player.y + player.height / 2 > y && player.y - player.height / 2 < y + 1) {
-							player.x = oldPlayerX;
-							player.y = oldPlayerY;
+						if (level.blox[x][y] === 1 && newPlayerX + player.width / 2 > x && newPlayerX - player.width / 2 < x + 1 && player.y + player.height / 2 > y && player.y - player.height / 2 < y + 1) {
+							xCollision = true;
+						};
+						if (level.blox[x][y] === 1 && player.x + player.width / 2 > x && player.x - player.width / 2 < x + 1 && newPlayerY + player.height / 2 > y && newPlayerY - player.height / 2 < y + 1) {
+							yCollision = true;
 						};
 					};
 				};
+				if (!xCollision) {player.x = lerp(player.x, newPlayerX, yCollision ? 0.5 : 1)};
+				if (!yCollision) {player.y = lerp(player.y, newPlayerY, xCollision ? 0.5 : 1)};
 				camera.x = player.x;
 				camera.y = player.y;
 			};

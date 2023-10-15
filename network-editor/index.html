@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>map</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				overflow: hidden;
+			}
+			#canvas-wrapper,#canvas {
+				width: 100%;
+				height: 100%;
+				outline: none;
+			}
+			#settings {
+				position: absolute;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="settings">
+			<div id="title">...</div>
+			<select id="mode">
+				<option value="add" selected>add</option>
+				<option value="connect">connect</option>
+				<option value="move">move</option>
+				<option value="delete">delete</option>
+				<option value="cut">cut</option>
+			</select>
+		</div>
+		<div id="canvas-wrapper" tabindex="0" onmousedown="mouseDown(event);" onmousemove="mouseMove(event);" onmouseup="mouseUp(event);">
+			<canvas id="canvas"></canvas>
+		</div>
+	</body>
+	<script>
+		const canvas = document.getElementById("canvas");
+		canvas.width = innerWidth;
+		canvas.height = innerHeight;
+		const ctx = canvas.getContext("2d");
+
+		class Node {
+			constructor(x, y, name, color) {
+				this.x = x;
+				this.y = y;
+				this.name = name;
+				this.color = color;
+			};
+		};
+
+		var connections = [];
+		var nodes = [];
+		var currentConnection = null;
+		var mouseX = 0;
+		var mouseY = 0;
+		var moving = false;
+		var movingNode = null;
+		ctx.lineCap = "round";
+
+		function distance(p1, p2) {
+			return Math.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2);
+		};
+		function drawCircle(x, y, rad) {
+			ctx.beginPath();
+			ctx.arc(x, y, rad, 0, 2 * Math.PI);
+			ctx.fill(); 
+		};
+		function drawLine(p1, p2) {
+			ctx.beginPath();
+			ctx.moveTo(p1[0], p1[1]);
+			ctx.lineTo(p2[0], p2[1]);
+			ctx.stroke();
+		};
+		function mouseDown(e) {
+			let closestNode = nodes.sort((a, b) => distance([e.clientX, e.clientY], [a.x, a.y]) - distance([e.clientX, e.clientY], [b.x, b.y]))[0];
+			if (document.getElementById("mode").value == "add") {
+				nodes.push(new Node(e.clientX, e.clientY, prompt("what name"), "red"));
+			} else if (document.getElementById("mode").value == "connect" && nodes.length >= 2) {
+				if (distance([closestNode.x, closestNode.y], [mouseX, mouseY]) < 20) {
+					currentConnection = closestNode;
+				};
+			} else if (document.getElementById("mode").value == "move" && distance([closestNode.x, closestNode.y], [mouseX, mouseY]) < 20) {
+				moving = true;
+				movingNode = closestNode;
+			};
+		};
+		function mouseUp(e) {
+			if (document.getElementById("mode").value == "connect" && nodes.length >= 2 && currentConnection !== null) {
+				let closestNode = nodes.sort((a, b) => distance([e.clientX, e.clientY], [a.x, a.y]) - distance([e.clientX, e.clientY], [b.x, b.y]))[0];
+				if (distance([closestNode.x, closestNode.y], [mouseX, mouseY]) < 20 && closestNode !== currentConnection) {
+					let sameConnections = connections.filter(connection => connection[0] == currentConnection && connection[1] == closestNode);
+					if (sameConnections.length > 0) {
+						sameConnections[0][2] += 2;
+					} else {
+						connections.push([currentConnection, closestNode, 2]);
+					};
+				};
+				currentConnection = null;
+			} else if (document.getElementById("mode").value == "move") {
+				moving = false;
+				movingNode = null;
+			};
+		};
+		function mouseMove(e) {
+			[mouseX, mouseY] = [e.clientX, e.clientY];
+		};
+		function loop() {
+			ctx.clearRect(0, 0, canvas.width, canvas.height);
+			if (moving) {
+				[movingNode.x, movingNode.y] = [mouseX, mouseY];
+			};
+			nodes.forEach(node => {
+				ctx.fillStyle = node.color;
+				drawCircle(node.x, node.y, 20);
+			});
+			connections.forEach(connection => {
+				ctx.lineWidth = connection[2];
+				drawLine([connection[0].x, connection[0].y], [connection[1].x, connection[1].y]);
+			});
+			if (currentConnection !== null) {
+				ctx.lineWidth = 2;
+				drawLine([currentConnection.x, currentConnection.y], [mouseX, mouseY]);
+			};
+			if (nodes.length > 0) {
+				let closestNode = nodes.sort((a, b) => distance([mouseX, mouseY], [a.x, a.y]) - distance([mouseX, mouseY], [b.x, b.y]))[0];
+				if (distance([closestNode.x, closestNode.y], [mouseX, mouseY]) < 20) {
+					document.getElementById("title").innerHTML = closestNode.name;
+				} else {
+					document.getElementById("title").innerHTML = "...";
+				};
+			};
+
+			requestAnimationFrame(loop);
+		};
+		loop();
+	</script>
+</html>

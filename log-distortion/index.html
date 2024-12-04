@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Logarithmic distort</title>
+	</head>
+	<body>
+		<h1>Distortion</h1>
+		<input id="file" onchange="updateFile(this)" type="file">
+		base:<input id="base" type="number" value="0.03">
+		<button onclick="distort()">render</button><br>
+		<canvas id="canvas"></canvas>
+		<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+var image = new Image();
+function getBaseLog(x, y) {
+	return Math.log(y) / Math.log(x);
+}
+function distort() {
+	ctx.drawImage(image, 0, 0);
+	var data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+	var newData = ctx.createImageData(canvas.width, canvas.height);
+	for (let y = 0; y < canvas.height; y++) {
+		for (let x = 0; x < canvas.width; x++) {
+			for (let i = 0; i < 4; i++) {
+				var yFloat = y / canvas.height;
+				var newY = getBaseLog(document.getElementById("base").valueAsNumber, 1 - yFloat);
+				newData.data[(y * canvas.width + x) * 4 + i] = data.data[(Math.floor(newY * canvas.height) * canvas.width + x) * 4 + i];
+			}
+		}
+	}
+	ctx.putImageData(newData, 0, 0);
+}
+function updateFile(e) {
+	if (e.files && e.files[0]) {
+		var reader = new FileReader();
+		reader.onload = a => {
+			image.onload = b => {
+				canvas.width = image.width;
+				canvas.height = image.height;
+				distort();
+			}
+			image.src = a.target.result;
+		}
+		reader.readAsDataURL(e.files[0]);
+	}
+}
+		</script>
+	</body>
+</html>

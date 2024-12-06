@@ -11,7 +11,8 @@
 	<body>
 		<h1>Distortion</h1>
 		<input id="file" onchange="updateFile(this)" type="file">
-		base:<input id="base" type="number" value="0.03">
+		<label>base:</label><input id="base" type="number" value="0.03">
+		<input id="stretch" type="checkbox"><label>stretch to canvas</label>
 		<button onclick="distort()">render</button><br>
 		<canvas id="canvas"></canvas>
 		<script>
@@ -29,7 +30,13 @@ function distort() {
 		for (let x = 0; x < canvas.width; x++) {
 			for (let i = 0; i < 4; i++) {
 				var yFloat = y / canvas.height;
-				var newY = getBaseLog(document.getElementById("base").valueAsNumber, 1 - yFloat);
+				var base = document.getElementById("base").valueAsNumber
+				var newY;
+				if (document.getElementById("stretch").checked) {
+					newY = getBaseLog(base, (1 - yFloat - 1) * (1 - base) + 1);
+				} else {
+					newY = getBaseLog(base, 1 - yFloat);
+				}
 				newData.data[(y * canvas.width + x) * 4 + i] = data.data[(Math.floor(newY * canvas.height) * canvas.width + x) * 4 + i];
 			}
 		}

@@ -119,6 +119,22 @@
 				mouseDown = false;
 				sounds.clickUp.cloneNode().play();
 			});
+			document.addEventListener("keydown", e => {
+				if (e.code === "Space" && !mouseDown) {  // prevent repeat firing
+					mouseDown = true;
+					sounds.clickDown.cloneNode().play();
+					e.preventDefault(); // prevents page from scrolling when space is pressed
+				}
+			});
+
+			document.addEventListener("keyup", e => {
+				if (e.code === "Space") {
+					mouseDown = false;
+					sounds.clickUp.cloneNode().play();
+					e.preventDefault();
+				}
+			});
+
 			wrapper.addEventListener("touchstart", e => {
 				mouseDown = true;
 			});

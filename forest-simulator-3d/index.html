@@ -56,12 +56,12 @@
 				position: absolute;
 				top: 10px;
 				right: 10px;
-				color: black;
+				color: rgb(253, 6, 6);
 				background-color: white;
 				border: 5px solid black;
 				border-radius: 5px;
 				padding: 10px;
-				font-size: 20px;
+				font-size: 9px;
 			}
 			#shop {
 				display: none;
@@ -94,6 +94,16 @@
 				position: absolute;
 				left: 10px;
 				top: 2px;
+			}
+			#pie {
+				position: absolute;
+				left: 10px;
+				bottom: 100px;
+			}
+			#debug {
+				position: absolute;
+				left: 10px;
+				bottom: 100px;
 			}
 			h1,h2,h3,h4 {
 				margin: 0;
@@ -369,6 +379,7 @@
 				color: #550000;
 				align-items: center;
 				justify-content: center;
+				pointer-events: none;
 			}
 			.emoji {
 				width: 1em;
@@ -504,6 +515,8 @@
 					YOU DIED
 				</div>
 				<div id="stats" class="gui-text"></div>
+				<div id="pie" class="gui-text"></div>
+				<div id="debug" class="gui-text"></div>
 				<div id="score" class="gui-text" title="clicking this doesnt do anything"></div>
 				<button id="shop-button" onclick="shopButton();">SHOP</button>
 				<button id="obelisk-shop-button" onclick="obeliskShopButton();">OBELISK</button>
@@ -536,8 +549,8 @@
 					<button onclick="exportSave();">export save</button>
 					<button onclick="importSave();">import save</button>
 					<label id="seed-label">seed: <input type="text" readonly id="seed-label-input"></input></label>
-					<button onclick="blockSize = clamp(blockSize * 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom in</button>
-					<button onclick="blockSize = clamp(blockSize / 1.5, 0.86707649579, 168.75);cameraSnapPending = true;">zoom out</button><br>
+					<button onclick="blockSize = clamp(blockSize * 1.5, 0.86707649579, 168.75);cameraSnapPending = true;buttonSound();">zoom in</button>
+					<button onclick="blockSize = clamp(blockSize / 1.5, 0.86707649579, 168.75);cameraSnapPending = true;buttonSound();">zoom out</button><br>
 					<input type="checkbox" id="joystick-checkbox"><label for="joystick-checkbox">joystick</label>
 					<input type="checkbox" id="animations-checkbox"><label for="animations-checkbox">animations</label>
 					<input type="checkbox" id="grim-reaper-checkbox" checked><label for="grim-reaper-checkbox">show grim reaper</label>
@@ -856,9 +869,9 @@
 
 			uniform mat4 u_matrix;
 			uniform mat4 u_textureMatrix;
+			uniform float u_vtime;
 
 			varying vec2 v_texcoord;
-
 			void main() {
 				vec4 position = u_matrix * a_position;
 				gl_Position = position;
@@ -873,7 +886,6 @@
 			uniform sampler2D u_texture;
 
 			uniform vec2 u_playerPos;
-			uniform vec2 u_blockPos;
 			uniform vec2 u_screenSize;
 			uniform vec2 u_portalPos;
 			uniform float u_portalTime;
@@ -891,6 +903,9 @@
 			uniform int u_anaglyphMode;
 			uniform bool u_removeBlue;
 			uniform bool u_removeWhite;
+			uniform bool u_godRays;
+			uniform vec2 u_cameraPosWorldSpace;
+			uniform float u_time;
 
 			bool rectIntersection(vec2 p1, vec2 p2, vec2 b1, vec2 b2) {
 				float t = 0.0;
@@ -949,10 +964,79 @@
 			vec4 saturation(vec4 color, float factor) {
 				return vec4Lerp(color, vec4(vec3((color.r + color.g + color.b) / 3.0), color.a), vec4(factor));
 			}
+			float gammaTransform(float x) {
+				return pow(x, 0.45454545);
+			}
+			vec3 gammaTransform(vec3 x) {
+				return vec3(gammaTransform(x.r), gammaTransform(x.g), gammaTransform(x.b));
+			}
+			float rand(vec2 co){
+				return fract(sin(dot(co.xy,vec2(12.9898,78.233))) * 43758.5453);
+			}
+			float sinFractal(float x, float octaves) {
+				float height = 0.0;
+				for (float i = 0.0; i < 1024.0; i++) {
+					if (i >= octaves) {
+						break;
+					}
+					height += sin(x * pow(2.0, i)) / pow(2.0, i);
+				}
+				return height;
+			}
+			vec3 liftGammaGain(vec3 x, vec3 lift, vec3 gamma, vec3 gain) {
+				return pow((gain * (x + lift * (vec3(1.0) - x))), vec3(1.0) / gamma);
+			}
+			vec2 fade(vec2 t) {return t*t*t*(t*(t*6.0-15.0)+10.0);}
+			vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x, 289.0);}
+			float cnoise(vec2 P){
+				vec4 Pi = floor(P.xyxy) + vec4(0.0, 0.0, 1.0, 1.0);
+				vec4 Pf = fract(P.xyxy) - vec4(0.0, 0.0, 1.0, 1.0);
+				Pi = mod(Pi, 289.0); // To avoid truncation effects in permutation
+				vec4 ix = Pi.xzxz;
+				vec4 iy = Pi.yyww;
+				vec4 fx = Pf.xzxz;
+				vec4 fy = Pf.yyww;
+				vec4 i = permute(permute(ix) + iy);
+				vec4 gx = 2.0 * fract(i * 0.0243902439) - 1.0; // 1/41 = 0.024...
+				vec4 gy = abs(gx) - 0.5;
+				vec4 tx = floor(gx + 0.5);
+				gx = gx - tx;
+				vec2 g00 = vec2(gx.x,gy.x);
+				vec2 g10 = vec2(gx.y,gy.y);
+				vec2 g01 = vec2(gx.z,gy.z);
+				vec2 g11 = vec2(gx.w,gy.w);
+				vec4 norm = 1.79284291400159 - 0.85373472095314 * 
+				vec4(dot(g00, g00), dot(g01, g01), dot(g10, g10), dot(g11, g11));
+				g00 *= norm.x;
+				g01 *= norm.y;
+				g10 *= norm.z;
+				g11 *= norm.w;
+				float n00 = dot(g00, vec2(fx.x, fy.x));
+				float n10 = dot(g10, vec2(fx.y, fy.y));
+				float n01 = dot(g01, vec2(fx.z, fy.z));
+				float n11 = dot(g11, vec2(fx.w, fy.w));
+				vec2 fade_xy = fade(Pf.xy);
+				vec2 n_x = mix(vec2(n00, n01), vec2(n10, n11), fade_xy.x);
+				float n_xy = mix(n_x.x, n_x.y, fade_xy.y);
+				return 2.3 * n_xy;
+			}
+			float perlinFractal(vec2 x, float octaves) {
+				float height = 0.0;
+				for (float i = 0.0; i < 1024.0; i++) {
+					if (i >= octaves) {
+						break;
+					}
+					height += cnoise(x * pow(2.0, i)) / pow(2.0, i);
+				}
+				return height;
+			}
+
 			void main() {
-				highp vec2 pixelCoord = vec2(gl_FragCoord.x, gl_FragCoord.y);
+				highp vec2 pixelCoord = gl_FragCoord.xy;
+				highp vec2 pixelCoordWorldSpace = gl_FragCoord.xy / u_blockSize + u_cameraPosWorldSpace - vec2(0.0, u_screenSize.y / u_blockSize);
 				vec4 color = texture2D(u_texture, v_texcoord);
 				color.a *= u_alpha;
+				highp float pi = 3.141592653589;
 
 				if (u_removeBlue) {
 					float blueness = clamp(color.b - (color.r + color.g) / 2.0, 0.0, 1.0);
@@ -964,9 +1048,14 @@
 					color.a = min(a, color.a);
 				};
 
+				if (u_godRays) {
+					float diagonal = pixelCoordWorldSpace.x + pixelCoordWorldSpace.y * 0.5;
+					color.rgba += perlinFractal(vec2(diagonal, u_time * 0.6), 3.0) * 0.5 + 0.5;
+				};
+
 				vec3 darknessColor = vec3(0.0, 0.0, 0.0);
 				float ambientDarkness = u_ambientDarkness;
-				float darkness = clamp(inverseLerp(u_darknessMin, u_darknessMax, pixelCoord.y) * u_darkness, 0.0, 1.0);
+				float darkness = gammaTransform(clamp(inverseLerp(u_darknessMin, u_darknessMax, pixelCoord.y) * u_darkness, 0.0, 1.0));
 				//bioluminescense://ambientDarkness = min(clamp(distance(pixelCoord, u_playerPos) / (u_blockSize * 3.0) + 0.4, 0.0, 1.0), ambientDarkness);
 				if (u_lanternTime > 0.0) {
 					float lanternBrightness = clamp(inverseLerp(0.0, 300.0, u_lanternTime), 0.0, 1.0);
@@ -1008,6 +1097,7 @@
 					color.g = 0.0;
 					color.b = 0.0;
 				}
+				color = vec4(liftGammaGain(color.rgb, vec3(0.0, 0.0, 0.0), vec3(0.9), vec3(1.0)), color.a);
 				gl_FragColor = color;
 			}
 		</script>
@@ -1126,6 +1216,10 @@
 					this.nightVisionTimeLocation = this.gl.getUniformLocation(this.program, "u_nightVisionTime");
 					this.lanternTimeLocation = this.gl.getUniformLocation(this.program, "u_lanternTime");
 					this.anaglyphModeLocation = this.gl.getUniformLocation(this.program, "u_anaglyphMode");
+					this.godRaysLocation = this.gl.getUniformLocation(this.program, "u_godRays");
+					this.cameraPosWorldSpaceLocation = this.gl.getUniformLocation(this.program, "u_cameraPosWorldSpace");
+					this.timeLocation = this.gl.getUniformLocation(this.program, "u_time");
+					this.vtimeLocation = this.gl.getUniformLocation(this.program, "u_vtime");
 					
 					this.positionBuffer = this.gl.createBuffer();
 					this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
@@ -1236,6 +1330,10 @@
 					this.gl.uniform1f(this.nightVisionTimeLocation, potions["night vision potion"].time);
 					this.gl.uniform1f(this.lanternTimeLocation, lanternTime);
 					this.gl.uniform1i(this.anaglyphModeLocation, anaglyphMode);
+					this.gl.uniform1i(this.godRaysLocation, settings.godRays ?? 0);
+					this.gl.uniform2fv(this.cameraPosWorldSpaceLocation, [cameraX, cameraY]);
+					this.gl.uniform1f(this.timeLocation, gameTime);
+					this.gl.uniform1f(this.vtimeLocation, gameTime);
 					
 					this.gl.bindTexture(this.gl.TEXTURE_2D, texInfo.texture);
 
@@ -1281,6 +1379,8 @@
 							this.drawImage(this.getTexture("rainbow"), (i - cameraX) * blockSize, (level.rows[i] + rainbowSize / 2 - cameraY) * -blockSize, blockSize * rainbowSize, blockSize * rainbowSize, 0, 0, 1, 1);
 						} else if (level.terrainFeatures[i] === "tree1") {
 							this.drawImage(this.getTexture("tree1"), (i - 1.5 - cameraX) * blockSize, (level.rows[i] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 1, {removeWhite: 1, whitenessThreshold: 0.5});
+						} else if (level.terrainFeatures[i] === "tree2") {
+							this.drawImage(this.getTexture("tree2"), (i - 1.5 - cameraX) * blockSize, (level.rows[i] + 10 - cameraY) * -blockSize, blockSize * 4, blockSize * 10, 0, 0, 1, 0.9, {removeWhite: 1, whitenessThreshold: 0.5});
 						};
 					};
 	
@@ -1499,6 +1599,9 @@
 								case "merchant":
 									this.drawImage(this.getTexture("merchant"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 3 - cameraY) * -blockSize, blockSize, blockSize * 3, 0.145, 0.111, 0.707, 0.8);
 									break;
+								case "monster":
+									this.drawImage(this.getTexture("monster"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 3 - cameraY) * -blockSize, blockSize, blockSize * 3);
+									break;
 								default:
 									this.drawImage(this.getTexture("error"), (mob.x - 0.5 - cameraX) * blockSize, (mob.y + 2 - cameraY) * -blockSize, blockSize, blockSize * 2);
 							};
@@ -1523,7 +1626,7 @@
 									(Math.max(waterY, 0) - waterY) / blockSize / waterUVSize,
 									1 / waterUVSize,
 									(waterHeight + (waterY - Math.max(waterY, 0))) / blockSize / waterUVSize,
-									{alpha: 0.5, darkness: 1, darknessMin: -yOffset / waterHeight, darknessMax: (waterDarkness * blockSize - yOffset - (waveOffset * blockSize)) / ((bakedRows[rowBuffer[i]] - cameraY) * -blockSize - waterY)}
+									{alpha: 0.5, darkness: 1, darknessMin: -yOffset / waterHeight, darknessMax: (waterDarkness * blockSize - yOffset - (waveOffset * blockSize)) / ((bakedRows[rowBuffer[i]] - cameraY) * -blockSize - waterY), godRays: 1}
 								);
 							};
 						};
@@ -1631,9 +1734,10 @@
 				constructor() { /* {sound1: https://s.com/sound1.mp3,...} */
 					this.activeSounds = [];
 				};
-				emitSound(sound, origin) {
-					if (distance(origin, [playerX, playerY]) < 150) {
+				emitSound(sound, origin, global=false) {
+					if (distance(origin, [playerX, playerY]) < 150 || global) {
 						var newSound = sound.createInstance(origin);
+						newSound.global = global;
 						newSound.element.addEventListener("ended", e => {
 							this.activeSounds.splice(this.activeSounds.indexOf(newSound), 1);
 						});
@@ -1661,10 +1765,13 @@
 						this.element = new Audio(thing);
 					};
 					this.origin = origin;
+					this.global = false;
 				};
 				falloff(origin) {
 					this.element.volume = 1;
-					this.element.volume = clamp(5 * this.element.volume / (2 * Math.PI * distance(origin, [playerX, playerY + 1]) + 1), 0, 1);
+					if (!this.global) {
+						this.element.volume = clamp(5 * this.element.volume / (2 * Math.PI * distance(origin, [playerX, playerY + 1]) + 1), 0, 1);
+					};
 				};
 				createInstance(origin=this.origin) {
 					var soundClone = new Sound(this.element.cloneNode(), origin);
@@ -1933,7 +2040,7 @@
 			var notification = "";
 			var notificationTime = 0;
 			var gameTime = 0;
-			var developerMode = false;
+			var developerMode = true;
 			var dybbukTime = 0;
 			var crouching = false;
 			var obeliskShop = false;
@@ -2012,7 +2119,10 @@
 				"coin3": new Sound("./sounds/coin3.mp3"),
 				"coin4": new Sound("./sounds/coin4.mp3"),
 				"coin5": new Sound("./sounds/coin5.mp3"),
-				"step": new Sound("./sounds/step.mp3")
+				"step": new Sound("./sounds/step.mp3"),
+				"button": new Sound("./sounds/button.mp3"),
+				"cash": new Sound("./sounds/cash.mp3"),
+				"gem": new Sound("./sounds/gem.mp3")
 			};
 			var lanternTime = 0;
 			var scrollShowing = false;
@@ -2024,6 +2134,19 @@
 			var mobReferences = {};
 			var godmode = false;
 			var stepTime = 0;
+			var pie = false;
+			var debug = false;
+			var pies = {
+				"controls": 0,
+				"generate": 0,
+				"watertick": 0
+			};
+			function buttonSound() {
+				soundSystem.emitSound(sounds.button, [0, 0], true);
+			};
+			function cashSound() {
+				soundSystem.emitSound(sounds.cash, [0, 0], true);
+			};
 	
 			function generateOctaves() {
 				// octaves
@@ -2063,9 +2186,10 @@
 					[2, 0, 1 / 200],
 					[5, 0, 1 / 5000],
 					[7, 0, 1 / 4000],
+					[9, 0, 1 / 1000],
 					[10, 0, 1 / 2000],
-					[12, 0, 1 / 8000],
-					[16, 0, 1 / 20000],
+					[12, 0, 1 / 5000],
+					[16, 0, 1 / 15000],
 					[17, 0, 1 / 20213123123123.000],
 					[19, 0, 1 / 35000]
 				];
@@ -2082,7 +2206,7 @@
 					if (mb32.rng(level.featureRNG) < 1 / 1000) {
 						level.waterLevel[i] = Math.floor(mb32.rng(level.featureRNG) * 500);
 					};
-					if (i === 300000000) {
+					if (i === 30000) {
 						let trenchDepth = 100;
 						let trenchWidth = 19;
 						for (let j = -trenchWidth; j <= trenchWidth; j++) {
@@ -2109,7 +2233,7 @@
 						//level.features[i] = pool.length === 0 ? 0 : pool[Math.floor(mb32.rng(level.featureRNG) * pool.length)];
 					};
 	
-					if (mb32.rng(level.featureRNG) < 1 / 30000) {
+					if (mb32.rng(level.featureRNG) < 1 / 15000) {
 						let villageWidth = 35;
 						let villageFalloff = 10;
 						let rowRange = range(Math.max(i - villageWidth, 0), Math.min(i + villageWidth, level.rows.length - 1));
@@ -2161,8 +2285,14 @@
 					if (mb32.rng(level.featureRNG) < 1 / 3000) {
 						spawnMob("possessed_doll", i + 0.5, level.rows[i]);
 					};
-					if (mb32.rng(level.featureRNG) < 1 / 3000) {
-						level.terrainFeatures[i] = "tree1";
+					if (mb32.rng(level.featureRNG) < 1 / 4000) {
+						spawnMob("merchant", i + 0.5, level.rows[i]);
+					};
+					if (mb32.rng(level.featureRNG) < 1 / 1500) {
+						spawnMob("monster", i + 0.5, level.rows[i]);
+					};
+					if (mb32.rng(level.featureRNG) < 1 / 10 && getBiome(i, level.rows[i]) === "grass") {
+						level.terrainFeatures[i] = "tree" + Math.floor(mb32.rng(level.featureRNG) * 2 + 1);
 					};
 					if (mb32.rng(level.featureRNG) < 1 / 4212133121320.00) {
 						level.terrainFeatures[i] = "rainbow";
@@ -2223,6 +2353,7 @@
 					document.getElementById("canvas-wrapper").focus();
 					document.getElementById("cursor").style.display = "none";
 				};
+				buttonSound();
 			};
 			function obeliskShopButton() {
 				if (obeliskShop = !obeliskShop) {
@@ -2233,6 +2364,7 @@
 					document.getElementById("canvas-wrapper").focus();
 					document.getElementById("cursor").style.display = "none";
 				};
+				buttonSound();
 			};
 			function equipBoots(bootsreal) {
 				if (bootses[bootsreal]?.bought) {
@@ -2244,6 +2376,7 @@
 					if (coins >= bootses[bootsreal].cost) {
 						bootses[bootsreal].bought = true;
 						coins -= bootses[bootsreal].cost;
+						cashSound();
 					} else {
 						notificate("bankrupt");
 					};
@@ -2253,6 +2386,7 @@
 				if (coins >= foods[food].cost) {
 					foods[food].howmany++;
 					coins -= foods[food].cost;
+					cashSound();
 				} else {
 					notificate("bankrupt");
 				};
@@ -2260,8 +2394,7 @@
 			function devourFood(food) {
 				if (foods[food].howmany >= 1) {
 					foods[food].howmany--;
-					health += foods[food].hunger;
-					health = clamp(health, 0, maxHealth);
+					heal(foods[food].hunger);
 				};
 			};
 			function keyDownFunction(e) {
@@ -2333,12 +2466,15 @@
 					e.preventDefault();
 					document.getElementById("hacker-console").style.display = "block";
 					document.getElementById("hacker-console-text").focus();
+				} else if (e.key === "x") {
+					debug = !debug;
 				};
 			};
 			function purchaseLadder() {
 				if (coins >= 10) {
 					coins -= 10;
 					ladders++;
+					cashSound();
 				} else {
 					notificate("bankrupt");
 				};
@@ -2353,6 +2489,7 @@
 				if (coins >= 25) {
 					coins -= 25;
 					tallLadders++;
+					cashSound();
 				} else {
 					notificate("bankrupt");
 				};
@@ -2425,10 +2562,12 @@
 				};
 			};
 			function saveSlot(slot) {
+				buttonSound();
 				let saveCode = saveToCode(getSave());
 				localStorage.setItem("forestSimulator3DSaveSlot" + slot, saveCode);
 			};
 			function loadSlot(slot) {
+				buttonSound();
 				let saveCode = localStorage.getItem("forestSimulator3DSaveSlot" + slot);
 				if (saveCode === null) {
 					notificate("save slot " + slot + " empty, to create a new save slot reload and press save in the new one you want to create");
@@ -2481,9 +2620,11 @@
 			};
 			function clearAllSlots() {
 				localStorage.clear();
+				buttonSound();
 			};
 			function exportSave() {
 				saveFile("forestSimulator3DSave.json", "application/json", saveToCode(getSave()));
+				buttonSound();
 			};
 			function importSave() {
 				let filePicker = document.createElement("input");
@@ -2504,6 +2645,7 @@
 					reader.readAsText(e.target.files[0], "UTF-8");
 				};
 				filePicker.click();
+				buttonSound();
 			};
 			function saveFile(name, mime, content) {
 				var a = document.createElement("a");
@@ -2647,6 +2789,7 @@
 					if (coins >= height) {
 						placeFeatureEntity("scaffolding", playerX, height);
 						coins -= height;
+						cashSound();
 					} else {
 						notificate("bankrupt");
 					};
@@ -2671,11 +2814,13 @@
 				generateOctaves();
 				playerY = getRowY(level.rows, 0);
 				playing = true;
+				buttonSound();
 			};
 			function purchaseTrampoline() {
 				if (coins >= 45) {
 					coins -= 45;
 					trampolines++;
+					cashSound();
 				} else {
 					notificate("bankrupt");
 				};
@@ -2714,6 +2859,7 @@
 			function saveSlotSelectorButton() {
 				saveSlotNumber = (saveSlotNumber + 1) % 3;
 				document.getElementById("save-slot-selector").innerHTML = "slot " + saveSlotNumber + " (click to change)";
+				buttonSound();
 			};
 			function getDarkness(time) {
 				return Math.max(Math.sin((time - 300) / (300 / Math.PI)), 0) ** 2;
@@ -2804,7 +2950,7 @@
 			function hackerConsoleKeyDown(e) {
 				if (e.key === "Enter") {
 					try {
-						let args = e.target.value.split(/ |(?<=[\d.])(?=[^\d.])|(?<=[^\d.])(?=[\d.])/g).map(it => /^[-+]?[0-9]+\.?([0-9]+)?$/g.test(it) ? parseFloat(it) : it);
+						let args = e.target.value.split(/ |(?<=[\d.-])(?=[^\d.-])|(?<=[^\d.-])(?=[\d.-])/g).map(it => /^[-+]?[0-9]+\.?([0-9]+)?$/g.test(it) ? parseFloat(it) : it);
 						switch (args[0]) {
 							case "spawn":
 								let mobX = playerX + (args[2] ?? 0);
@@ -2894,6 +3040,12 @@
 							case "godmode":
 								godmode = !godmode;
 								break;
+							case "pie":
+								pie = !pie;
+								break;
+							case "time":
+								gameTime = args[1] ?? 0;
+								break;
 						};
 					} catch (e) {
 						notificate("command error");
@@ -2907,6 +3059,7 @@
 				if (coins >= 10) {
 					lanternTime += 3600;
 					coins -= 10;
+					cashSound();
 				} else {
 					notificate("bankrupt");
 				};
@@ -2937,6 +3090,7 @@
 				if (coins >= 6) {
 					crates++;
 					coins -= 6;
+					cashSound();
 				} else {
 					notificate("bankrupt");
 				};
@@ -2953,8 +3107,16 @@
 				document.getElementById("seed").value = seedUrlParam;
 				document.getElementById("seed-as-number-checkbox").checked = (getURLParam("asNumber") !== null);
 			};
+			function heal(numer) {
+				health += numer;
+				health = clamp(health, 0, maxHealth);
+				if (health <= 0 && !dead) {
+					soundSystem.emitSound(sounds.death, [playerX, playerY + 1]);
+				};
+			};
 	
 			function tick() {
+				var pieTime = performance.now();
 				document.getElementById("joystick").style.display = document.getElementById("joystick-checkbox").checked ? "flex" : "none";
 				let magnitudes = {
 					"keyboard": {
@@ -3014,10 +3176,16 @@
 				controls.right = clamp((magnitudes.keyboard.right + magnitudes.joystick.right + magnitudes.gamepad.right) * (possessionTime <= 0) + magnitudes.possession.right, 0, 1);
 				document.getElementById("cursor").style.left = cursorX - 15 + "px";
 				document.getElementById("cursor").style.top = cursorY - 15 + "px";
+
+				pies.controls = performance.now() - pieTime;
+
 				if (!shop && (!dead || godmode) && !obeliskShop && playing) {
+					pieTime = performance.now();
 					if (playerX >= level.rows.length) {
 						generateLevel();
 					};
+
+					pies.generate = performance.now() - pieTime;
 	
 					let bakedRows = getBakedRows();
 	
@@ -3120,7 +3288,7 @@
 					let oldOnGround = onGround;
 					onGround = playerY + playerYV <= getRowY(bakedRows, max);
 					if (!oldOnGround && onGround && playerYV <= -0.6) {
-						health -= playerYV * -0.05;
+						heal(playerYV * 0.05);
 					};
 					trampoline = level.features[max] === 18 && onGround;
 					if (onGround && !trampoline) {
@@ -3160,13 +3328,18 @@
 						dimension = (dimension === "normal") ? "upside down" : "normal";
 					};
 					// ROW LOOP //
-	
+					
+				
+					
 					let oldInLadder = inLadder;
 					inLadder = false;
 					dybbukTime = Math.max(0, dybbukTime - 1);
 					lanternTime = Math.max(0, lanternTime - 1);
 					document.getElementById("obelisk-shop-button").style.display = "none";
 					obeliskShopButtonShowing = false;
+					
+					pieTime = performance.now();
+
 					// water
 					let totalWaterHeight = x => level.waterLevel[x] + bakedRows[x];
 					let waterTick = function(x) {
@@ -3177,7 +3350,7 @@
 						level.waterLevel[x] = averageHeight - bakedRows[x];
 						if (waterRight) level.waterLevel[x + 1] = averageHeight - bakedRows[x + 1];
 					};
-					for (let j = 0; j < 3; j++) {
+					for (let j = 0; j < 2; j++) {
 						for (let i = 0; i < level.rows.length; i++) {
 							if (i >= 1 && i < bakedRows.length - 1 && level.waterLevel[i] > 0) {
 								waterTick(i);
@@ -3189,6 +3362,7 @@
 							};
 						};
 					};
+					pies.watertick = performance.now() - pieTime;
 					for (let i = 0; i < level.rows.length; i++) {
 						// features
 						if (playerX + 0.5 > i && playerX - 0.5 < i + 1) {
@@ -3197,6 +3371,7 @@
 									case 2:
 										if (dybbukTime <= 0) {
 											gems += (dimension === "upside down") ? 2 : 1;
+											soundSystem.emitSound(sounds.gem, [playerX, playerY]);
 										};
 										level.features[i] = 0;
 										break;
@@ -3443,7 +3618,7 @@
 										mob.x = Math.ceil(mob.x) - 0.5;
 									};
 									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
-										health -= 0.01;
+										heal(-0.01);
 									};
 									if (mob.age % Math.round(sounds.sentryAmbient.element.duration * 60) === 0) {
 										soundSystem.emitSound(sounds.sentryAmbient, [mob.x, mob.y + 2]);
@@ -3467,7 +3642,7 @@
 									mob.deltaX = Math.round((mob.x - oldMobX) * 1000) / 1000;
 									mob.y = getRowY(bakedRows, getHittableRows(mob.x).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b));
 									if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
-										health -= (Math.sin(gameTime * 20) + 0.1) * 0.03; // 0.01
+										heal((Math.sin(gameTime * 20) + 0.1) * -0.03); // 0.01
 									};
 								} else if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 1 && playerY + 2 > mob.y && dybbukTime <= 0) {
 									mob.mimicTimer = true;
@@ -3518,10 +3693,32 @@
 									mob.x += xSign * 0.16;
 								};
 								mob.y = getRowY(bakedRows, getHittableRows(mob.x).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b));
-								if (!mob.notificated) {
+								if (!mob.notificated && mob.x - 0.5 > playerX + 0.5 && mob.x + 0.5 < playerX - 0.5) {
 									notificate("press e to interact with merchant");
 									mob.notificated = true;
 								};
+								break;
+							case "monster":
+								let xSign = potions["invisibility potion"].time > 0 ? 0 : Math.sign(playerX - mob.x);
+								mob.x += xSign * 0.06;
+								if (xSign !== Math.sign(playerX - mob.x) && potions["invisibility potion"].time <= 0) {
+									mob.x = playerX;
+								};
+								let monsterStepHeight = getRowY(bakedRows, getHittableRows(mob.x).reduce((a, b) => getRowY(bakedRows, a) > getRowY(bakedRows, b) ? a : b));
+								if (monsterStepHeight - mob.y <= 3 || getHittableRows(mob.x).some(it => level.features[it] === 3 || level.features[it] === 4 || (level.featureEntities[it] && level.featureEntities[it].type === "scaffolding" && level.featureEntities[it].height >= getRowY(bakedRows, it + 1) - getRowY(bakedRows, it)))) {
+									mob.y = monsterStepHeight;
+								} else {
+									mob.x = Math.ceil(mob.x) - 0.5;
+								};
+								if (mob.x + 0.5 > playerX - 0.5 && mob.x - 0.5 < playerX + 0.5 && playerY < mob.y + 4 && playerY + 2 > mob.y) {
+									heal(-0.005);
+								};
+								/*if (mob.age % Math.round(sounds.monsterAmbient.element.duration * 60) === 0) {
+									soundSystem.emitSound(sounds.monsterAmbient, [mob.x, mob.y + 2]);
+								};
+								if (mob.age % Math.round(sounds.monsterIdle.element.duration * 2 * 60) === 0) {
+									soundSystem.emitSound(sounds.monsterIdle, [mob.x, mob.y + 2]);
+								};*/
 								break;
 						};
 						mob.age++;
@@ -3536,12 +3733,11 @@
 					score = Math.max(score, Math.floor(playerX));
 					pb = Math.max(pb, score);
 	
-					health -= (dimension === "upside down") ? 0.00016 : 0.00008;
-					health += potions["regeneration potion"].time > 0 ? 0.00088 : 0;
+					heal((dimension === "upside down") ? -0.00016 : -0.00008);
+					heal(potions["regeneration potion"].time > 0 ? 0.00088 : 0);
 					if (oxygen <= 0) {
-						health -= 0.003;
+						heal(-0.003);
 					};
-					health = clamp(health, 0, maxHealth);
 					if (playerY + 1.5 < bakedRows[Math.floor(playerX)] + level.waterLevel[Math.floor(playerX)] && !divingSuit) {
 						oxygen -= 0.005;
 					} else {
@@ -3549,14 +3745,13 @@
 					};
 					oxygen = clamp(oxygen, 0, 1);
 					dead = health <= 0;
-					if (dead) {
-						soundSystem.emitSound(sounds.death, [playerX, playerY + 1]);
-					};
 				};
 				notificationTime = Math.max(0, notificationTime - 1);
 
 				// sounds
 				soundSystem.tickAllSounds();
+				
+				pies.everythingelse = performance.now() - pieTime;
 			};
 			function renderScreen() {
 				document.documentElement.style.setProperty("--block-size", blockSize + "px");
@@ -3609,6 +3804,10 @@
 				let minutes = (gameTime + 450) * ((12 * 60) / 300);
 				let timeText = ((Math.floor(minutes / 60) % 12) || 12) + ":" + Math.floor(minutes % 60).toString().padStart(2, "0") + (Math.floor(((Math.floor(minutes / 60) % 24) / 12)) ? " AM" : " PM");
 				document.getElementById("stats").innerHTML = "altitude: " + Math.floor(playerY) + "m<br>fps: " + fps + "<br>🪙 " + bigIntString(coins) + "<br>💎 " + bigIntString(gems) + "<br><div class=\"emoji\" id=\"totem-emoji\"></div> " + bigIntString(totems) + "<br>🥾 " + boots + "<br>" + clockEmoji(gameTime) + " " + timeText;
+				document.getElementById("pie").innerHTML = "controls: " + pies.controls + "ms<br>generate: " + pies.generate + "ms<br>watertick: " + pies.watertick + "ms";
+				document.getElementById("pie").style.display = pie ? "block" : "none";
+				document.getElementById("debug").innerHTML = "xy: " + playerX.toFixed(3) + "," + playerY.toFixed(3) + "<br>waterlev: " + level.waterLevel[Math.floor(playerX)]?.toFixed(3);
+				document.getElementById("debug").style.display = debug ? "block" : "none";
 				document.getElementById("score").innerHTML = "◄ " + bigIntString(score) + "m ►";
 				document.getElementById("notification").innerHTML = notificationTime > 0 ? notification : "";
 				for (let food in foods) {

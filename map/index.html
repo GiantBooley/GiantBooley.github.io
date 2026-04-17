@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Map Tutorial</title>
+		<link rel="stylesheet" href="../style.css">
+	</head>
+	<body>
+		<div id="background-container">
+			<div id="background"></div>
+		</div>
+		<div id="main">
+			<h1>Map Tutorial</h1>
+			<hr>
+			<div class="category">
+				<h2>Part 1: Setup</h2>
+				<hr>
+				<div>
+					<h3>Unity Setup</h3>
+					<p>First, you have to install Unity, these are the versions you can use to make maps:</p>
+					<ul>
+						<li>1.6: <a href="https://unity.com/releases/editor/whats-new/2022.3.6">2022.3.6f1</a></li>
+						<li>1.7: <a href="https://unity.com/releases/editor/whats-new/2022.3.25">2022.3.25f1</a></li>
+					</ul>
+					<p>Then, create a new Unity 3D project and make sure to use one of the correct Unity versions or else your map won't load.</p>
+					<p>Change the project color space from gamma to linear to have materials not look desaturated <code>Edit > Project settings > Player > Color space</code></p>
+					
+					<h3>Map Setup</h3>
+					<p>Download GOIWBF Level Tools then go to <code>Assets > Import package > Custom package</code> then choose the file. While importing, you can deselect the example map because it's unnecessary.</p>
+					<a href="https://drive.google.com/file/d/1F31xVUpW0WMWl3sgEsrePPaYyigQ3omk/view?usp=drive_link" class="external">GOIWBF Level Tools</a>
+					<p>Create a new folder in the Assets folder called Scenes, then create a new scene by right clicking and name it to your scene name. There can be multiple scenes in a map. When your scene file is created, it might show a prompt saying do you want to reload, press no so any changes don't get undone.</p>
+					<p>Select the scene file in the asset explorer. At the bottom right, there is a section saying asset labels. Click the first dropdown then create new, then type your map name, then set the 2nd dropdown to "Scene"</p>
+					<p>Double click the scene file, then delete the "Main Camera" object, but keep the directional light.</p>
+					<p>Create a new empty object by right clicking the scene heirarchy, then <code>Create > Empty</code> and rename it to "startPos", then set the position of it to zero. This is the object that determines where the player will start in the map.</p>
+				</div>
+			</div>
+			<div class="category">
+				<h2>Part 2: Objects</h2>
+				<hr>
+				<div>
+					<p>Objects should be in the terrain layer or background layer. The terrain layer uses the 2D camera, and the background layer uses the 3D camera. Click on the "Layer" dropdown menu at the top right then click edit layers. Set layer 10 to Terrain and 12 to Background. Colliders are required to be on the terrain layer to have hit sounds.</p>
+					<h3>Model</h3>
+					<p>To add a model into your map, drag a model file (fbx, obj) into the asset explorer. Then, drag it from the asset explorer into the scene. In order to edit the material, you need to create a new material by right clicking then <code>Create > Material</code></p>
+					<p>Select the material file, then you can change the shader to one in the dropdown menu. Realistic models should have "Standard" or "Autodesk Interactive", and low poly models should have "Standard (Specular setup)"<br>
+					Uncheck the "Reflections" checkbox for now, so the model doesn't change color when you get close to it.</p>
+					<h3>Sprite</h3>
+					<p>To add a sprite into your map, drag an image file into the asset explorer. Then, select the image and change the type from "Default" to "Sprite (2D and UI)" and change mesh type from "Tight" to "Full rect". Also, to reduce file size, enable crunch compression checkbox then set the quality to around 20. Drag the sprite into the scene then set the Z position to zero.</p><br>
+
+					<p>It's recommended to add objects in batches to work faster, each batch can have from 20-500 objects and you can add them all at once to the scene.</p>
+					<h3>Colliders</h3>
+					<p>Colliders are polygons that determine the shape of the object you collide with. They also have a hit sound and friction value.</p>
+					<p>To add a collider to a 3D object, the heirarchy should look like this:</p>
+					
+					<pre>object with collider
+|
+-----object with mesh</pre>
+					<br>
+					<p>The collider object is outside of the mesh object because colliders shouldn't be rotated in 3D space.</p>
+					<p>To add the collider, add an empty object with a Z of zero and then copy and paste the mesh object's X and Y positions into the empty object's X and Y positions. Drag the mesh object into the collider object.</p>
+					<p>Then, on the collider object, click "Add Component" in the inspector then search for "Polygon Collider 2D". When the collider is added, it should be a pentagon and you can click the edit button to edit the points. When you finish the collider, click the small dot next to "None (Physics Material 2D)" then select whichever friction value you want to use. You can also navigate to <code>GOIWBF Level Tools/Friction Materials</code> in the asset explorer then drag one of the physics materials into the physics material input. If you want custom friction values, you can duplicate one of the friction values with CTRL+D then rename it and edit the friction value</p>
+					<ul>
+						<li>Static Friction (1): Low friction, should be used for slippery ice or something</li>
+						<li>Super Friction (10): Friction used in the default map, almost every object is this friction</li>
+						<li>(25): Frictions like 25 or 50 should be used if you want to prevent slipping on objects</li>
+						<li>(100000): Max friction, allows you to negative pull on anything</li>
+					</ul>
+					<p>For sprites, you can add the collider anywhere you want, but the best way is to put it directly onto the sprite object. There is an auto generated collider, but don't use it because it is slightly bigger than the sprite and it has too many points.</p>
+
+					<p>To add a hit sound to the collider, click "Add Component" and search for "Ground Col" then add it. Set the hit sound dropdown to whatever you want the hit sound to be. Grass doesn't have a hit sound by default so you should use furniture.</p>
+
+					<h3>Advanced polygon collider (auto colliders for sprites)</h3>
+					<p>There is a package called Advanced Polygon Collider, and you can add a script to a sprite to automatically add a collider.</p>
+					<a class="external" href="https://assetstore.unity.com/packages/tools/physics/advanced-polygon-collider-52265">Advanced Polygon Collider</a><br>
+					<p>In order for this to work, you have to enable "Read/write access" checkbox on the sprite files. You also have to disable compression, but you can enable it back later.</p>
+					<p>After installing it, edit the script in a text editor, then change the mindistance variable to whatever you want the default to be. Lower values have colliders with higher resolution. Drag the script onto a sprite object, then it should generate a collider. Then, you can remove the script component from the sprite and the collider should stay.</p>
+				</div>
+			</div>
+			<div class="category">
+				<h2>Part 3: Bundling</h2>
+				<hr>
+				<div>
+					<p>Maps are stored in .scene files, which are unity asset bundles. Right click anywhere in the asset explorer, then click "Build to Level Asset Bundle". When it finishes bundling, right click the asset explorer then click <code>Show in explorer</code> and navigate to the .scene file. Open Steam, then click the cog wheel icon on the Getting Over It steam page, click open file location. Move the .scene file into the Getting Over It/Levels folder.</p>
+					<h3>TXT File (IMPORTANT)</h3>
+					<p>Create a .txt file with the same name as your .scene file. In the file, add <code>mode=r</code> if you want to make your map replace the default map instead of adding onto it. You can use either .txt or .mdata as the file extension.</p>
+					<p>Example txt file:</p>
+					<pre>mode=r
+credit=dell
+bgfarplane=3000</pre>
+					<p>The settings you can use in the txt file:</p>
+					<table>
+						<tr><th>Setting</th><th>Value</th><th>Description</th></tr>
+						<tr><td>credit</td><td>string</td><td>map author</td></tr>
+						<tr><td>description</td><td>string</td><td>map description</td></tr>
+						<tr><td>scene</td><td>string</td><td>scene name to start on</td></tr>
+						<tr><td>mode</td><td>character</td><td>if r, then replaces default map</td></tr>
+						<tr><td>sky</td><td>character</td><td>if r, then removes the default sky</td></tr>
+						<tr><td>cam</td><td>integer</td><td>if 1, then sets terrain camera to 3D</td></tr>
+						<tr><td>zplane</td><td>float</td><td>terrain camera Z position</td></tr>
+						<tr><td>farplane</td><td>float</td><td>terrain camera max render distance</td></tr>
+						<tr><td>bgfarplane</td><td>float</td><td>background camera max render distance</td></tr>
+						<tr><td>fog</td><td>rgba hex</td><td>changes fog color (#rrggbbaa)</td></tr>
+						<tr><td>shadow</td><td>integer</td><td>removes hammer shadow if greater than zero</td></tr>
+						<tr><td>hammermat</td><td>integer</td><td>prevent hammer from rendering in front of everything if greater than zero</td></tr>
+				</div>
+			</div>
+		</div>
+	</body>
+	<script>
+		window.addEventListener("scroll", function(e){
+			document.getElementById("background-container").style.transform = "translateY(" + (window.scrollY * 0.7) + "px)";
+			document.getElementById("background-container").style.height = document.body.offsetHeight + "px";
+		});
+	</script>
+</html>

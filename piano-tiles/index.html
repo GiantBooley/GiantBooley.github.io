@@ -51,6 +51,8 @@
 		<label for="bot">bot</label><br>
 		<label for="hit-offset">hit offset:</label>
 		<input type="number" id="hit-offset" value="10"><br>
+		<label for="speed">speed:</label>
+		<input type="number" id="speed" value="10"><br>
 
 		<div id="canvas-wrapper" tabindex="0">
 			<canvas id="canvas"></canvas>
@@ -99,24 +101,18 @@
 			gameOver = true;
 			ctx.fillStyle = "red";
 			pb = Math.max(score, pb);
-			ctx.fillText("YOU DIED", 100, 100);
-			ctx.fillText("score: " + score, 100, 200);
-			ctx.fillText("pb: " + pb, 100, 300);
 			for (let i = 0; i < 3; i++) {
 				//pianoSounds.forEach(sound => sound.cloneNode(true).play());
 			};
 			respawnTime = 100;
 		};
-		var speed = 10;
 		function reset() {
 			tiles = [];
 			gameOver = false;
 			score = 0;
-			speed = 10;
 		};
 		function tick() {
 			howManyRows = document.getElementById("rows").valueAsNumber;
-			speed *= 1;
 			let createTile = false;
 			let hitTile = false;
 			let tileSize = canvas.width / howManyRows;
@@ -129,7 +125,7 @@
 
 			if (!gameOver) {
 				for (let i = 0; i < tiles.length; i++) {
-					tiles[i].y += speed;
+					tiles[i].y += document.getElementById("speed").valueAsNumber;
 					if (tiles[i].y >= 0 && !tiles[i].createdATile) {
 						createTile = true;
 						tiles[i].createdATile = true;
@@ -142,7 +138,7 @@
 						(tiles[i].y > canvas.height - tileSize && document.getElementById("bot").checked)
 					) {
 						tiles.splice(i, 1);
-						pianoSounds[tiles[i].col]?.cloneNode(true)?.play();
+						pianoSounds[tiles[i].col % 4]?.cloneNode(true)?.play();
 						score++;
 						hitTile = true;
 					};
@@ -171,6 +167,9 @@
 				};
 			};
 		};
+		var fps = 0;
+		var frames = 0;
+		var lastFrameTime = performance.now();
 		function render() {
 			let hitOffset = document.getElementById("hit-offset").valueAsNumber;
 			let tileSize = canvas.width / howManyRows;
@@ -185,12 +184,24 @@
 			};
 			ctx.fillRect(0, canvas.height - (hitOffset + 1), canvas.width, 2);
 			ctx.fillText(score, canvas.width / 2 - 30, 100);
+			ctx.fillText(fps, 100, 100);
+			if (gameOver) {
+				ctx.fillStyle = "red";
+				ctx.fillText("YOU DIED", 100, 100);
+				ctx.fillText("score: " + score, 100, 200);
+				ctx.fillText("pb: " + pb, 100, 300);
+			}
 
 			keyDown = null;
 			clicks = [];
 		};
-
 		function loop() {
+			frames++;
+			if (performance.now() > lastFrameTime + 1000) {
+				lastFrameTime = performance.now();
+				fps = frames;
+				frames = 0;
+			}
 			tick();
 			render();
 			requestAnimationFrame(loop);

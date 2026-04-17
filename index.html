@@ -3,34 +3,6 @@
 	<head>
 		<title>Giantbooley</title>
 		<style>
-			@font-face {
-				font-family: bitthingfont;
-				src: url("./MerriweatherSans-Regular.ttf") format("truetype");
-			}
-			@font-face {
-				font-family: bitthingfont;
-				font-weight: bold;
-				src: url("./MerriweatherSans-Bold.ttf") format("truetype");
-			}
-			* {
-				box-sizing: border-box;
-			}
-			body {
-				background-color: #FFF8DC;
-				margin: 15px;
-				font-family: bitthingfont, serif;
-			}
-			a {
-				background-color: #AAAAAA;
-				color: white;
-				padding: 5px;
-				text-decoration: none;
-				border-radius: 5px;
-				border: 3px ridge #666666;
-				box-shadow: 2px 2px 2px gray, inset 5px 5px 10px #666666;
-				transition-duration: 0.1s;
-				user-select: none;
-			}
 			a.new::after {
 				content: "NEW";
 				background-image: radial-gradient(orange, #FF0000);
@@ -53,157 +25,230 @@
 			a.new:hover::after {
 				color: white;
 			}
-			a:hover {
-				color: cyan;
-				background-color: #888888;
-				text-shadow: 0px 0px 3px white;
-			} 
-			a:active {
-				background-color: #777777;
-			}
-			.buttons {
-				line-height: 2.5;
-			}
 			.category-broken {
 				opacity: 0.5;
 			}
-			h2 {
-				margin: 0;
-			}
-			.category {
-				margin: 10px;
-				padding: 5px;
-				box-shadow: 2px 2px 10px black;
-				border: 3px ridge #666666;
-				border-radius: 5px;
-				background-color: #DDDDBC;
-			}
 		</style>
+		<link rel="stylesheet" href="./style.css">
 	</head>
 	<body>
-		<h1>GiantBooley's website</h1> 1000th commit 12/19/22
-		<p>friends github: <a href="https://wyattnewman.github.io/" class="external">wyattnewman.github.io (this is my website)</a></p>
-		<hr>
-		<div class="category category-games">
-			<h2>Ga<span>m</span>es (7)</h2>
-			<hr>
-			<div class="buttons">
-				<a href="./mining-simulator">Mining simulator</a><br>
-				<a href="./virus-simulator">Virus simulator</a><br>
-				<a href="./forest-simulator-3d">Forest simulator 3D</a><br>
-				<a href="./fat-guy">Fat guy</a><br>
-				<a href="./piano-tiles">Piano tiles</a><br>
-				<a href="./platformer-simulator">Platformer Simulator</a><br>
-				<a href="./skyrising-simulator">Skyrising Simulator</a>
-			</div>
+		<div id="background-container">
+			<div id="background"></div>
 		</div>
-		<div class="category category-stuff">
-			<h2>Random stuff (29)</h2>
+		<div id="main">
+			<h1>GiantBooley's Website</h1>
+			<a href="https://wyattnewman.github.io/" class="external">friends website</a>
+			<a href="./bookmarklets">Bookmarklets</a>
 			<hr>
-			<div class="buttons">
-				<a href="./fake-terminal">Fake terminal</a><br>
-				<a href="./fake-hack-decimal">Fake hack decimal</a><br>
-				<a href="./fake-hack-binary">Fake hack binary</a><br>
-				<a href="./bookmarklets">Bookmarklets</a><br>
-				<a href="./fake-hack-code">Fake hack code</a><br>
-				<a href="./click-the-button">Click the button</a><br>
-				<a href="./bob-console">Bob console</a><br>
-				<a href="./light-bulb">Light bulb</a><br>
-				<a href="./paint">Paint</a><br>
-				<a href="./3d-button">3D button</a><br>
-				<a href="./infinite">Open 4329098432098907904387 tabs</a><br>
-				<a href="./fractals">Fractals</a><br>
-				<a href="./movable-box">Box</a><br>
-				<a href="./spinning-thing-with-a-perfect-fit">Spinning thing</a><br>
-				<a href="./loading-sign-1">Loading sign 1</a><br>
-				<a href="./loading-sign-2">Loading sign 2</a><br>
-				<a href="./terrain-generator">Terrain generator</a><br>
-				<a href="./no-signal">No signal</a><br>
-				<a href="./pung">Pung</a><br>
-				<a href="./ames-window">Ames window</a><br>
-				<a href="./square-wheel">Square wheel</a><br>
-				<a href="./style-only">Style only</a><br>
-				<a href="./apps">Apps</a><br>
-				<a href="./no-close">No close</a><br>
-				<a href="./3d">3D</a><br>
-				<a href="./agar.io">Agar.io</a><br>
-				<a href="./browser/browser.html">Browser</a><br>
-				<a href="./minecraft">Mine Craft Button</a><br>
-				<a href="./rtx">Ray simulator</a>
+			<div class="category category-maps">
+				<h2>GOI Maps (9)</h2>
+				<hr>
+				<div>
+					<a href="./map">Map Making Tutorial</a><br>
+					<table>
+						<tr>
+							<th></th><th>Description</th><th>Difficulty</th><th>Length</th><th>Style</th>
+						</tr>
+						<tr>
+							<td><a href="https://drive.google.com/drive/folders/14ThgGe7TrJrKrBdBITMEHOZDygUl4_6o?usp=drive_link" class="external">Thanksgiving</a></td>
+							<td>Thanksgiving map</td>
+							<td>Easy</td>
+							<td>0.5 default maps</td>
+							<td>2D with models</td>
+						</tr>
+						<tr>
+							<td><a href="https://drive.google.com/drive/folders/13wuDHCVdEWbaCbcNLij7uapwNKNovRDa?usp=drive_link" class="external">Jumpshed</a></td>
+							<td>Practice map</td>
+							<td></td>
+							<td>10 jump categories</td>
+							<td>2D</td>
+						</tr>
+						<tr>
+							<td><a href="https://drive.google.com/drive/folders/1i02UzBHwYEF2svtHCpqXG7gYcD7mCK2Q?usp=drive_link" class="external">Goibiaafmland</a></td>
+							<td>April fools map 2024</td>
+							<td>Insanely hard</td>
+							<td>1.5 default maps</td>
+							<td>2D and 2.5D</td>
+						</tr>
+						<tr>
+							<td><a href="https://drive.google.com/drive/folders/1zjmuUY3wJvjeHwwHKFTNpbeUBA8KitTx?usp=drive_link" class="external">Wastelands</a></td>
+							<td>Nature themed map</td>
+							<td>Easy</td>
+							<td>2 default maps wide</td>
+							<td>3D</td>
+						</tr>
+						<tr>
+							<td><a href="https://drive.google.com/drive/folders/1AESkYlVgcIqJfHP0ujRDkRXE7dtTRi9C?usp=drive_link" class="external">Seasons 1.31</a></td>
+							<td>Seasons map with fall, winter, and spring</td>
+							<td>Easy to hard</td>
+							<td>5 default maps</td>
+							<td>2D and 2.5D</td>
+						</tr>
+						<tr>
+							<td><a href="https://drive.google.com/drive/folders/1bU5YbPpLm61f7Nk_rdWK32BM5Y9hiRxe?usp=drive_link" class="external">Macrocosm</a></td>
+							<td>Space map with 10 sections (update coming soon)</td>
+							<td>Hard</td>
+							<td>3.5 default maps</td>
+							<td>2D and 2.5D</td>
+						</tr>
+						<tr>
+							<td><a href="https://drive.google.com/drive/folders/1mqYF5_xTuZ0znCGuCR80StKu8lxHfnZg?usp=drive_link" class="external">Negative Space</a></td>
+							<td>Antique themed map with inverted colliders</td>
+							<td>Easy</td>
+							<td>1 default map</td>
+							<td>2D with models</td>
+						</tr>
+						<tr>
+							<td><a href="https://drive.google.com/drive/folders/1dctkX7b04tFCE-vkjXml6jkV30zv469Y?usp=drive_link" class="external">Oblivion</a></td>
+							<td>Map with noise section</td>
+							<td>Medium</td>
+							<td>0.5 default maps</td>
+							<td>2D</td>
+						</tr>
+						<tr>
+							<td><a href="https://drive.google.com/drive/folders/1q3r8h_ggCRo6i07rb2t0qdzj4JAeIHqg?usp=drive_link" class="external">？</a></td>
+							<td>April fools 2025</td>
+							<td>Hard (has rng)</td>
+							<td>long</td>
+							<td>2D</td>
+						</tr>
+						<tr>
+							<td><a href="https://drive.google.com/drive/folders/1RAlvIaF_-arm7WLtE9MTDiUpZq7qtP-F?usp=drive_link" class="external">Winter 2144</a></td>
+							<td>Zero friction map</td>
+							<td>Hard</td>
+							<td>Short</td>
+							<td>2D</td>
+						</tr>
+						<tr>
+							<td><a class="external disabled">Sundown</a></td>
+							<td>Coming soon</td>
+							<td>...</td>
+							<td>...</td>
+							<td>3D</td>
+						</tr>
+					</table>
+				</div>
 			</div>
-		</div>
-		<div class="category category-ai">
-			<h2>AI stuff (12)</h2>
-			<hr>
-			<div class="buttons">
-				<a href="./story-lengthener">Story lengthener</a><br>
-				<a href="./bob-chatbot">Bob chatbot</a><br>
-				<a href="./word-generator">Word generator</a><br>
-				<a href="./brain">Neural network cube</a><br>
-				<a href="./connect-4-ai">Connect 4 ai</a><br>
-				<a href="./dino-ai">Dinosaurous rex artificial intelligence</a><br>
-				<a href="./dino-ai-vector-distance">Dinosaurous rex artificial intelligence vector distance</a><br>
-				<a href="./keyboard-maker">Keyboard maker</a><br>
-				<a href="./serpentes-artificial-intelligence">Serpentes artificial intelligence</a><br>
-				<a href="./similarity">Text doer similarity</a><br>
-				<a href="./word-ai">Average word ai but trash</a><br>
-				<a href="./bob-chatbot-v2">Bob chatbot V2</a>
+			<div class="category category-games">
+				<h2>Ga<span>m</span>es (7)</h2>
+				<hr>
+				<div class="buttons">
+					<a href="./forest-simulator-3d">Forest simulator 3D</a><br>
+					<a href="./mining-simulator">Mining simulator</a><br>
+					<a href="./virus-simulator">Virus simulator</a><br>
+					<a href="./piano-tiles">Piano tiles</a><br>
+					<a href="./platformer-simulator">Platformer Simulator</a><br>
+					<a href="./skyrising-simulator">Skyrising Simulator</a><br>
+					<a href="./agar.io">Agar.io</a>
+				</div>
 			</div>
-		</div>
-		<div class="category category-tools">
-			<h2>Tools stuff (22)</h2>
-			<hr>
-			<div class="buttons">
-				<a href="./tools">Other tools</a><br>
-				<a href="./url-encode-decode">URL encoder and decoder</a><br>
-				<a href="./number-shortener">Number shortener</a><br>
-				<a href="./javascript-tester">Javascript bracketer</a><br>
-				<a href="./upside-down-calculator">Upside down calculator generator</a><br>
-				<a href="./file-downloader">File downloader</a><br>
-				<a href="./html-viewer">HTML viewer</a><br>
-				<a href="./website-embedder">Website embedder</a><br>
-				<a href="./discord-text-emoji-generator">Discord text emoji generator</a><br>
-				<a href="./javascript-to-bookmarklet">Javascript to bookmarklet</a><br>
-				<a href="./letter-lookalike-generator">Letter lookalike generator</a><br>
-				<a href="./pi-calculator">Pi calculator</a><br>
-				<a href="./giant-number">Giant number calculator</a><br>
-				<a href="./cps-test">CPS test</a><br>
-				<a href="./length-comparer">Length comparer</a><br>
-				<a href="./wordle-solver">Wordle solver</a><br>
-				<a href="./nft-painter">NFT painter</a><br>
-				<a href="./graph-paper">Graph paper not working</a><br>
-				<a href="./request-sender">Request sender</a><br>
-				<a href="./teacher-translator">Teacher translator</a><br>
-				<a href="./graphing-calculator">Graphing calculator</a><br>
-				<a href="./bezier-doer">Bezier doer</a>
+			<div class="category category-stuff">
+				<h2>Random stuff (27)</h2>
+				<hr>
+				<div class="buttons">
+					<a href="./fake-hack-decimal">Fake hack decimal</a><br>
+					<a href="./fake-hack-binary">Fake hack binary</a><br>
+					<a href="./fake-hack-code">Fake hack code</a><br>
+					<a href="./click-the-button">Click the button</a><br>
+					<a href="./bob-console">Bob console</a><br>
+					<a href="./light-bulb">Light bulb</a><br>
+					<a href="./paint">Paint</a><br>
+					<a href="./3d-button">3D button</a><br>
+					<a href="./infinite">Open 4307904387 tabs (tab duplicates itself with while loop)</a><br>
+					<a href="./fractals">Fractals</a><br>
+					<a href="./movable-box">Movable box</a><br>
+					<a href="./spinning-thing-with-a-perfect-fit">Spinning thing</a><br>
+					<a href="./loading-sign-1">Loading sign 1</a><br>
+					<a href="./loading-sign-2">Loading sign 2</a><br>
+					<a href="./terrain-generator">Terrain generator</a><br>
+					<a href="./no-signal">No signal</a><br>
+					<a href="./pung">Pung</a><br>
+					<a href="./ames-window">Ames window</a><br>
+					<a href="./square-wheel">Square wheel</a><br>
+					<a href="./style-only">Style only platformer</a><br>
+					<a href="./apps">Apps</a><br>
+					<a href="./no-close">No close window</a><br>
+					<a href="./3d">3D raycaster</a><br>
+					<a href="./browser/browser.html">Browser</a><br>
+					<a href="./minecraft">Mine Craft Button</a><br>
+					<a href="./rtx">Ray simulator</a>
+				</div>
 			</div>
-		</div>
-		<div class="category category-umblokced">
-			<h2>Umblokced stuff (2) (not working sometimes)</h2>
-			<hr>
-			<div class="buttons">
-				<a href="./unbloked/y8/www.y8.com/games/slope.html">slope umblokced</a><br>
-				<a href="./unbloked/y8/www.y8.com/games/subway_surfers_world_tour_houston.html">subway surfers umblokced</a>
+			<div class="category category-ai">
+				<h2>AI stuff (12)</h2>
+				<hr>
+				<div class="buttons">
+					<a href="./story-lengthener">Story lengthener (word generator is better)</a><br>
+					<a href="./bob-chatbot">Bob chatbot</a><br>
+					<a href="./word-generator">Word generator</a><br>
+					<a href="./brain">Neural network cube</a><br>
+					<a href="./connect-4-ai">Connect 4 ai</a><br>
+					<a href="./dino-ai">Dinosaurous rex artificial intelligence</a><br>
+					<a href="./dino-ai-vector-distance">Dinosaurous rex artificial intelligence vector distance</a><br>
+					<a href="./keyboard-maker">Keyboard maker</a><br>
+					<a href="./serpentes-artificial-intelligence">Serpentes artificial intelligence</a><br>
+					<a href="./similarity">Text doer similarity</a><br>
+					<a href="./word-ai">Average word ai thing</a><br>
+					<a href="./bob-chatbot-v2">Bob chatbot V2</a>
+				</div>
 			</div>
-		</div>
-		<div class="category category-trash">
-			<h2>Trash stuff (14)</h2>
-			<hr>
-			<div class="buttons">
-				<a href="./snake">Snake</a><br>
-				<a href="./3d-image">3D image</a><br>
-				<a href="./big-techifier">Big techifier</a><br>
-				<a href="./ascii-game">Ascii game not working</a><br>
-				<a href="./chrome-simulator">Chrome simulator</a><br>
-				<a href="./tellraw-tester">Tellraw tester not working</a><br>
-				<a href="./commentifier">Commentifier</a><br>
-				<a href="./tic-tac-toe">Tic tac toe</a><br>
-				<a href="./nvidia-gaugan/gaugan.org/gaugan2">nvidia gaugan not working</a><br>
-				<a href="./javascript-viewer">Javascript viewer not working</a><br>
-				<a href="./hex-editor">Hex editor not working</a><br>
-				<a href="./canvas">Canvas platformer but trash</a><br>
-				<a href="./platformer">Platformer</a><br>
-				<a href="./lstm-chatbot">Larry sam tim mark chatbot</a>
+			<div class="category category-tools">
+				<h2>Tools stuff (22)</h2>
+				<hr>
+				<div class="buttons">
+					<a href="./tools">Other tools</a><br>
+					<a href="./url-encode-decode">URL encoder and decoder</a><br>
+					<a href="./number-shortener">Number shortener</a><br>
+					<a href="./javascript-tester">Javascript bracketer</a><br>
+					<a href="./upside-down-calculator">Upside down calculator generator</a><br>
+					<a href="./file-downloader">File downloader</a><br>
+					<a href="./html-viewer">HTML viewer</a><br>
+					<a href="./website-embedder">Website embedder</a><br>
+					<a href="./discord-text-emoji-generator">Discord text emoji generator</a><br>
+					<a href="./javascript-to-bookmarklet">Javascript to bookmarklet</a><br>
+					<a href="./letter-lookalike-generator">Letter lookalike generator</a><br>
+					<a href="./pi-calculator">Pi calculator</a><br>
+					<a href="./giant-number">Giant number calculator</a><br>
+					<a href="./cps-test">CPS test</a><br>
+					<a href="./length-comparer">Length comparer</a><br>
+					<a href="./wordle-solver">Wordle solver</a><br>
+					<a href="./nft-painter">NFT painter</a><br>
+					<a href="./graph-paper">Graph paper not working</a><br>
+					<a href="./request-sender">Request sender</a><br>
+					<a href="./teacher-translator">Teacher translator</a><br>
+					<a href="./graphing-calculator">Graphing calculator</a><br>
+					<a href="./bezier-doer">Bezier doer</a>
+				</div>
+			</div>
+			<div class="category category-umblokced">
+				<h2>Umblokced stuff (2) (not working sometimes)</h2>
+				<hr>
+				<div class="buttons">
+					<a href="./unbloked/y8/www.y8.com/games/slope.html">slope umblokced</a><br>
+					<a href="./unbloked/y8/www.y8.com/games/subway_surfers_world_tour_houston.html">subway surfers umblokced</a>
+				</div>
+			</div>
+			<div class="category category-trash">
+				<h2>Trash stuff/unfinished (16)</h2>
+				<hr>
+				<div class="buttons">
+					<a href="./snake">Snake</a><br>
+					<a href="./3d-image">3D image</a><br>
+					<a href="./big-techifier">Big techifier</a><br>
+					<a href="./ascii-game">Ascii game not working</a><br>
+					<a href="./chrome-simulator">Chrome simulator</a><br>
+					<a href="./tellraw-tester">Tellraw tester not working</a><br>
+					<a href="./commentifier">Commentifier</a><br>
+					<a href="./tic-tac-toe">Tic tac toe</a><br>
+					<a href="./nvidia-gaugan/gaugan.org/gaugan2">nvidia gaugan not working</a><br>
+					<a href="./javascript-viewer">Javascript viewer not working</a><br>
+					<a href="./hex-editor">Hex editor not working</a><br>
+					<a href="./canvas">Canvas platformer but trash</a><br>
+					<a href="./platformer">Platformer</a><br>
+					<a href="./lstm-chatbot">Larry sam tim mark chatbot</a><br>
+					<a href="./fat-guy">Fat guy</a><br>
+					<a href="./fake-terminal">Fake terminal</a><br>
+				</div>
 			</div>
 		</div>
 	</body>
@@ -231,5 +276,9 @@
 			};
 		});
 		localStorage.setItem("visitedLinks", JSON.stringify(visited));
+		window.addEventListener("scroll", function(e){
+			document.getElementById("background-container").style.transform = "translateY(" + (window.scrollY * 0.7) + "px)";
+			document.getElementById("background-container").style.height = document.body.offsetHeight + "px";
+		});
 	</script>
 </html>

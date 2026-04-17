@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>gpg</title>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+			html,body {
+				width: 100%;
+				height: 100%;
+			}
+			body {
+				margin: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				overflow: hidden;
+			}
+			canvas {
+				width: 100%;
+				height: 100%;
+			}
+			#canvases {
+				width: 100vh;
+				height: 100vh;
+				outline: 2px solid blue;
+			}
+			#ctx-canvas {
+				display: none;
+			}
+			#tooltip {
+				background-color: #FFFFFF;
+				border: 1px solid #AAAAAA;
+				border-radius: 5px;
+				color: black;
+				font-family: Arial, Helvetica, sans-serif;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				pointer-events: none;
+				padding: 2px;
+				display: none;
+			}
+			input[type="range"] {
+				width: 80%;
+			}
+			#settings {
+				flex-grow: 1;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="settings">
+			<select id="mode">
+				<option value="gpu" selected>gpu</option>
+				<option value="cpu">cpu</option>
+			</select>
+			<input type="text" id="equation"><button onclick="updateEquation();">OPERATE</button><label id="error"></label><br>
+			<label for="samples">Samples</label><input type="range" id="samples" min="1" max="128" step="1" value="3"><br>
+			<label for="resolution">Res</label><input type="range" id="resolution" min="1" max="100" step="1" value="1"><br>
+			<label for="mousex">MouseX</label><input type="range" id="mousex" min="-5" max="5" step="0.01" value="0"><br>
+			<label for="mousey">MouseY</label><input type="range" id="mousey" min="-5" max="5" step="0.01" value="0"><br>
+		</div>
+		<div id="canvases">
+			<canvas id="gl-canvas"></canvas>
+			<canvas id="ctx-canvas"></canvas>
+		</div>
+		<div id="tooltip">asd</div>
+	</body>
+	<script id="vertex" type="x-shader/x-vertex">
+		attribute vec2 a_position;
+
+		void main() {
+			gl_Position = vec4(a_position, 0, 1); // vec4(u_matrix * vec3(a_position, 1), 1);
+		}
+	</script>
+	<script id="fragment" type="x-shader/x-fragment">
+		precision highp float;
+
+		uniform vec2 u_screenSize;
+		uniform vec2 u_scale;
+		uniform vec2 u_offset;
+		uniform float u_samples;
+
+		bool lineEquals(float a, float b, float width) {
+			return b < a + width / 2.0 && b > a - width / 2.0;
+		}
+		bool testCoordinate(float x, float y) {
+			highp float height = 0.0;
+			return /*s*/y<x/*e*/;
+		}
+		vec4 vec4Lerp(vec4 a, vec4 b, float t) {
+			return (b - a) * t + a;
+		}
+		float log10(float x) {
+			return log(x) / log(10.0);
+		}
+		float roundUp(float x) {
+			return pow(10.0, ceil(log10(x)));
+		}
+		float roundDown(float x) {
+			return pow(10.0, floor(log10(x)));
+		}
+		void main() {
+			highp float x = (gl_FragCoord.x - u_screenSize.x / 2.0) * u_scale.x + u_offset.x;
+			highp float y = (gl_FragCoord.y - u_screenSize.y / 2.0) * u_scale.y + u_offset.y;
+			vec4 color = vec4(1.0);
+			float aaBrightness = 0.0;
+			float aaX = 0.0;
+			float aaY = 0.0;
+			for (float aaX = 0.0; aaX < 1024.0; aaX++) {
+				if (aaX >= u_samples) break;
+				for (float aaY = 0.0; aaY < 1024.0; aaY++) {
+					if (aaY >= u_samples) break;
+					aaBrightness += testCoordinate(x + (aaX / u_samples) * u_scale.x, y + (aaY / u_samples) * u_scale.y) ? 1.0 : 0.0;
+				}
+			}
+			aaBrightness /= pow(u_samples, 2.0);
+			color = vec4Lerp(vec4(1.0, 1.0, 1.0, 1.0), vec4(0.0, 0.8, 0.0, 1.0), aaBrightness);
+			if ((x / u_scale.x > -1.0 && x / u_scale.x < 1.0) || (y / u_scale.y > -1.0 && y / u_scale.y < 1.0)) {
+				color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.75);
+			} else {
+				float scaleUp = roundUp(u_scale.x) * 10.0;
+				if (mod(x, scaleUp) < 2.0 * u_scale.x || mod(y, scaleUp) < 2.0 * u_scale.y) {
+					color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.1);
+				} else if (mod(x, scaleUp / 10.0) < 2.0 * u_scale.x || mod(y, scaleUp / 10.0) < 2.0 * u_scale.y) {
+					color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.05);
+				} else if (mod(x, scaleUp * 10.0) < 2.0 * u_scale.x || mod(y, scaleUp * 10.0) < 2.0 * u_scale.y) {
+					color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.2);
+				}
+			}
+			gl_FragColor = color;
+		}
+	</script>
+	<script>
+		const glCanvas = document.getElementById("gl-canvas");
+		const ctxCanvas = document.getElementById("ctx-canvas");
+		var resolution = 2;
+		glCanvas.width = innerHeight / resolution;
+		glCanvas.height = innerHeight / resolution;
+		ctxCanvas.width = innerHeight / resolution;
+		ctxCanvas.height = innerHeight / resolution;
+		const gl = glCanvas.getContext("webgl") || glCanvas.getContext("experimental-webgl");
+		const ctx = ctxCanvas.getContext("2d");
+		const canvases = document.getElementById("canvases");
+		
+		var mode = "gpu";
+ 
+		gl.viewport(0, 0, glCanvas.width, glCanvas.height);
+		gl.clearColor(0, 0, 0, 1);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		
+		var program, u_screenSizeLoc, u_scaleLoc, u_offsetLoc, u_samplesLoc;
+		var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+		var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+		var fragmentCode = document.getElementById("fragment").innerText;
+		function compileShader() {
+			gl.shaderSource(fragmentShader, fragmentCode);
+			gl.compileShader(fragmentShader);
+			var error = document.getElementById("error");
+			if (gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+				error.innerText = "";
+			} else {
+				error.innerText = gl.getShaderInfoLog(fragmentShader);
+				return;
+			};
+
+			program = gl.createProgram();
+			gl.attachShader(program, fragmentShader);
+
+			gl.shaderSource(vertexShader, document.getElementById("vertex").innerText);
+			gl.compileShader(vertexShader);
+			gl.attachShader(program, vertexShader);
+			
+			gl.linkProgram(program);
+			gl.useProgram(program);
+
+			u_screenSizeLoc = gl.getUniformLocation(program, "u_screenSize");
+			u_scaleLoc = gl.getUniformLocation(program, "u_scale");
+			u_offsetLoc = gl.getUniformLocation(program, "u_offset");
+			u_samplesLoc = gl.getUniformLocation(program, "u_samples");
+		};
+		compileShader();
+
+		// stuffs
+
+		var vertices = new Float32Array([
+			-1, -1, 1, -1, -1, 1,
+			-1, 1, 1, 1, 1, -1
+		]);
+
+		var vbuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, vbuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+		var itemSize = 2;
+		var numItems = vertices.length / itemSize;
+
+		var a_positionLoc = gl.getAttribLocation(program, "a_position");
+		gl.enableVertexAttribArray(a_positionLoc);
+		gl.vertexAttribPointer(a_positionLoc, itemSize, gl.FLOAT, false, 0, 0);
+
+		var scale = 1;
+		var offsetX = 0;
+		var offsetY = 0;
+		var mouseX = 0;
+		var mouseY = 0;
+		var mouseDown = false;
+		var mouseButton = 1;
+		var oldTime = 0;
+		var deltaTime = 1;
+		var samples = 3;
+		function zoom(e) {
+			let oldScale = scale;
+			let zoomAmount = 1.05;
+			
+			let rect = (mode === "gpu" ? glCanvas : ctxCanvas).getBoundingClientRect();
+			let coordAbs = coords(e.clientX - rect.left, e.clientY - rect.top, true);
+			if (Math.sign(e.deltaY) === 1) {
+				offsetX -= coordAbs.x;
+				offsetY -= coordAbs.y;
+				scale *= zoomAmount;
+				let coord = coords(e.clientX - rect.left, e.clientY - rect.top, false);
+				let deltaScale = scale - oldScale;
+				offsetX += (coordAbs.x / zoomAmount) - deltaScale;
+				offsetY += (coordAbs.y / zoomAmount) - deltaScale;
+			} else {
+				offsetX += coordAbs.x;
+				offsetY += coordAbs.y;
+				scale /= zoomAmount;
+				let coord = coords(e.clientX - rect.left, e.clientY - rect.top, false);
+				let deltaScale = scale - oldScale;
+				offsetX -= (coordAbs.x / zoomAmount) - deltaScale;
+				offsetY -= (coordAbs.y / zoomAmount) - deltaScale;
+			};
+			render();
+		};
+		function coords(x, y, absolute=false) {
+			return {
+				x: (x / resolution - glCanvas.width / 2) * scale + offsetX * !absolute,
+				y: ((glCanvas.height - y / resolution) - glCanvas.height / 2) * scale + offsetY * !absolute
+			};
+		};
+		function moveMouse(e) {
+			var tooltip = document.getElementById("tooltip");
+			var rect = (mode === "gpu" ? glCanvas : ctxCanvas).getBoundingClientRect();
+			tooltip.style.left = e.clientX + 13 + "px";
+			tooltip.style.top = e.clientY + 16 + "px";
+			mouseX = e.clientX;
+			mouseY = e.clientY;
+			var coord = coords(e.clientX - rect.left, e.clientY - rect.top, false);
+			tooltip.innerText = "(" + coord.x.toFixed(5) + ", " + coord.y.toFixed(5) + ")";
+		};
+		function mouseEnter(e) {
+			tooltip.style.display = "block";
+		};
+		function mouseLeave(e) {
+			tooltip.style.display = "none";
+		};
+		function mouseDownFun(e) {
+			mouseDown = true;
+			mouseButton = e.which;
+		};
+		function mouseUpFun(e) {
+			mouseDown = false;
+		};
+		function contextMenu(e) {
+			e.preventDefault();
+		};
+		var equation = "y<x";
+		function updateEquation() {
+			equation = document.getElementById("equation").value
+				.replaceAll(/\s/g, "")
+				.replaceAll(/(?<![.\d])\d+(?![.\d])/g, "$&.0")
+				.replaceAll(/(?<![<>])=/g, "==");
+			fragmentCode = fragmentCode.replaceAll(/\/\*s\*\/[\s\S]*\/\*e\*\//g, "/*s*/" + equation + "/*e*/");
+			compileShader();
+			render();
+		};
+		function setResolution(nuber) {
+			resolution = nuber;
+			glCanvas.width = innerHeight / resolution;
+			glCanvas.height = innerHeight / resolution;
+			ctxCanvas.width = innerHeight / resolution;
+			ctxCanvas.height = innerHeight / resolution;
+			gl.viewport(0, 0, glCanvas.width, glCanvas.height);
+			render();
+		};
+		canvases.addEventListener("wheel", zoom);
+		canvases.addEventListener("mousemove", moveMouse);
+		canvases.addEventListener("mouseenter", mouseEnter);
+		canvases.addEventListener("mouseleave", mouseLeave);
+		canvases.addEventListener("mousedown", mouseDownFun);
+		canvases.addEventListener("mouseup", mouseUpFun);
+		canvases.addEventListener("contextmenu", contextMenu);
+		function render() {
+			if (mode === "gpu") {
+				gl.clear(gl.COLOR_BUFFER_BIT);
+				gl.uniform2fv(u_screenSizeLoc, [glCanvas.width, glCanvas.height]);
+				gl.uniform2fv(u_scaleLoc, [scale, scale]);
+				gl.uniform2fv(u_offsetLoc, [offsetX, offsetY]);
+				gl.uniform1f(u_samplesLoc, document.getElementById("samples").valueAsNumber);
+				
+				gl.drawArrays(gl.TRIANGLES, 0, numItems);
+			} else if (mode === "cpu") {
+				ctx.clearRect(0, 0, ctxCanvas.width, ctxCanvas.height);
+				try {
+				ctx.putImageData(ctxRender({
+					u_screenSize: {x: glCanvas.width, y: glCanvas.height}, 
+					u_scale: {x: scale, y: scale}, 
+					u_offset: {x: offsetX, y: offsetY}, 
+					u_samples: document.getElementById("samples").valueAsNumber
+				}), 0, 0);
+				} catch (e) {
+					alert(e.stack)
+				}
+			};
+		};
+		function ctxRender(them) {
+			var imageData = new ImageData(ctxCanvas.width, ctxCanvas.height);
+
+			const u_screenSize = them.u_screenSize;
+			const u_scale = them.u_scale;
+			const u_offset = them.u_offset;
+			const u_samples = them.u_samples;
+
+			function mod(a, b) {
+				return ((a % b) + b) % b;
+			};
+			function pow(a, b) {
+				return a ** b;
+			};
+			function log(a) {
+				return Math.log(a);
+			};
+			function vec4(a, b, c, d) {
+				return b === undefined ? {r: a, g: a, b: a, a: a} : {r: a, g: b, b: c, a: d};
+			};
+			function sin(a) {
+				return Math.sin(a);
+			};
+			function ceil(a) {
+				return Math.ceil(a);
+			};
+
+			function lineEquals(a, b, width) {
+				return b < a + width / 2.0 && b > a - width / 2.0;
+			};
+			function testCoordinate(x, y) {
+				var height = 0.0;
+				for (let n = 0.0; n < 52.0; n++) {
+					let pow2n = pow(2.0, n);
+					height += sin(pow2n * x) / pow2n;
+				};
+				return /*s*/eval(equation)/*e*/;
+			};
+			function vec4Lerp(a, b, t) {
+				var lerp = (a, b, t) => (b - a) * t + a;
+				return {
+					r: lerp(a.r, b.r, t),
+					g: lerp(a.g, b.g, t),
+					b: lerp(a.b, b.b, t),
+					a: lerp(a.a, b.a, t)
+				};
+			};
+			function log10(x) {
+				return log(x) / log(10.0);
+			};
+			function roundUp(x) {
+				return pow(10.0, ceil(log10(x)));
+			};
+			function roundDown(x) {
+				return pow(10.0, floor(log10(x)));
+			};
+			function main(pixelX, pixelY) {
+				const x = (pixelX - u_screenSize.x / 2.0) * u_scale.x + u_offset.x;
+				const y = (pixelY - u_screenSize.y / 2.0) * u_scale.y + u_offset.y;
+				var color = vec4(1.0);
+				var aaBrightness = 0.0;
+				var aaX = 0.0;
+				var aaY = 0.0;
+				for (let aaX = 0.0; aaX < 1024.0; aaX++) {
+					if (aaX >= u_samples) break;
+					for (let aaY = 0.0; aaY < 1024.0; aaY++) {
+						if (aaY >= u_samples) break;
+						aaBrightness += testCoordinate(x + (aaX / u_samples) * u_scale.x, y + (aaY / u_samples) * u_scale.y) ? 1.0 : 0.0;
+					};
+				};
+				aaBrightness /= pow(u_samples, 2.0);
+				color = vec4Lerp(vec4(1.0, 1.0, 1.0, 1.0), vec4(0.0, 0.8, 0.0, 1.0), aaBrightness);
+				if ((x / u_scale.x > -1.0 && x / u_scale.x < 1.0) || (y / u_scale.y > -1.0 && y / u_scale.y < 1.0)) {
+					color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.75);
+				} else {
+					const scaleUp = roundUp(u_scale.x) * 10.0;
+					if (mod(x, scaleUp) < 2.0 * u_scale.x || mod(y, scaleUp) < 2.0 * u_scale.y) {
+						color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.1);
+					} else if (mod(x, scaleUp / 10.0) < 2.0 * u_scale.x || mod(y, scaleUp / 10.0) < 2.0 * u_scale.y) {
+						color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.05);
+					} else if (mod(x, scaleUp * 10.0) < 2.0 * u_scale.x || mod(y, scaleUp * 10.0) < 2.0 * u_scale.y) {
+						color = vec4Lerp(color, vec4(0.5, 0.5, 0.5, 1.0), 0.2);
+					};
+				};
+				return color;
+			};
+			for (let x = 0; x < imageData.width; x++) {
+				for (let y = 0; y < imageData.height; y++) {
+					let color = main(x, imageData.height - y);
+					let index = (y * imageData.width + x) * 4;
+					imageData.data[index] = Math.floor(color.r * 255);
+					imageData.data[index + 1] = Math.floor(color.g * 255);
+					imageData.data[index + 2] = Math.floor(color.b * 255);
+					imageData.data[index + 3] = Math.floor(color.a * 255);
+				};
+			};
+			return imageData;
+		};
+		function tick() {
+			glCanvas.style.display = mode === "gpu" ? "block" : "none";
+			ctxCanvas.style.display = mode === "cpu" ? "block" : "none";
+			var newTime = performance.now();
+			deltaTime = (newTime - oldTime) * (1 / (1 / 60)) / 1000;
+			oldTime = newTime;
+			if (mouseDown) {
+				zoom({
+					deltaY: mouseButton === 1 ? -1 : 1,
+					clientX: mouseX,
+					clientY: mouseY
+				});
+			};
+			if (samples !== document.getElementById("samples").valueAsNumber) {
+				samples = document.getElementById("samples").valueAsNumber;
+				render();
+			};
+			if (resolution !== document.getElementById("resolution").valueAsNumber) {
+				setResolution(document.getElementById("resolution").valueAsNumber);
+			};
+			if (mode !== document.getElementById("mode").value) {
+				mode = document.getElementById("mode").value;
+				render();
+			};
+			requestAnimationFrame(tick);
+		};
+		render();
+		tick();
+	</script>
+</html>

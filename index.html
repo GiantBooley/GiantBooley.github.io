@@ -6,124 +6,54 @@
 		<meta charset="UTF-8">
 		<meta name="description" content="GiantBooley's website">
 		<style>
-			nav {
-				border-top: 2px solid black;
-				width: 100%;
-				height: 80px;
-				position: fixed;
-				bottom: 0px;
-				left: 0px;
-			}
-			nav ol {
-				height: 100%;
-				list-style-type: none;
-				padding-left: 0;
-				display: flex;
-				flex-direction: row;
-				justify-content: space-around;
-				margin-top: 0px;
-			}
-			nav ol li {
-				display: inline-block;
-				flex-grow: 1;
-				height: 100%;
-			}
-			nav ol li button {
-				border: none;
-				padding: 20px 0px 20px 0px;
-				width: 100%;
-				height: 100%;
-				font-weight: bold;
-				font-size: 1em;
-				background-image: url("./nav_button.png");
-				background-color: rgba(255, 200, 210, 0.5);
-				backdrop-filter: blur(5px);
-				background-size: 100% 100%;
-				color: #000000;
-			}
-			nav ol li button:active {
-				color: #bb0000;
-			}
-			nav ol li button:hover {
-				color: #bb0000;
-			}
-			nav ol li button.active {
-				color: #909090;
-				pointer-events: none;
-			}
-			section {
-				display: none;
-			}
-			section.active {
-				display: block;
-			}
-			main {
-				height: calc(100vh - 80px);
-				overflow: scroll;
-			}
 			div.project {
 				border-top: 2px solid #D0A090;
+			}
+			div.category-header {
+				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+				cursor: pointer;
+			}
+			button.category-arrow {
+				background: none;
+				border: none;
+				display: inline;
+			}
+			div.expandable-category div.buttons {
+				display: none;
+			}
+			div.expandable-category.expanded div.buttons {
+				display: block;
+			}
+			div.expandable-category.expanded img.category-arrow {
+				transform: none;
+			}
+			div.expandable-category.expanded img.category-arrow {
+				transform: rotate(180deg);
 			}
 		</style>
 		<link rel="stylesheet" href="/style.css">
 		<script>
-class Tab {
-	constructor(navElement, sectionElement) {
-		this.navElement = navElement;
-		this.sectionElement = sectionElement;
-	}
-};
 function main() {
-	// Visited links stuff
-	if (localStorage.getItem("visitedLinks") == null) {
-		localStorage.setItem("visitedLinks", "[]");
-	}
-	let visited = JSON.parse(localStorage.getItem("visitedLinks"));
-	if (localStorage.getItem("firstVisit") == null) {
-		localStorage.setItem("firstVisit", "false");
-		document.querySelectorAll("a:not(.external)").forEach((element) => {
-			visited.push(element.href);
-			localStorage.setItem("visitedLinks", JSON.stringify(visited));
-		});
-	}
-	document.querySelectorAll("a:not(.external)").forEach((element) => {
-		element.addEventListener("click", function(){
-			if (!visited.includes(element.href)) {
-				visited.push(element.href);
-				localStorage.setItem("visitedLinks", JSON.stringify(visited));
-			}
-		});
-		if (!visited.includes(element.href)) {
-			element.classList.add("new");
-		}
-	});
-	localStorage.setItem("visitedLinks", JSON.stringify(visited));
+	const categories = document.getElementsByClassName("expandable-category");
+	for (let i = 0; i < categories.length; i++) {
+		const element = categories.item(i);
+		const header = element.getElementsByClassName("category-header").item(0);
+		const list = element.getElementsByClassName("buttons").item(0);
+		const arrowButton = header.getElementsByClassName("category-arrow").item(0);
 
-	// Tabs
-	const tabs = [
-		new Tab(document.getElementById("about-nav"),    document.getElementById("about")),
-		new Tab(document.getElementById("projects-nav"), document.getElementById("projects")),
-		new Tab(document.getElementById("blogs-nav"),    document.getElementById("blogs")),
-		new Tab(document.getElementById("games-nav"),    document.getElementById("games")),
-		new Tab(document.getElementById("goi-maps-nav"), document.getElementById("goi-maps"))
-	];
-	for (const tab of tabs) {
-		tab.navElement.addEventListener("click", e => {
-			for (const tab2 of tabs) {
-				tab2.navElement.classList.remove("active");
-				tab2.sectionElement.classList.remove("active");
-			}
-			tab.navElement.classList.add("active");
-			tab.sectionElement.classList.add("active");
+		header.addEventListener("click", function(e){
+			element.classList.toggle("expanded");
 		});
 	}
 }
-window.addEventListener("load", main);
+document.addEventListener("DOMContentLoaded", main);
 		</script>
 	</head>
 	<body>
 		<main>
-			<section id="about" class="active">
+			<section id="about">
 				<h1>GiantBooley's Website</h1>
 				<p>This is my website.</p>
 				<h2>Links</h2>
@@ -132,10 +62,14 @@ window.addEventListener("load", main);
 				<a href="./bookmarklets">Bookmarklets</a><br>
 				<a href="./map">Map Making Tutorial</a><br>
 			</section>
+			<hr>
 			<section id="projects">
-				<div class="category category-stuff">
-					<h2>Thingamabobs/Gizmos/Demos (25)</h2>
-					<hr>
+				<h1>Web tools</h1>
+				<div class="expandable-category">
+					<div class="category-header">
+						<h2>Thingamabobs/Gizmos/Demos (20)</h2>
+						<img src="/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
+					</div>
 					<div class="buttons">
 						<div class="project">
 							<a href="/thingamabobs/fake-hack-decimal">Fake hack decimal</a><br>
@@ -199,7 +133,7 @@ window.addEventListener("load", main);
 						</div>
 						<div class="project">
 							<a href="/thingamabobs/pung">Pung</a><br>
-							<p>Pong game against unbeatable computer. It's insanely slow becaues it uses HTML elements instead of objects</p>
+							<p>Pong game against unbeatable computer. It's insanely slow because it uses HTML elements instead of objects</p>
 						</div>
 						<div class="project">
 							<a href="/thingamabobs/ames-window">Ames window</a><br>
@@ -219,83 +153,177 @@ window.addEventListener("load", main);
 						</div>
 					</div>
 				</div>
-				<div class="category category-ai">
-					<h2>AI stuff (12)</h2>
-					<hr>
+				<div class="expandable-category">
+					<div class="category-header">
+						<h2>AI Stuff (7)</h2>
+						<img src="/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
+					</div>
 					<div class="buttons">
-						<a href="/ai/story-lengthener">Story lengthener (word generator is better)</a><br>
-						<a href="/ai/bob-chatbot">Bob chatbot</a><br>
-						<a href="/ai/word-generator">Word generator</a><br>
-						<a href="/ai/brain">Neural network cube</a><br>
-						<a href="/ai/connect-4-ai">Connect 4 ai</a><br>
-						<a href="/ai/dino-ai">Dinosaurous rex artificial intelligence</a><br>
-						<a href="/ai/dino-ai-vector-distance">Dinosaurous rex artificial intelligence vector distance</a><br>
-						<a href="/ai/keyboard-maker">Keyboard maker</a><br>
-						<a href="/ai/serpentes-artificial-intelligence">Serpentes artificial intelligence</a><br>
-						<a href="/ai/similarity">Text doer similarity</a><br>
-						<a href="/ai/word-ai">Average word ai thing</a><br>
-						<a href="/ai/bob-chatbot-v2">Bob chatbot V2</a>
+						<div class="project">
+							<a href="/ai/bob-chatbot">Bob chatbot V1</a><br>
+							<p>Markov chain style chatbot with predefined messages</p>
+						</div>
+						<div class="project">
+							<a href="/ai/bob-chatbot-v2">Bob chatbot V2</a>
+							<p>Markov chain style chatbot without predefined messages</p>
+						</div>
+						<div class="project">
+							<a href="/ai/word-generator">Word generator</a><br>
+							<p>Extends text using Markov chain algorithm</p>
+						</div>
+						<div class="project">
+							<a href="/ai/brain">Neural network cube</a><br>
+							<p>Cube that randomly moves around using a neural network</p>
+						</div>
+						<div class="project">
+							<a href="/ai/dino-ai">Dinosaurous rex artificial intelligence</a><br>
+							<p>Chrome dinosaur game neural network (the distance version is better)</p>
+						</div>
+						<div class="project">
+							<a href="/ai/dino-ai-vector-distance">Dinosaurous rex artificial intelligence vector distance</a><br>
+							<p>Chrome dinosaur game AI using vector distances</p>
+						</div>
+						<div class="project">
+							<a href="/ai/keyboard-maker">Keyboard maker</a><br>
+							<p>Optimizer for keyboard layouts using random changes for each step</p>
+						</div>
 					</div>
 				</div>
-				<div class="category category-tools">
-					<h2>Tools stuff (22)</h2>
-					<hr>
+				<div class="expandable-category">
+					<div class="category-header">
+						<h2>Tools stuff (16)</h2>
+						<img src="/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
+					</div>
 					<div class="buttons">
-						<a href="/tools/other-tools">Other tools</a><br>
-						<a href="/tools/url-encode-decode">URL encoder and decoder</a><br>
-						<a href="/tools/number-shortener">Number shortener</a><br>
-						<a href="/tools/javascript-tester">Javascript bracketer</a><br>
-						<a href="/tools/upside-down-calculator">Upside down calculator generator</a><br>
-						<a href="/tools/file-downloader">File downloader</a><br>
-						<a href="/tools/html-viewer">HTML viewer</a><br>
-						<a href="/tools/website-embedder">Website embedder</a><br>
-						<a href="/tools/discord-text-emoji-generator">Discord text emoji generator</a><br>
-						<a href="/tools/javascript-to-bookmarklet">Javascript to bookmarklet</a><br>
-						<a href="/tools/letter-lookalike-generator">Letter lookalike generator</a><br>
-						<a href="/tools/pi-calculator">Pi calculator</a><br>
-						<a href="/tools/giant-number">Giant number calculator</a><br>
-						<a href="/tools/cps-test">CPS test</a><br>
-						<a href="/tools/length-comparer">Length comparer</a><br>
-						<a href="/tools/wordle-solver">Wordle solver</a><br>
-						<a href="/tools/nft-painter">NFT painter</a><br>
-						<a href="/tools/graph-paper">Graph paper (not working)</a><br>
-						<a href="/tools/request-sender">Request sender</a><br>
-						<a href="/tools/teacher-translator">Teacher translator</a><br>
-						<a href="/tools/graphing-calculator">Graphing calculator</a><br>
-						<a href="/tools/bezier-doer">Bezier doer</a>
+						<div class="project">
+							<a href="/tools/other-tools">Other tools</a><br>
+							<p>Random calculators and things like magic 8 ball</p>
+						</div>
+						<div class="project">
+							<a href="/tools/url-encode-decode">URL encoder and decoder</a><br>
+							<p>Encodes and decodes URI strings</p>
+						</div>
+						<div class="project">
+							<a href="/tools/number-shortener">Number shortener</a><br>
+							<p>Converts decimal numbers into the large number name like billion</p>
+						</div>
+						<div class="project">
+							<a href="/tools/upside-down-calculator">Upside down calculator generator</a><br>
+							<p>Generates text for typing numbers on a calculator upside down</p>
+						</div>
+						<div class="project">
+							<a href="/tools/html-viewer">HTML viewer</a><br>
+							<p>HTML viewer and editor in a browser</p>
+						</div>
+						<div class="project">
+							<a href="/tools/discord-text-emoji-generator">Discord text emoji generator</a><br>
+							<p>Turns a string of characters into country code letter emojis</p>
+						</div>
+						<div class="project">
+							<a href="/tools/javascript-to-bookmarklet">Javascript to bookmarklet</a><br>
+							<p>Converts javascript code into a bookmarklet</p>
+						</div>
+						<div class="project">
+							<a href="/tools/letter-lookalike-generator">Letter lookalike generator</a><br>
+							<p>Converts text into letters that look exactly the same but are different</p>
+						</div>
+						<div class="project">
+							<a href="/tools/pi-calculator">Pi calculator</a><br>
+							<p>Calculates pi using a random algorithm</p>
+						</div>
+						<div class="project">
+							<a href="/tools/giant-number">Giant number calculator</a><br>
+							<p>Perform operations on bigint</p>
+						</div>
+						<div class="project">
+							<a href="/tools/cps-test">CPS test</a><br>
+							<p>Find number of clicks per second by clicking a button</p>
+						</div>
+						<div class="project">
+							<a href="/tools/length-comparer">Length comparer</a><br>
+							<p>Compares the length of 2 or more strings</p>
+						</div>
+						<div class="project">
+							<a href="/tools/wordle-solver">Wordle solver</a><br>
+							<p>Solves wordles using known guesses and the list of possible answers</p>
+						</div>
+						<div class="project">
+							<a href="/tools/nft-painter">Paint V2</a><br>
+							<p>Better version of paint that uses HTML canvas instead of elements</p>
+						</div>
+						<div class="project">
+							<a href="/tools/graphing-calculator">Graphing calculator</a><br>
+							<p>WebGL graphing calculator. Type equations as GLSL syntax</p>
+						</div>
+						<div class="project">
+							<a href="/tools/bezier-doer">Bezier doer</a>
+							<p>Visualizes the path of a Bezier curve using an unlimited number of points</p>
+						</div>
+					</div>
+				</div>
+				<div class="expandable-category">
+					<div class="category-header">
+						<h2>Games (8)</h2>
+						<img src="/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
+					</div>
+					<div class="buttons">
+						<div class="project">
+							<a href="/games/forest-simulator-3d">Forest simulator 3D</a><br>
+							<p>2D platformer survival game insired by Hill Climb Racing and Minecraft. The objective is to go as far right as possible without dying. Your health slowly runs out and you need to collect coins to buy food. There are a variety of different enemies, items, and mechanics that make the game fun to play.</p>
+						</div>
+						<div class="project">
+							<a href="/games/mining-simulator">Mining simulator</a><br>
+							<p>Cookie Clicker inspired idle game where you upgrade mining equipment to get more money.</p>
+						</div>
+						<div class="project">
+							<a href="/games/virus-simulator">Virus simulator</a><br>
+							<p>Demo simulation of a virus spreading throughout a population</p>
+						</div>
+						<div class="project">
+							<a href="/games/piano-tiles">Piano tiles</a><br>
+							<p>Piano tiles</p>
+						</div>
+						<div class="project">
+							<a href="/games/platformer-simulator">Platformer Simulator</a><br>
+							<p>Platformer game with 10 stages. My personal best is 40 seconds.</p>
+						</div>
+						<div class="project">
+							<a href="/games/skyrising-simulator">Skyrising Simulator</a><br>
+							<p>Game with 1 input where you move left and right while rising and avoiding clouds. All the levels are randomly generated. Inspired by a random game I saw on MIT Scratch</p>
+						</div>
+						<div class="project">
+							<a href="/games/fat-guy">Fat guy</a>
+							<p>Unfinished game. This is a recreation of my game on MIT Scratch of the same name. Inspired by Hungry Shark Evolution.</p>
+						</div>
+						<div class="project">
+							<a href="/games/coin-tycoon">Coin Tycoon</a>
+							<p>Unfinished game. Originally meant to be a survival game where enemies can break walls. Inspired by Hungry Shark Evolution, Bad Piggies, and Minecraft.</p>
+						</div>
 					</div>
 				</div>
 			</section>
+			<hr>
 			<section id="blogs">
-				
+				<h1>Blogs</h1>
+				<p>I might delete this section if I don't do anything</p>
 			</section>
-			<section id="games">
-				<div class="category category-games">
-					<h2>Games (8)</h2>
-					<hr>
-					<div class="buttons">
-						<a href="/games/forest-simulator-3d">Forest simulator 3D</a><br>
-						<a href="/games/mining-simulator">Mining simulator</a><br>
-						<a href="/games/virus-simulator">Virus simulator</a><br>
-						<a href="/games/piano-tiles">Piano tiles</a><br>
-						<a href="/games/platformer-simulator">Platformer Simulator</a><br>
-						<a href="/games/skyrising-simulator">Skyrising Simulator</a><br>
-						<a href="/games/agar.io">Agar.io</a><br>
-						<a href="/games/fat-guy">Fat guy</a>
-					</div>
-				</div>
-			</section>
+			<hr>
 			<section id="goi-maps">
+				<h1>My Getting Over It maps</h1>
+				<h2>Style legend</h2>
+				<p>2D = sprites</p>
+				<p>2.5D = orthographic 3D models</p>
+				<p>3D = perspective 3D models</p>
 				<table>
 					<tr>
-						<th></th><th>Description</th><th>Difficulty</th><th>Length</th><th>Style</th>
+						<th>Map</th><th>Description</th><th>Difficulty</th><th>Length</th><th>Style</th>
 					</tr>
 					<tr>
 						<td><a href="https://drive.google.com/drive/folders/14ThgGe7TrJrKrBdBITMEHOZDygUl4_6o?usp=drive_link" class="external">Thanksgiving</a></td>
 						<td>Thanksgiving map</td>
 						<td>Easy</td>
 						<td>0.5 default maps</td>
-						<td>2D with models</td>
+						<td>2D+3D</td>
 					</tr>
 					<tr>
 						<td><a href="https://drive.google.com/drive/folders/13wuDHCVdEWbaCbcNLij7uapwNKNovRDa?usp=drive_link" class="external">Jumpshed</a></td>
@@ -309,7 +337,7 @@ window.addEventListener("load", main);
 						<td>April fools map 2024</td>
 						<td>Insanely hard</td>
 						<td>1.5 default maps</td>
-						<td>2D and 2.5D</td>
+						<td>2D+2.5D</td>
 					</tr>
 					<tr>
 						<td><a href="https://drive.google.com/drive/folders/1zjmuUY3wJvjeHwwHKFTNpbeUBA8KitTx?usp=drive_link" class="external">Wastelands</a></td>
@@ -323,21 +351,21 @@ window.addEventListener("load", main);
 						<td>Seasons map with fall, winter, spring, and summer</td>
 						<td>Easy to hard</td>
 						<td>5 default maps</td>
-						<td>2D and 2.5D</td>
+						<td>2D+2.5D</td>
 					</tr>
 					<tr>
 						<td><a href="https://drive.google.com/drive/folders/1bU5YbPpLm61f7Nk_rdWK32BM5Y9hiRxe?usp=drive_link" class="external">Macrocosm</a></td>
 						<td>Space map with 10 sections (update coming soon)</td>
 						<td>Hard</td>
 						<td>3.5 default maps</td>
-						<td>2D and 2.5D</td>
+						<td>2D+2.5D</td>
 					</tr>
 					<tr>
 						<td><a href="https://drive.google.com/drive/folders/1mqYF5_xTuZ0znCGuCR80StKu8lxHfnZg?usp=drive_link" class="external">Negative Space</a></td>
 						<td>Antique themed map with inverted colliders</td>
 						<td>Easy</td>
 						<td>1 default map</td>
-						<td>2D with models</td>
+						<td>2D</td>
 					</tr>
 					<tr>
 						<td><a href="https://drive.google.com/drive/folders/1dctkX7b04tFCE-vkjXml6jkV30zv469Y?usp=drive_link" class="external">Oblivion</a></td>
@@ -372,19 +400,10 @@ window.addEventListener("load", main);
 						<td>Coming soon</td>
 						<td>...</td>
 						<td>...</td>
-						<td>2.5D</td>
+						<td>2D</td>
 					</tr>
 				</table>
 			</section>
 		</main>
-		<nav>
-			<ol>
-				<li><button id="about-nav" class="active">About</button></li>
-				<li><button id="projects-nav">Projects</button></li>
-				<li><button id="blogs-nav">Blogs</button></li>
-				<li><button id="games-nav">Games</button></li>
-				<li><button id="goi-maps-nav">GOI Maps</button></li>
-			</ol>
-		</nav>
 	</body>
 </html>

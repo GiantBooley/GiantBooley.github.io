@@ -1,12 +1,7 @@
 
 @font-face {
-	font-family: merriweathersans;
-	src: url("./MerriweatherSans-Regular.ttf") format("truetype");
-}
-@font-face {
-	font-family: merriweathersans;
-	font-weight: bold;
-	src: url("./MerriweatherSans-Bold.ttf") format("truetype");
+	font-family: ichigaya;
+	src: url("/TypeLightSans-KV84p.otf") format("opentype");
 }
 * {
 	box-sizing: border-box;
@@ -16,7 +11,7 @@ h1 {
 }
 body {
 	margin: 15px;
-	font-family: merriweathersans, sans-serif;
+	font-family: ichigaya, sans-serif;
 	padding-left: max(10px, min(calc(50vw - 33vh), 15vw));
 	padding-right: max(10px, min(calc(50vw - 33vh), 15vw));
 	background-image: url("./background.png");
@@ -29,7 +24,7 @@ main {
 h2 {
 	margin: 0;
 }
-.category {
+.expandable-category {
 	margin: 10px;
 	padding: 5px;
 	box-shadow: 2px 2px 10px black;
@@ -40,7 +35,7 @@ h2 {
 	font-size: 2vh;
 	transition-duration: 0.2s;
 }
-.category:hover {
+.expandable-category:hover {
 	background-color: rgba(238, 238, 188, 0.3);
 	box-shadow: 2px 2px 15px black;
 }

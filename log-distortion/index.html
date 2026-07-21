@@ -1,62 +1,25 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
-		<title>Logarithmic distort</title>
-		<style>
-			canvas {
-				outline: 2px ridge gray;
-			}
-		</style>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Logarithmic distortion</title>
+		<link rel="stylesheet" href="style.css">
+		<script src="main.js"></script>
 	</head>
 	<body>
-		<h1>Distortion</h1>
-		<input id="file" onchange="updateFile(this)" type="file">
-		<label>base:</label><input id="base" type="number" value="0.03">
-		<input id="stretch" type="checkbox"><label>stretch to canvas</label>
-		<button onclick="distort()">render</button><br>
-		<canvas id="canvas"></canvas>
-		<script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-var image = new Image();
-function getBaseLog(x, y) {
-	return Math.log(y) / Math.log(x);
-}
-function distort() {
-	ctx.drawImage(image, 0, 0);
-	var data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-	var newData = ctx.createImageData(canvas.width, canvas.height);
-	for (let y = 0; y < canvas.height; y++) {
-		for (let x = 0; x < canvas.width; x++) {
-			for (let i = 0; i < 4; i++) {
-				var yFloat = y / canvas.height;
-				var base = document.getElementById("base").valueAsNumber
-				var newY;
-				if (document.getElementById("stretch").checked) {
-					newY = getBaseLog(base, (1 - yFloat - 1) * (1 - base) + 1);
-				} else {
-					newY = getBaseLog(base, 1 - yFloat);
-				}
-				newData.data[(y * canvas.width + x) * 4 + i] = data.data[(Math.floor(newY * canvas.height) * canvas.width + x) * 4 + i];
-			}
-		}
-	}
-	ctx.putImageData(newData, 0, 0);
-}
-function updateFile(e) {
-	if (e.files && e.files[0]) {
-		var reader = new FileReader();
-		reader.onload = a => {
-			image.onload = b => {
-				canvas.width = image.width;
-				canvas.height = image.height;
-				distort();
-			}
-			image.src = a.target.result;
-		}
-		reader.readAsDataURL(e.files[0]);
-	}
-}
-		</script>
+		<main>
+			<h1>Log Distortion</h1>
+			<label for="file">Choose file</label>
+			<input id="file" type="file"><br>
+			<div id="settings">
+				<h2>Settings</h2>
+				<label for="base">Log base:</label>
+				<input id="base" type="number" value="0.03">
+				<input id="base-slider" type="range" value="0.03" min="-20" max="0" step="any"><br>
+				<input id="stretch" type="checkbox"><label>Stretch vertically to canvas</label><br>
+			</div>
+			<button id="distort-button">Render</button><br>
+			<canvas id="canvas"></canvas>
+		</main>
 	</body>
 </html>

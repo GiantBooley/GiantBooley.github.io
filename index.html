@@ -6,28 +6,6 @@
 		<meta charset="UTF-8">
 		<meta name="description" content="GiantBooley's website">
 		<style>
-			a.new::after {
-				content: "NEW";
-				background-image: radial-gradient(orange, #FF0000);
-				border-radius: 3px;
-				border: 3px double white;
-				padding: 1px;
-				font-family: sans-serif;
-				margin-left: 3px;
-				font-size: 0.6rem;
-				display: inline;
-				position: absolute;
-				transform: translate(10px, 3px);
-				box-shadow: 2px 2px 2px gray, inset 5px 5px 10px #DD0000;
-				text-shadow: 0px 0px 10px white;
-				pointer-events: none;
-				text-align: center;
-				width: 3%;
-				height: 2em;
-			}
-			a.new:hover::after {
-				color: white;
-			}
 			nav {
 				border-top: 2px solid black;
 				width: 100%;
@@ -83,8 +61,11 @@
 				height: calc(100vh - 80px);
 				overflow: scroll;
 			}
+			div.project {
+				border-top: 2px solid #D0A090;
+			}
 		</style>
-		<link rel="stylesheet" href="./style.css">
+		<link rel="stylesheet" href="/style.css">
 		<script>
 class Tab {
 	constructor(navElement, sectionElement) {
@@ -145,129 +126,162 @@ window.addEventListener("load", main);
 			<section id="about" class="active">
 				<h1>GiantBooley's Website</h1>
 				<p>This is my website.</p>
+				<h2>Links</h2>
 				<a href="https://github.com/GiantBooley/" class="external">GitHub Account</a><br>
-				<a href="https://www.youtube.com/@GiantBooley" class="external">YouTube Account</a><br>
-				<a href=""
+				<a href="https://www.youtube.com/@GiantBooley" class="external">YouTube Channel</a><br>
 				<a href="./bookmarklets">Bookmarklets</a><br>
 				<a href="./map">Map Making Tutorial</a><br>
 			</section>
 			<section id="projects">
 				<div class="category category-stuff">
-					<h2>Random stuff (27)</h2>
+					<h2>Thingamabobs/Gizmos/Demos (25)</h2>
 					<hr>
 					<div class="buttons">
-						<a href="./fake-hack-decimal">Fake hack decimal</a><br>
-						<a href="./fake-hack-binary">Fake hack binary</a><br>
-						<a href="./fake-hack-code">Fake hack code</a><br>
-						<a href="./click-the-button">Click the button</a><br>
-						<a href="./bob-console">Bob console</a><br>
-						<a href="./light-bulb">Light bulb</a><br>
-						<a href="./paint">Paint</a><br>
-						<a href="./3d-button">3D button</a><br>
-						<a href="./infinite">Open 4307904387 tabs (tab duplicates itself with while loop)</a><br>
-						<a href="./fractals">Fractals</a><br>
-						<a href="./movable-box">Movable box</a><br>
-						<a href="./spinning-thing-with-a-perfect-fit">Spinning thing</a><br>
-						<a href="./loading-sign-1">Loading sign 1</a><br>
-						<a href="./loading-sign-2">Loading sign 2</a><br>
-						<a href="./terrain-generator">Terrain generator</a><br>
-						<a href="./no-signal">No signal</a><br>
-						<a href="./pung">Pung</a><br>
-						<a href="./ames-window">Ames window</a><br>
-						<a href="./square-wheel">Square wheel</a><br>
-						<a href="./style-only">Style only platformer</a><br>
-						<a href="./apps">Apps</a><br>
-						<a href="./no-close">No close window</a><br>
-						<a href="./3d">3D raycaster</a><br>
-						<a href="./browser/browser.html">Browser</a><br>
-						<a href="./minecraft">Mine Craft Button</a><br>
-						<a href="./rtx">Ray simulator</a>
+						<div class="project">
+							<a href="/thingamabobs/fake-hack-decimal">Fake hack decimal</a><br>
+							<p>Black and green "hacking" animation with numbers 0-9</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/fake-hack-binary">Fake hack binary</a><br>
+							<p>Black and green "hacking" animation with 0s and 1s</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/fake-hack-code">Fake hack code</a><br>
+							<p>Black and green "hacking" animation with random lines of Java code</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/click-the-button">Click the button</a><br>
+							<p>Button that is impossible to click</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/bob-console">Bob console</a><br>
+							<p>Terminal test thing</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/light-bulb">Light bulb</a><br>
+							<p>CSS light bulb that you can turn on and off and change brightness</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/paint">Paint</a><br>
+							<p>Paint program that draws with HTML elements, the worst paint program ever made</p>
+						</div>
+						<div class="project">
+							<span href="/thingamabobs/infinite">Infinite (/thingamabobs/infinite)</span><br>
+							<p>Opens infinite tabs by opening new tabs in a while loop. I made this &lt;span&gt; instead of &lt;a&gt; so you don't accidentally go there</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/fractals">Fractals</a><br>
+							<p>Infinite fractal zooming animation with menger sponge and sierpinski triangle</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/movable-box">Movable box</a><br>
+							<p>Random demo with a box that can be moved and resized</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/spinning-thing-with-a-perfect-fit">Spinning thing</a><br>
+							<p>Rotating webpage that resizes to fit into the viewport exactly</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/loading-sign-1">Loading sign 1</a><br>
+							<p>CSS loading sign demo</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/loading-sign-2">Loading sign 2</a><br>
+							<p>CSS loading sign demo</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/terrain-generator">Terrain generator</a><br>
+							<p>2D terrain generator demo using random noise</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/no-signal">No signal</a><br>
+							<p>No signal box bouncing on the edge of the screen. I made this to see when it would hit the corner</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/pung">Pung</a><br>
+							<p>Pong game against unbeatable computer. It's insanely slow becaues it uses HTML elements instead of objects</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/ames-window">Ames window</a><br>
+							<p>Rotating ames window</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/no-close">No close window</a><br>
+							<p>Automatically reopens a child tab when it's closed</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/3d">3D raycaster</a><br>
+							<p>Actually a 2D raycaster because the level is 2D. I followed Griffpatch's tutorial for most of this.</p>
+						</div>
+						<div class="project">
+							<a href="/thingamabobs/rtx">Ray simulator</a>
+							<p>Simulates rays bouncing on objects. Press space to create light rays.</p>
+						</div>
 					</div>
 				</div>
 				<div class="category category-ai">
 					<h2>AI stuff (12)</h2>
 					<hr>
 					<div class="buttons">
-						<a href="./story-lengthener">Story lengthener (word generator is better)</a><br>
-						<a href="./bob-chatbot">Bob chatbot</a><br>
-						<a href="./word-generator">Word generator</a><br>
-						<a href="./brain">Neural network cube</a><br>
-						<a href="./connect-4-ai">Connect 4 ai</a><br>
-						<a href="./dino-ai">Dinosaurous rex artificial intelligence</a><br>
-						<a href="./dino-ai-vector-distance">Dinosaurous rex artificial intelligence vector distance</a><br>
-						<a href="./keyboard-maker">Keyboard maker</a><br>
-						<a href="./serpentes-artificial-intelligence">Serpentes artificial intelligence</a><br>
-						<a href="./similarity">Text doer similarity</a><br>
-						<a href="./word-ai">Average word ai thing</a><br>
-						<a href="./bob-chatbot-v2">Bob chatbot V2</a>
+						<a href="/ai/story-lengthener">Story lengthener (word generator is better)</a><br>
+						<a href="/ai/bob-chatbot">Bob chatbot</a><br>
+						<a href="/ai/word-generator">Word generator</a><br>
+						<a href="/ai/brain">Neural network cube</a><br>
+						<a href="/ai/connect-4-ai">Connect 4 ai</a><br>
+						<a href="/ai/dino-ai">Dinosaurous rex artificial intelligence</a><br>
+						<a href="/ai/dino-ai-vector-distance">Dinosaurous rex artificial intelligence vector distance</a><br>
+						<a href="/ai/keyboard-maker">Keyboard maker</a><br>
+						<a href="/ai/serpentes-artificial-intelligence">Serpentes artificial intelligence</a><br>
+						<a href="/ai/similarity">Text doer similarity</a><br>
+						<a href="/ai/word-ai">Average word ai thing</a><br>
+						<a href="/ai/bob-chatbot-v2">Bob chatbot V2</a>
 					</div>
 				</div>
 				<div class="category category-tools">
 					<h2>Tools stuff (22)</h2>
 					<hr>
 					<div class="buttons">
-						<a href="./tools">Other tools</a><br>
-						<a href="./url-encode-decode">URL encoder and decoder</a><br>
-						<a href="./number-shortener">Number shortener</a><br>
-						<a href="./javascript-tester">Javascript bracketer</a><br>
-						<a href="./upside-down-calculator">Upside down calculator generator</a><br>
-						<a href="./file-downloader">File downloader</a><br>
-						<a href="./html-viewer">HTML viewer</a><br>
-						<a href="./website-embedder">Website embedder</a><br>
-						<a href="./discord-text-emoji-generator">Discord text emoji generator</a><br>
-						<a href="./javascript-to-bookmarklet">Javascript to bookmarklet</a><br>
-						<a href="./letter-lookalike-generator">Letter lookalike generator</a><br>
-						<a href="./pi-calculator">Pi calculator</a><br>
-						<a href="./giant-number">Giant number calculator</a><br>
-						<a href="./cps-test">CPS test</a><br>
-						<a href="./length-comparer">Length comparer</a><br>
-						<a href="./wordle-solver">Wordle solver</a><br>
-						<a href="./nft-painter">NFT painter</a><br>
-						<a href="./graph-paper">Graph paper not working</a><br>
-						<a href="./request-sender">Request sender</a><br>
-						<a href="./teacher-translator">Teacher translator</a><br>
-						<a href="./graphing-calculator">Graphing calculator</a><br>
-						<a href="./bezier-doer">Bezier doer</a>
+						<a href="/tools/other-tools">Other tools</a><br>
+						<a href="/tools/url-encode-decode">URL encoder and decoder</a><br>
+						<a href="/tools/number-shortener">Number shortener</a><br>
+						<a href="/tools/javascript-tester">Javascript bracketer</a><br>
+						<a href="/tools/upside-down-calculator">Upside down calculator generator</a><br>
+						<a href="/tools/file-downloader">File downloader</a><br>
+						<a href="/tools/html-viewer">HTML viewer</a><br>
+						<a href="/tools/website-embedder">Website embedder</a><br>
+						<a href="/tools/discord-text-emoji-generator">Discord text emoji generator</a><br>
+						<a href="/tools/javascript-to-bookmarklet">Javascript to bookmarklet</a><br>
+						<a href="/tools/letter-lookalike-generator">Letter lookalike generator</a><br>
+						<a href="/tools/pi-calculator">Pi calculator</a><br>
+						<a href="/tools/giant-number">Giant number calculator</a><br>
+						<a href="/tools/cps-test">CPS test</a><br>
+						<a href="/tools/length-comparer">Length comparer</a><br>
+						<a href="/tools/wordle-solver">Wordle solver</a><br>
+						<a href="/tools/nft-painter">NFT painter</a><br>
+						<a href="/tools/graph-paper">Graph paper (not working)</a><br>
+						<a href="/tools/request-sender">Request sender</a><br>
+						<a href="/tools/teacher-translator">Teacher translator</a><br>
+						<a href="/tools/graphing-calculator">Graphing calculator</a><br>
+						<a href="/tools/bezier-doer">Bezier doer</a>
 					</div>
 				</div>
-				<!--<div class="category category-trash">
-					<h2>Trash stuff/unfinished (16)</h2>
-					<hr>
-					<div class="buttons">
-						<a href="./snake">Snake</a><br>
-						<a href="./3d-image">3D image</a><br>
-						<a href="./big-techifier">Big techifier</a><br>
-						<a href="./ascii-game">Ascii game not working</a><br>
-						<a href="./chrome-simulator">Chrome simulator</a><br>
-						<a href="./tellraw-tester">Tellraw tester not working</a><br>
-						<a href="./commentifier">Commentifier</a><br>
-						<a href="./tic-tac-toe">Tic tac toe</a><br>
-						<a href="./nvidia-gaugan/gaugan.org/gaugan2">nvidia gaugan not working</a><br>
-						<a href="./javascript-viewer">Javascript viewer not working</a><br>
-						<a href="./hex-editor">Hex editor not working</a><br>
-						<a href="./canvas">Canvas platformer but trash</a><br>
-						<a href="./platformer">Platformer</a><br>
-						<a href="./lstm-chatbot">Larry sam tim mark chatbot</a><br>
-						<a href="./fat-guy">Fat guy</a><br>
-						<a href="./fake-terminal">Fake terminal</a><br>
-					</div>
-				</div>-->
 			</section>
 			<section id="blogs">
 				
 			</section>
 			<section id="games">
 				<div class="category category-games">
-					<h2>Games (7)</h2>
+					<h2>Games (8)</h2>
 					<hr>
 					<div class="buttons">
-						<a href="./forest-simulator-3d">Forest simulator 3D</a><br>
-						<a href="./mining-simulator">Mining simulator</a><br>
-						<a href="./virus-simulator">Virus simulator</a><br>
-						<a href="./piano-tiles">Piano tiles</a><br>
-						<a href="./platformer-simulator">Platformer Simulator</a><br>
-						<a href="./skyrising-simulator">Skyrising Simulator</a><br>
-						<a href="./agar.io">Agar.io</a>
+						<a href="/games/forest-simulator-3d">Forest simulator 3D</a><br>
+						<a href="/games/mining-simulator">Mining simulator</a><br>
+						<a href="/games/virus-simulator">Virus simulator</a><br>
+						<a href="/games/piano-tiles">Piano tiles</a><br>
+						<a href="/games/platformer-simulator">Platformer Simulator</a><br>
+						<a href="/games/skyrising-simulator">Skyrising Simulator</a><br>
+						<a href="/games/agar.io">Agar.io</a><br>
+						<a href="/games/fat-guy">Fat guy</a>
 					</div>
 				</div>
 			</section>
@@ -305,8 +319,8 @@ window.addEventListener("load", main);
 						<td>3D</td>
 					</tr>
 					<tr>
-						<td><a href="https://drive.google.com/drive/folders/1AESkYlVgcIqJfHP0ujRDkRXE7dtTRi9C?usp=drive_link" class="external">Seasons 1.31</a></td>
-						<td>Seasons map with fall, winter, and spring</td>
+						<td><a href="https://drive.google.com/drive/folders/1AESkYlVgcIqJfHP0ujRDkRXE7dtTRi9C?usp=drive_link" class="external">Seasons</a></td>
+						<td>Seasons map with fall, winter, spring, and summer</td>
 						<td>Easy to hard</td>
 						<td>5 default maps</td>
 						<td>2D and 2.5D</td>
@@ -352,6 +366,13 @@ window.addEventListener("load", main);
 						<td>...</td>
 						<td>...</td>
 						<td>3D</td>
+					</tr>
+					<tr>
+						<td><a class="external disabled">Interior/Exterior</a></td>
+						<td>Coming soon</td>
+						<td>...</td>
+						<td>...</td>
+						<td>2.5D</td>
 					</tr>
 				</table>
 			</section>

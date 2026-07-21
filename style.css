@@ -20,36 +20,11 @@ body {
 	padding-left: max(10px, min(calc(50vw - 33vh), 15vw));
 	padding-right: max(10px, min(calc(50vw - 33vh), 15vw));
 	background-image: url("./background.png");
+	background-size: 200px 200px;
 }
 main {
 	position: relative;
 	width: 100%;
-}
-a {
-	display: inline-block;
-	background-color: #cc9999;
-	color: white;
-	padding: 0.8vh;
-	text-decoration: none;
-	border-radius: 5px;
-	border: 3px ridge #666666;
-	box-shadow: 2px 2px 2px gray, inset 5px 5px 10px #666666;
-	text-shadow: rgba(0, 0, 0, 0.2) 3px 2px 2px;
-	transition-duration: 0.1s;
-	margin: 2px;
-	user-select: none;
-}
-a.disabled {
-	pointer-events: none;
-	color: #DDDDDD;
-}
-a:hover {
-	color: cyan;
-	background-color: #888888;
-	text-shadow: 0px 0px 3px white;
-} 
-a:active {
-	background-color: #777777;
 }
 h2 {
 	margin: 0;

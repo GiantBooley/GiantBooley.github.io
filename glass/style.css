@@ -1,0 +1,12 @@
+body {
+	background-color: #dddddd;
+	font-family: sans-serif;
+	padding-left: 300px;
+	padding-right: 300px;
+}
+div#settings {
+	background-color: #cccccc;
+	border-radius: 3px;
+	margin: 5px;
+	padding: 5px;
+}

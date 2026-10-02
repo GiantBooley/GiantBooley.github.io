@@ -8,6 +8,7 @@
 		<style>
 			div.project {
 				border-top: 2px solid #D0A090;
+				padding-top: 5px;
 			}
 			div.category-header {
 				display: flex;
@@ -32,6 +33,108 @@
 			div.expandable-category.expanded img.category-arrow {
 				transform: rotate(180deg);
 			}
+			div#links {
+				display: flex;
+				flex-direction: row;
+			}
+			a.account {
+				text-decoration: none;
+				background-color: black;
+				color: white;
+				width: 50px;
+				height: 50px;
+				display: inline-flex;
+				flex-direction: row;
+				align-items: center;
+				justify-content: center;
+				vertical-align: top;
+				padding: 10px;
+				border-radius: 13px;
+				margin: 2px;
+			}
+			a.account:hover {
+				background-color: #553533;
+				outline: 2px solid #efefef;
+				box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.2);
+			}
+			a.account img {
+				width: 100%;
+			}
+			div#banner {
+				display: flex;
+				flex-direction: row;
+				align-items: center;
+				justify-content: space-between;
+				flex-wrap: wrap;
+			}
+			div.images {
+				width: 100%;
+			}
+			div.images img {
+				width: calc(33% - 5px);
+				border-radius: 5px;
+			}
+			@media (max-width: 768px) {
+				div.images img {
+					width: calc(50% - 5px);
+				}
+			}
+
+			div.map {
+				border-radius: 10px;
+				background-size: cover;
+				background-position: center;
+				height: 200px;
+				color: white;
+				padding: 10px;
+				margin: 5px;
+				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+			}
+			div.map > div.description {
+				background-color: rgba(0, 0, 0, 0.4);
+				border-radius: 10px;
+				padding: 5px;
+				width: max(50%, 300px);
+				max-width: calc(100% - 60px);
+				backdrop-filter: blur(4px);
+			}
+			div.map > div.description > h3 {
+				font-size: 2em;
+			}
+			div.map > a.download {
+				background-color: rgba(0, 0, 0, 0.4);
+				border-radius: 10px;
+				padding: 5px;
+				width: 50px;
+				height: 50px;
+				backdrop-filter: blur(5px);
+				display: flex;
+				flex-direction: row;
+				justify-content: center;
+				align-items: center;
+			}
+			div.map > a.download:hover {
+				background-color: rgba(30, 30, 30, 0.4);
+				outline: 2px solid #efefef;
+				box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.2);
+			}
+
+			div.project-card {
+				border-radius: 10px;
+				background-size: cover;
+				background-position: center;
+				color: white;
+				padding: 10px;
+				margin: 5px;
+			}
+			div.project-card > div.description {
+				background-color: rgba(0, 0, 0, 0.4);
+				border-radius: 10px;
+				padding: 5px;
+				backdrop-filter: blur(4px);
+			}
 		</style>
 		<link rel="stylesheet" href="/style.css">
 		<script>
@@ -54,93 +157,146 @@ document.addEventListener("DOMContentLoaded", main);
 	<body>
 		<main>
 			<section id="about">
-				<h1>GiantBooley's Website</h1>
+				<div id="banner">
+					<h1>GiantBooley's Website</h1>
+					<div id="links">
+						<a href="https://sketchfab.com/giantbooley" class="account" target="_blank"><img src="/logos/sketchfab-logo-white.png" alt="Sketchfab"/></a>
+						<a href="https://github.com/GiantBooley/" class="account" target="_blank"><img src="/logos/GitHub_Invertocat_White.png" alt="GitHub"/></a>
+						<a href="https://www.youtube.com/@GiantBooley" class="account" target="_blank"><img src="/logos/yt_icon_white_digital.png" alt="YouTube"/></a>
+						<a href="#" class="account"><img src="/icons/email-8-svgrepo-com.svg" alt="Email" onclick="let m='mail';location.href=m+'to:g'+m[2]+'antbooley'+'@'+'g'+m+'.com';"/></a>
+					</div>
+				</div>
 				<p>This is my website.</p>
-				<h2>Links</h2>
-				<a href="https://github.com/GiantBooley/" class="external">GitHub Account</a><br>
-				<a href="https://www.youtube.com/@GiantBooley" class="external">YouTube Channel</a><br>
-				<a href="./bookmarklets">Bookmarklets</a><br>
-				<a href="./map">Map Making Tutorial</a><br>
+			</section>
+			<hr>
+			<section>
+				<h1>Showcase</h1>
+				<div class="project-card" style="background-image: url(/nitrn-renders/background.jpg);">
+					<div class="description">
+						<h2>NITRN (<u>N</u>ITRN <u>I</u>s <u>T</u>his <u>R</u>enderer's <u>N</u>ame) - Unreleased</h2>
+						<p>3D raymarcher I made around June 2024. Uses C++, OpenGL, GLFW, and Dear ImGui.</p>
+						<p>Features:</p>
+						<ul>
+							<li>SDF raymarching &amp; primitive raytracing</li>
+							<li>3D anaglyph &amp; depth of field</li>
+							<li>Save/load</li>
+							<li>Rendering to files</li>
+							<li>Monte Carlo path tracing</li>
+						</ul>
+						<div class="images">
+							<img src="/nitrn-renders/render1.jpg"/>
+							<img src="/nitrn-renders/render2.jpg"/>
+							<img src="/nitrn-renders/render3.jpg"/>
+							<img src="/nitrn-renders/render4.jpg"/>
+							<img src="/nitrn-renders/render5.jpg"/>
+							<img src="/nitrn-renders/render6.jpg"/>
+						</div>
+					</div>
+				</div>
+				<hr>
+				<div>
+					<h2>Getting Over It Maps</h2>
+					<a href="./map">Map Making Tutorial</a><br>
+					<div class="map" style="background-image: url(/map-thumbnails/seasons.jpg)">
+						<div class="description">
+							<h3>Seasons</h3>
+							<p>Very long seasons themed map with spring, summer, fall, and winter as separate scenes. It starts relatively easy and the difficulty increases as you get further.</p>
+						</div>
+						<a href="https://drive.google.com/drive/folders/1AESkYlVgcIqJfHP0ujRDkRXE7dtTRi9C" target="_blank" class="download">
+							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+						</a>
+					</div>
+					<div class="map" style="background-image: url(/map-thumbnails/Oblivion.jpg)">
+						<div class="description">
+							<h3>Oblivion</h3>
+							<p>Short map with abstract graphics. This map took about a month to make.</p>
+						</div>
+						<a href="https://drive.google.com/drive/folders/1dctkX7b04tFCE-vkjXml6jkV30zv469Y" target="_blank" class="download">
+							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+						</a>
+					</div>
+					<div class="map" style="background-image: url(/map-thumbnails/Macrocosm.jpg)">
+						<div class="description">
+							<h3>Macrocosm</h3>
+							<p>Hard space themed map with 10 sections. Sections include steampunk factory, mars, and frozen world. This is one of the longest maps with a single scene.</p>
+						</div>
+						<a href="https://drive.google.com/drive/folders/1bU5YbPpLm61f7Nk_rdWK32BM5Y9hiRxe" target="_blank" class="download">
+							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+						</a>
+					</div>
+					<div class="map" style="background-image: url('/map-thumbnails/Negative Space.jpg')">
+						<div class="description">
+							<h3>Negative Space</h3>
+							<p>Map with inverted hitboxes so you collide with negative space instead of positive space.</p>
+						</div>
+						<a href="https://drive.google.com/drive/folders/1mqYF5_xTuZ0znCGuCR80StKu8lxHfnZg" target="_blank" class="download">
+							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+						</a>
+					</div>
+					<div class="map" style="background-image: url(/map-thumbnails/Wastelands.jpg)">
+						<div class="description">
+							<h3>Wastelands</h3>
+							<p>Fully 3D nature themed map with different environments such as desert and forest. Contains a pyramid.</p>
+						</div>
+						<a href="https://drive.google.com/drive/folders/1zjmuUY3wJvjeHwwHKFTNpbeUBA8KitTx" target="_blank" class="download">
+							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+						</a>
+					</div>
+					<div class="map" style="background-image: url(/map-thumbnails/thanksgiving.jpg)">
+						<div class="description">
+							<h3>Thanksgiving</h3>
+							<p>The first map that I released. Thanksgiving is a short map with a few food sections.</p>
+						</div>
+						<a href="https://drive.google.com/drive/folders/1AESkYlVgcIqJfHP0ujRDkRXE7dtTRi9C" target="_blank" class="download">
+							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+						</a>
+					</div>
+				</div>
+				<hr>
+				<div>
+					<h2>Backrooms renders</h2>
+					<p>Realistic backrooms environments made in Blender 3D. I made these over the course of like 3 years and improved on the same file.</p>
+					<div class="images">
+						<img src="/backrooms-renders/room 148.jpg"/>
+						<img src="/backrooms-renders/room 155.jpg"/>
+						<img src="/backrooms-renders/room 159.jpg"/>
+						<img src="/backrooms-renders/room 160.jpg"/>
+						<img src="/backrooms-renders/room 162b.jpg"/>
+						<img src="/backrooms-renders/room 179.jpg"/>
+					</div>
+				</div>
 			</section>
 			<hr>
 			<section id="projects">
 				<h1>Web tools</h1>
 				<div class="expandable-category">
 					<div class="category-header">
-						<h2>Thingamabobs/Gizmos/Demos (20)</h2>
-						<img src="/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
+						<h2>Gizmos/Demos</h2>
+						<img src="/icons/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
 					</div>
 					<div class="buttons">
-						<div class="project">
-							<a href="/thingamabobs/fake-hack-decimal">Fake hack decimal</a><br>
-							<p>Black and green "hacking" animation with numbers 0-9</p>
-						</div>
-						<div class="project">
-							<a href="/thingamabobs/fake-hack-binary">Fake hack binary</a><br>
-							<p>Black and green "hacking" animation with 0s and 1s</p>
-						</div>
-						<div class="project">
-							<a href="/thingamabobs/fake-hack-code">Fake hack code</a><br>
-							<p>Black and green "hacking" animation with random lines of Java code</p>
-						</div>
-						<div class="project">
-							<a href="/thingamabobs/click-the-button">Click the button</a><br>
-							<p>Button that is impossible to click</p>
-						</div>
 						<div class="project">
 							<a href="/thingamabobs/bob-console">Bob console</a><br>
 							<p>Terminal test thing</p>
 						</div>
 						<div class="project">
-							<a href="/thingamabobs/light-bulb">Light bulb</a><br>
+							<a href="/thingamabobs/light-bulb">Light bulb (CSS demo)</a><br>
 							<p>CSS light bulb that you can turn on and off and change brightness</p>
 						</div>
 						<div class="project">
-							<a href="/thingamabobs/paint">Paint</a><br>
-							<p>Paint program that draws with HTML elements, the worst paint program ever made</p>
-						</div>
-						<div class="project">
-							<span href="/thingamabobs/infinite">Infinite (/thingamabobs/infinite)</span><br>
-							<p>Opens infinite tabs by opening new tabs in a while loop. I made this &lt;span&gt; instead of &lt;a&gt; so you don't accidentally go there</p>
-						</div>
-						<div class="project">
-							<a href="/thingamabobs/fractals">Fractals</a><br>
-							<p>Infinite fractal zooming animation with menger sponge and sierpinski triangle</p>
-						</div>
-						<div class="project">
-							<a href="/thingamabobs/movable-box">Movable box</a><br>
-							<p>Random demo with a box that can be moved and resized</p>
-						</div>
-						<div class="project">
-							<a href="/thingamabobs/spinning-thing-with-a-perfect-fit">Spinning thing</a><br>
+							<a href="/thingamabobs/spinning-thing-with-a-perfect-fit">Spinning thing (CSS demo)</a><br>
 							<p>Rotating webpage that resizes to fit into the viewport exactly</p>
 						</div>
 						<div class="project">
-							<a href="/thingamabobs/loading-sign-1">Loading sign 1</a><br>
+							<a href="/thingamabobs/loading-sign-1">Loading sign 1 (CSS demo)</a><br>
 							<p>CSS loading sign demo</p>
 						</div>
 						<div class="project">
-							<a href="/thingamabobs/loading-sign-2">Loading sign 2</a><br>
+							<a href="/thingamabobs/loading-sign-2">Loading sign 2 (CSS demo)</a><br>
 							<p>CSS loading sign demo</p>
 						</div>
 						<div class="project">
-							<a href="/thingamabobs/terrain-generator">Terrain generator</a><br>
-							<p>2D terrain generator demo using random noise</p>
-						</div>
-						<div class="project">
-							<a href="/thingamabobs/no-signal">No signal</a><br>
-							<p>No signal box bouncing on the edge of the screen. I made this to see when it would hit the corner</p>
-						</div>
-						<div class="project">
-							<a href="/thingamabobs/pung">Pung</a><br>
-							<p>Pong game against unbeatable computer. It's insanely slow because it uses HTML elements instead of objects</p>
-						</div>
-						<div class="project">
-							<a href="/thingamabobs/ames-window">Ames window</a><br>
-							<p>Rotating ames window</p>
-						</div>
-						<div class="project">
-							<a href="/thingamabobs/no-close">No close window</a><br>
+							<a href="/thingamabobs/no-close">Unclosable tab</a><br>
 							<p>Automatically reopens a child tab when it's closed</p>
 						</div>
 						<div class="project">
@@ -155,56 +311,48 @@ document.addEventListener("DOMContentLoaded", main);
 				</div>
 				<div class="expandable-category">
 					<div class="category-header">
-						<h2>AI Stuff (7)</h2>
-						<img src="/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
+						<h2>AI Stuff</h2>
+						<img src="/icons/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
 					</div>
 					<div class="buttons">
 						<div class="project">
-							<a href="/ai/bob-chatbot">Bob chatbot V1</a><br>
-							<p>Markov chain style chatbot with predefined messages</p>
+							<a href="/ai/bob-chatbot-v2">Bob chatbot</a><br>
+							<p>The second version of a Markov chain chatbot. Access the first version <a href="/ai/bob-chatbot">here</a></p>
 						</div>
 						<div class="project">
-							<a href="/ai/bob-chatbot-v2">Bob chatbot V2</a>
-							<p>Markov chain style chatbot without predefined messages</p>
+							<a href="/ai/word-generator">Text extender</a><br>
+							<p>Extends text using Markov chain algorithm, replicating patterns in the input text</p>
 						</div>
 						<div class="project">
-							<a href="/ai/word-generator">Word generator</a><br>
-							<p>Extends text using Markov chain algorithm</p>
+							<a href="/ai/dino-ai">Dinosaur game AI (neural network)</a><br>
+							<p>Jumping dinosaur game AI using multilayer perceptron and evolutionary algorithm (the other version is better)</p>
 						</div>
 						<div class="project">
-							<a href="/ai/brain">Neural network cube</a><br>
-							<p>Cube that randomly moves around using a neural network</p>
+							<a href="/ai/dino-ai-vector-distance">Dinosaur game AI (nearest neighbor)</a><br>
+							<p>Jumping dinosaur game AI using vector distances</p>
 						</div>
 						<div class="project">
-							<a href="/ai/dino-ai">Dinosaurous rex artificial intelligence</a><br>
-							<p>Chrome dinosaur game neural network (the distance version is better)</p>
-						</div>
-						<div class="project">
-							<a href="/ai/dino-ai-vector-distance">Dinosaurous rex artificial intelligence vector distance</a><br>
-							<p>Chrome dinosaur game AI using vector distances</p>
-						</div>
-						<div class="project">
-							<a href="/ai/keyboard-maker">Keyboard maker</a><br>
+							<a href="/ai/keyboard-maker">Keyboard optimizer</a><br>
 							<p>Optimizer for keyboard layouts using random changes for each step</p>
 						</div>
 					</div>
 				</div>
 				<div class="expandable-category">
 					<div class="category-header">
-						<h2>Tools stuff (16)</h2>
-						<img src="/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
+						<h2>Tools</h2>
+						<img src="/icons/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
 					</div>
 					<div class="buttons">
 						<div class="project">
 							<a href="/tools/other-tools">Other tools</a><br>
-							<p>Random calculators and things like magic 8 ball</p>
+							<p>Random calculators and things like magic 8 ball. The first website I ever made</p>
 						</div>
 						<div class="project">
 							<a href="/tools/url-encode-decode">URL encoder and decoder</a><br>
 							<p>Encodes and decodes URI strings</p>
 						</div>
 						<div class="project">
-							<a href="/tools/number-shortener">Number shortener</a><br>
+							<a href="/tools/number-shortener">Convert large numbers to word form</a><br>
 							<p>Converts decimal numbers into the large number name like billion</p>
 						</div>
 						<div class="project">
@@ -228,28 +376,8 @@ document.addEventListener("DOMContentLoaded", main);
 							<p>Converts text into letters that look exactly the same but are different</p>
 						</div>
 						<div class="project">
-							<a href="/tools/pi-calculator">Pi calculator</a><br>
-							<p>Calculates pi using a random algorithm</p>
-						</div>
-						<div class="project">
-							<a href="/tools/giant-number">Giant number calculator</a><br>
-							<p>Perform operations on bigint</p>
-						</div>
-						<div class="project">
-							<a href="/tools/cps-test">CPS test</a><br>
-							<p>Find number of clicks per second by clicking a button</p>
-						</div>
-						<div class="project">
-							<a href="/tools/length-comparer">Length comparer</a><br>
-							<p>Compares the length of 2 or more strings</p>
-						</div>
-						<div class="project">
 							<a href="/tools/wordle-solver">Wordle solver</a><br>
 							<p>Solves wordles using known guesses and the list of possible answers</p>
-						</div>
-						<div class="project">
-							<a href="/tools/nft-painter">Paint V2</a><br>
-							<p>Better version of paint that uses HTML canvas instead of elements</p>
 						</div>
 						<div class="project">
 							<a href="/tools/graphing-calculator">Graphing calculator</a><br>
@@ -259,12 +387,20 @@ document.addEventListener("DOMContentLoaded", main);
 							<a href="/tools/bezier-doer">Bezier doer</a>
 							<p>Visualizes the path of a Bezier curve using an unlimited number of points</p>
 						</div>
+						<div class="project">
+							<a href="/tools/log-distortion">Logarithmic image distortion</a>
+							<p>Distort an image to squeeze most of it to the bottom to be used in synths</p>
+						</div>
+						<div class="project">
+							<a href="/bookmarklets">Bookmarklets</a>
+							<p>Collection of bookmarkets that execute JavaScript code from a bookmark</p>
+						</div>
 					</div>
 				</div>
 				<div class="expandable-category">
 					<div class="category-header">
-						<h2>Games (8)</h2>
-						<img src="/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
+						<h2>Games</h2>
+						<img src="/icons/arrow_export.svg" width="40px" height="40px" class="category-arrow" />
 					</div>
 					<div class="buttons">
 						<div class="project">
@@ -280,10 +416,6 @@ document.addEventListener("DOMContentLoaded", main);
 							<p>Demo simulation of a virus spreading throughout a population</p>
 						</div>
 						<div class="project">
-							<a href="/games/piano-tiles">Piano tiles</a><br>
-							<p>Piano tiles</p>
-						</div>
-						<div class="project">
 							<a href="/games/platformer-simulator">Platformer Simulator</a><br>
 							<p>Platformer game with 10 stages. My personal best is 40 seconds.</p>
 						</div>
@@ -292,117 +424,11 @@ document.addEventListener("DOMContentLoaded", main);
 							<p>Game with 1 input where you move left and right while rising and avoiding clouds. All the levels are randomly generated. Inspired by a random game I saw on MIT Scratch</p>
 						</div>
 						<div class="project">
-							<a href="/games/fat-guy">Fat guy</a>
-							<p>Unfinished game. This is a recreation of my game on MIT Scratch of the same name. Inspired by Hungry Shark Evolution.</p>
-						</div>
-						<div class="project">
-							<a href="/games/coin-tycoon">Coin Tycoon</a>
+							<a href="/games/coin-tycoon">Coin Tycoon (unfinished)</a>
 							<p>Unfinished game. Originally meant to be a survival game where enemies can break walls. Inspired by Hungry Shark Evolution, Bad Piggies, and Minecraft.</p>
 						</div>
 					</div>
 				</div>
-			</section>
-			<hr>
-			<section id="blogs">
-				<h1>Blogs</h1>
-				<p>I might delete this section if I don't do anything</p>
-			</section>
-			<hr>
-			<section id="goi-maps">
-				<h1>My Getting Over It maps</h1>
-				<h2>Style legend</h2>
-				<p>2D = sprites</p>
-				<p>2.5D = orthographic 3D models</p>
-				<p>3D = perspective 3D models</p>
-				<table>
-					<tr>
-						<th>Map</th><th>Description</th><th>Difficulty</th><th>Length</th><th>Style</th>
-					</tr>
-					<tr>
-						<td><a href="https://drive.google.com/drive/folders/14ThgGe7TrJrKrBdBITMEHOZDygUl4_6o?usp=drive_link" class="external">Thanksgiving</a></td>
-						<td>Thanksgiving map</td>
-						<td>Easy</td>
-						<td>0.5 default maps</td>
-						<td>2D+3D</td>
-					</tr>
-					<tr>
-						<td><a href="https://drive.google.com/drive/folders/13wuDHCVdEWbaCbcNLij7uapwNKNovRDa?usp=drive_link" class="external">Jumpshed</a></td>
-						<td>Practice map</td>
-						<td></td>
-						<td>10 jump categories</td>
-						<td>2D</td>
-					</tr>
-					<tr>
-						<td><a href="https://drive.google.com/drive/folders/1i02UzBHwYEF2svtHCpqXG7gYcD7mCK2Q?usp=drive_link" class="external">Goibiaafmland</a></td>
-						<td>April fools map 2024</td>
-						<td>Insanely hard</td>
-						<td>1.5 default maps</td>
-						<td>2D+2.5D</td>
-					</tr>
-					<tr>
-						<td><a href="https://drive.google.com/drive/folders/1zjmuUY3wJvjeHwwHKFTNpbeUBA8KitTx?usp=drive_link" class="external">Wastelands</a></td>
-						<td>Nature themed map</td>
-						<td>Easy</td>
-						<td>2 default maps wide</td>
-						<td>3D</td>
-					</tr>
-					<tr>
-						<td><a href="https://drive.google.com/drive/folders/1AESkYlVgcIqJfHP0ujRDkRXE7dtTRi9C?usp=drive_link" class="external">Seasons</a></td>
-						<td>Seasons map with fall, winter, spring, and summer</td>
-						<td>Easy to hard</td>
-						<td>5 default maps</td>
-						<td>2D+2.5D</td>
-					</tr>
-					<tr>
-						<td><a href="https://drive.google.com/drive/folders/1bU5YbPpLm61f7Nk_rdWK32BM5Y9hiRxe?usp=drive_link" class="external">Macrocosm</a></td>
-						<td>Space map with 10 sections (update coming soon)</td>
-						<td>Hard</td>
-						<td>3.5 default maps</td>
-						<td>2D+2.5D</td>
-					</tr>
-					<tr>
-						<td><a href="https://drive.google.com/drive/folders/1mqYF5_xTuZ0znCGuCR80StKu8lxHfnZg?usp=drive_link" class="external">Negative Space</a></td>
-						<td>Antique themed map with inverted colliders</td>
-						<td>Easy</td>
-						<td>1 default map</td>
-						<td>2D</td>
-					</tr>
-					<tr>
-						<td><a href="https://drive.google.com/drive/folders/1dctkX7b04tFCE-vkjXml6jkV30zv469Y?usp=drive_link" class="external">Oblivion</a></td>
-						<td>Map with noise section</td>
-						<td>Medium</td>
-						<td>0.5 default maps</td>
-						<td>2D</td>
-					</tr>
-					<tr>
-						<td><a href="https://drive.google.com/drive/folders/1q3r8h_ggCRo6i07rb2t0qdzj4JAeIHqg?usp=drive_link" class="external">？</a></td>
-						<td>April fools 2025</td>
-						<td>Hard (has rng)</td>
-						<td>long</td>
-						<td>2D</td>
-					</tr>
-					<tr>
-						<td><a href="https://drive.google.com/drive/folders/1RAlvIaF_-arm7WLtE9MTDiUpZq7qtP-F?usp=drive_link" class="external">Winter 2144</a></td>
-						<td>Zero friction map</td>
-						<td>Hard</td>
-						<td>Short</td>
-						<td>2D</td>
-					</tr>
-					<tr>
-						<td><a class="external disabled">Sundown</a></td>
-						<td>Coming soon</td>
-						<td>...</td>
-						<td>...</td>
-						<td>3D</td>
-					</tr>
-					<tr>
-						<td><a class="external disabled">Interior/Exterior</a></td>
-						<td>Coming soon</td>
-						<td>...</td>
-						<td>...</td>
-						<td>2D</td>
-					</tr>
-				</table>
 			</section>
 		</main>
 	</body>

@@ -2,13 +2,10 @@
 <html>
 	<head>
 		<title>Map Tutorial</title>
-		<link rel="stylesheet" href="../style.css">
+		<link rel="stylesheet" href="/style.css">
 	</head>
 	<body>
-		<div id="background-container">
-			<div id="background"></div>
-		</div>
-		<div id="main">
+		<main>
 			<h1>Map Tutorial</h1>
 			<hr>
 			<div class="category">
@@ -18,8 +15,8 @@
 					<h3>Unity Setup</h3>
 					<p>First, you have to install Unity, these are the versions you can use to make maps:</p>
 					<ul>
-						<li>1.6: <a href="https://unity.com/releases/editor/whats-new/2022.3.6">2022.3.6f1</a></li>
-						<li>1.7: <a href="https://unity.com/releases/editor/whats-new/2022.3.25">2022.3.25f1</a></li>
+						<li>1.6: <a href="https://unity.com/releases/editor/whats-new/2020.3.6">2020.3.6f1</a></li>
+						<li>1.7: <a href="https://unity.com/releases/editor/whats-new/2020.3.25">2020.3.25f1</a></li>
 					</ul>
 					<p>Then, create a new Unity 3D project and make sure to use one of the correct Unity versions or else your map won't load.</p>
 					<p>Change the project color space from gamma to linear to have materials not look desaturated <code>Edit > Project settings > Player > Color space</code></p>
@@ -52,7 +49,7 @@
 					
 					<pre>object with collider
 |
------object with mesh</pre>
++--object with mesh</pre>
 					<br>
 					<p>The collider object is outside of the mesh object because colliders shouldn't be rotated in 3D space.</p>
 					<p>To add the collider, add an empty object with a Z of zero and then copy and paste the mesh object's X and Y positions into the empty object's X and Y positions. Drag the mesh object into the collider object.</p>
@@ -79,13 +76,13 @@
 				<hr>
 				<div>
 					<p>Maps are stored in .scene files, which are unity asset bundles. Right click anywhere in the asset explorer, then click "Build to Level Asset Bundle". When it finishes bundling, right click the asset explorer then click <code>Show in explorer</code> and navigate to the .scene file. Open Steam, then click the cog wheel icon on the Getting Over It steam page, click open file location. Move the .scene file into the Getting Over It/Levels folder.</p>
-					<h3>TXT File (IMPORTANT)</h3>
-					<p>Create a .txt file with the same name as your .scene file. In the file, add <code>mode=r</code> if you want to make your map replace the default map instead of adding onto it. You can use either .txt or .mdata as the file extension.</p>
-					<p>Example txt file:</p>
+					<h3>MDATA File</h3>
+					<p>Create a .mdata file with the same name as your .scene file. In the file, add <code>mode=r</code> if you want to make your map replace the default map instead of adding onto it. You can use either .txt or .mdata as the file extension.</p>
+					<p>Example mdata file:</p>
 					<pre>mode=r
 credit=dell
 bgfarplane=3000</pre>
-					<p>The settings you can use in the txt file:</p>
+					<p>The settings you can use in the mdata file:</p>
 					<table>
 						<tr><th>Setting</th><th>Value</th><th>Description</th></tr>
 						<tr><td>credit</td><td>string</td><td>map author</td></tr>
@@ -102,12 +99,6 @@ bgfarplane=3000</pre>
 						<tr><td>hammermat</td><td>integer</td><td>prevent hammer from rendering in front of everything if greater than zero</td></tr>
 				</div>
 			</div>
-		</div>
+		</main>
 	</body>
-	<script>
-		window.addEventListener("scroll", function(e){
-			document.getElementById("background-container").style.transform = "translateY(" + (window.scrollY * 0.7) + "px)";
-			document.getElementById("background-container").style.height = document.body.offsetHeight + "px";
-		});
-	</script>
 </html>

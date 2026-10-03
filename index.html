@@ -103,7 +103,12 @@
 			div.map > div.description > h3 {
 				font-size: 2em;
 			}
-			div.map > a.download {
+			div.map > div.map-links {
+				display: flex;
+				flex-direction: column;
+				gap: 5px;
+			}
+			div.map > div.map-links a {
 				background-color: rgba(0, 0, 0, 0.4);
 				border-radius: 10px;
 				padding: 5px;
@@ -115,7 +120,7 @@
 				justify-content: center;
 				align-items: center;
 			}
-			div.map > a.download:hover {
+			div.map > div.map-links a:hover {
 				background-color: rgba(30, 30, 30, 0.4);
 				outline: 2px solid #efefef;
 				box-shadow: 3px 3px 15px rgba(0, 0, 0, 0.2);
@@ -202,54 +207,84 @@ document.addEventListener("DOMContentLoaded", main);
 							<h3>Seasons</h3>
 							<p>Very long seasons themed map with spring, summer, fall, and winter as separate scenes. It starts relatively easy and the difficulty increases as you get further.</p>
 						</div>
-						<a href="https://drive.google.com/drive/folders/1AESkYlVgcIqJfHP0ujRDkRXE7dtTRi9C" target="_blank" class="download">
-							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
-						</a>
+						<div class="map-links">
+							<a href="https://drive.google.com/drive/folders/1AESkYlVgcIqJfHP0ujRDkRXE7dtTRi9C" target="_blank">
+								<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+							</a>
+							<a href="https://www.youtube.com/watch?v=ffXoPu6F9zs" target="_blank">
+								<img src="/icons/video-frame-play-vertical-svgrepo-com.svg" width="30" height="30" alt="Video" />
+							</a>
+						</div>
 					</div>
 					<div class="map" style="background-image: url(/map-thumbnails/Oblivion.jpg)">
 						<div class="description">
 							<h3>Oblivion</h3>
 							<p>Short map with abstract graphics. This map took about a month to make.</p>
 						</div>
-						<a href="https://drive.google.com/drive/folders/1dctkX7b04tFCE-vkjXml6jkV30zv469Y" target="_blank" class="download">
-							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
-						</a>
+						<div class="map-links">
+							<a href="https://drive.google.com/drive/folders/1dctkX7b04tFCE-vkjXml6jkV30zv469Y" target="_blank" class="download">
+								<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+							</a>
+							<a href="https://www.youtube.com/watch?v=BInhE1ndhNk" target="_blank">
+								<img src="/icons/video-frame-play-vertical-svgrepo-com.svg" width="30" height="30" alt="Video" />
+							</a>
+						</div>
 					</div>
 					<div class="map" style="background-image: url(/map-thumbnails/Macrocosm.jpg)">
 						<div class="description">
 							<h3>Macrocosm</h3>
 							<p>Hard space themed map with 10 sections. Sections include steampunk factory, mars, and frozen world. This is one of the longest maps with a single scene.</p>
 						</div>
-						<a href="https://drive.google.com/drive/folders/1bU5YbPpLm61f7Nk_rdWK32BM5Y9hiRxe" target="_blank" class="download">
-							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
-						</a>
+						<div class="map-links">
+							<a href="https://drive.google.com/drive/folders/1bU5YbPpLm61f7Nk_rdWK32BM5Y9hiRxe" target="_blank">
+								<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+							</a>
+							<a href="https://www.youtube.com/watch?v=Oh0aWr5v0PQ" target="_blank">
+								<img src="/icons/video-frame-play-vertical-svgrepo-com.svg" width="30" height="30" alt="Video" />
+							</a>
+						</div>
 					</div>
 					<div class="map" style="background-image: url('/map-thumbnails/Negative Space.jpg')">
 						<div class="description">
 							<h3>Negative Space</h3>
 							<p>Map with inverted hitboxes so you collide with negative space instead of positive space.</p>
 						</div>
-						<a href="https://drive.google.com/drive/folders/1mqYF5_xTuZ0znCGuCR80StKu8lxHfnZg" target="_blank" class="download">
-							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
-						</a>
+						<div class="map-links">
+							<a href="https://drive.google.com/drive/folders/1mqYF5_xTuZ0znCGuCR80StKu8lxHfnZg" target="_blank">
+								<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+							</a>
+							<a href="https://www.youtube.com/watch?v=lCbSYjYrmJw" target="_blank">
+								<img src="/icons/video-frame-play-vertical-svgrepo-com.svg" width="30" height="30" alt="Video" />
+							</a>
+						</div>
 					</div>
 					<div class="map" style="background-image: url(/map-thumbnails/Wastelands.jpg)">
 						<div class="description">
 							<h3>Wastelands</h3>
 							<p>Fully 3D nature themed map with different environments such as desert and forest. Contains a pyramid.</p>
 						</div>
-						<a href="https://drive.google.com/drive/folders/1zjmuUY3wJvjeHwwHKFTNpbeUBA8KitTx" target="_blank" class="download">
-							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
-						</a>
+						<div class="map-links">
+							<a href="https://drive.google.com/drive/folders/1zjmuUY3wJvjeHwwHKFTNpbeUBA8KitTx" target="_blank">
+								<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+							</a>
+							<a href="https://www.youtube.com/watch?v=qw9M5ejoZVs" target="_blank">
+								<img src="/icons/video-frame-play-vertical-svgrepo-com.svg" width="30" height="30" alt="Video" />
+							</a>
+						</div>
 					</div>
 					<div class="map" style="background-image: url(/map-thumbnails/thanksgiving.jpg)">
 						<div class="description">
 							<h3>Thanksgiving</h3>
 							<p>The first map that I released. Thanksgiving is a short map with a few food sections.</p>
 						</div>
-						<a href="https://drive.google.com/drive/folders/1AESkYlVgcIqJfHP0ujRDkRXE7dtTRi9C" target="_blank" class="download">
-							<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
-						</a>
+						<div class="map-links">
+							<a href="https://drive.google.com/drive/folders/1AESkYlVgcIqJfHP0ujRDkRXE7dtTRi9C" target="_blank">
+								<img src="/icons/download-minimalistic-svgrepo-com.svg" width="30" height="30" alt="Download" />
+							</a>
+							<a href="https://www.youtube.com/watch?v=m92VekTrrPk" target="_blank">
+								<img src="/icons/video-frame-play-vertical-svgrepo-com.svg" width="30" height="30" alt="Video" />
+							</a>
+						</div>
 					</div>
 				</div>
 				<hr>
